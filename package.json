@@ -10,7 +10,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.20",
-    "telegraf": "^4.16.2",
-    "esbuild": "^0.20.1"
+    "esbuild": "^0.20.1",
+    "fastify": "^4.26.1",
+    "telegraf": "^4.16.2"
   }
 }

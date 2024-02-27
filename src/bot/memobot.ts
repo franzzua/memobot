@@ -6,7 +6,10 @@ if (!process.env.BOT_TOKEN)
 if(!process.env.PUBLIC_URL)
     throw new Error(`WEBHOOK_ADDRESS is not defined`);
 
-export const bot = new Telegraf(process.env.BOT_TOKEN);
+export const bot = new Telegraf(process.env.BOT_TOKEN, {
+    telegram: { webhookReply: true },
+});
+bot.telegram.setWebhook(`${process.env.PUBLIC_URL}/api/telegraf/${bot.secretPathComponent()}`)
 // bot.command('oldschool', (ctx) => ctx.reply('Hello'))
 bot.command('menu', Telegraf.reply('λ'))
 // bot.start((ctx) => ctx.reply('Welcome'))
