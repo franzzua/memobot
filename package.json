@@ -3,20 +3,14 @@
   "version": "1.0.0",
   "main": "./dist/main.js",
   "license": "MIT",
-  "type": "module",
   "scripts": {
-    "preinstall": "npm install -g azure-functions-core-tools@4 --unsafe-perm true",
-    "start": "func start --port 5801 --env-file=configs/.env",
-    "build": "node configs/esbuild.js",
-    "watch": "node configs/esbuild.js --watch",
-    "run": "nodemon --env-file=.env ./dist/main.js"
-  },
-  "dependencies": {
-    "@azure/functions": "4.2.0",
-    "telegraf": "^4.16.2"
+    "build": "node configs/esbuild.mjs",
+    "watch": "node configs/esbuild.mjs --watch",
+    "run": "nodemon --env-file=configs/.env ./dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^20.11.20",
+    "telegraf": "^4.16.2",
     "esbuild": "^0.20.1"
   }
 }
