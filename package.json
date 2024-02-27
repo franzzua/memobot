@@ -7,8 +7,7 @@
   "scripts": {
     "preinstall": "npm install -g azure-functions-core-tools@4 --unsafe-perm true",
     "start": "func start --port 5801 --env-file=configs/.env",
-    "build": "tsc",
-    "compile:watch": "tsc -w",
+    "build": "node configs/esbuild.js",
     "watch": "node configs/esbuild.js --watch",
     "run": "nodemon --env-file=.env ./dist/main.js"
   },
