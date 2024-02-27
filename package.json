@@ -1,0 +1,23 @@
+{
+  "name": "memobot",
+  "version": "1.0.0",
+  "main": "./dist/main.js",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "preinstall": "npm install -g azure-functions-core-tools@4 --unsafe-perm true",
+    "start": "func start --port 5801 --env-file=configs/.env",
+    "build": "tsc",
+    "compile:watch": "tsc -w",
+    "watch": "node configs/esbuild.js --watch",
+    "run": "nodemon --env-file=.env ./dist/main.js"
+  },
+  "dependencies": {
+    "@azure/functions": "4.2.0",
+    "telegraf": "^4.16.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.20",
+    "esbuild": "^0.20.1"
+  }
+}
