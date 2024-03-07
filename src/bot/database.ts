@@ -1,24 +1,10 @@
-import {GoogleSpreadsheet, GoogleSpreadsheetWorksheet} from 'google-spreadsheet';
-import {Task} from "./task.store";
-import { JWT } from 'google-auth-library'
+import {GoogleSpreadsheet, GoogleSpreadsheetCell, GoogleSpreadsheetWorksheet} from 'google-spreadsheet';
+import {Message, Task} from "./task.store";
+import {googleKey} from "./google-key";
 import * as process from "node:process";
 
-const privateKeyEnv = process.env.GOOGLE_SHEET_PRIVATE_KEY!;
-let privateKey = ''
-privateKey = '-----BEGIN PRIVATE KEY-----\n';
-for (let i = 0; i < privateKeyEnv.length; i+=64){
-    privateKey += privateKeyEnv.substring(i, i + 64)+'\n';
-}
-privateKey += '-----END PRIVATE KEY-----\n';
-
-const jwt = new JWT({
-    email: process.env.GOOGLE_SHEET_EMAIL,
-    key: privateKey,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
-
 export class MemoDoc{
-    private doc = new GoogleSpreadsheet('1f9D92LKxVTTdAmdCnZ80baqEf76fmJMkP0mKHwZ2pa4', jwt);
+    private doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID!, googleKey);
 
     public async getTasks(){
         await this.doc.loadInfo();
@@ -27,10 +13,10 @@ export class MemoDoc{
         )).flat();
     }
 
-    public async getSheet(task: Task){
+    public async getSheet(task: Message): Promise<MemoSheet>{
         const sheet = this.doc.sheetsById[task.chatId] ?? await this.doc.addSheet({
             sheetId: task.chatId,
-            title: task.userName.toString(),
+            title: task.userName || task.chatId.toString(),
             headerValues: cellNames
         });
         return new MemoSheet(sheet);
@@ -51,39 +37,66 @@ export class MemoSheet {
     constructor(private sheet: GoogleSpreadsheetWorksheet) {
     }
 
-    async getTasks(): Promise<Task[]> {
-        const rows = await this.sheet.getRows({offset: 0});
-        return rows.map(x => ({
-            id: x.rowNumber,
-            userName: this.sheet.title,
-            chatId: this.sheet.sheetId,
-            message: x.get(cellNames[0]),
-            createdAt: new Date(x.get(cellNames[2])),
-            timetable: cellNames.slice(2).map(name => new Date(x.get(name)))
-        } as Task));
-    }
-    async addTask(task: Task){
-        const row = await this.sheet.addRow([
-            task.message,
-            task.createdAt.toISOString(),
-            ...task.timetable.map(x => x.toISOString())
-        ]);
-        task.id = row.rowNumber;
+    async getTasks(): Promise<Message[]> {
+        try {
+            await this.sheet.loadCells();
+            const rows = await this.sheet.getRows({offset: 0});
+            return rows.map(row => ({
+                id: row.rowNumber,
+                userName: this.sheet.title,
+                chatId: this.sheet.sheetId,
+                message: row.get(cellNames[0]),
+                createdAt: new Date(row.get(cellNames[2])),
+                tasks: cellNames.slice(2).map(name => new Date(row.get(name))).map((date, i) => ({
+                    date, state: this.getState(row.rowNumber - 1, 2 + i)
+                }))
+            } as Message));
+        }catch (e){
+            console.error(e);
+            return [];
+        }
     }
 
-    async updateTask(task: Task){
+    private getState(row: number, column: number): Task['state']{
+        const cell = this.sheet.getCell(row, column)
+        try {
+            const color = cell.backgroundColor;
+            if (color.green > 0)
+                return 'succeed';
+            if (color.red > 0)
+                return 'failed';
+            if (color.blue > 0)
+                return 'pending';
+        } catch (e){
+        }
+        return 'new'
+    }
+    private getColor(state: Task['state']){
+        switch (state){
+            case 'new': return {red: 0, green: 0, blue: 0, alpha: 0};
+            case 'failed': return {red: 0.9, green: 0, blue: 0.1, alpha: 0.2};
+            case 'succeed': return {red: 0, green: 0.9, blue: 0.1, alpha: 0.2};
+            case 'pending': return {red: 0, green: 0, blue: 0.9, alpha: 0.2};
+        }
+    }
+
+    async addMessage(message: Message){
+        const row = await this.sheet.addRow([
+            message.message,
+            message.createdAt.toISOString(),
+            ...message.tasks.map(x => x.date.toISOString())
+        ]);
+        message.id = row.rowNumber;
+    }
+
+    async updateTask(task: Message){
         if (!task.id) throw new Error(`Task without id`);
         await this.sheet.saveUpdatedCells();
     }
 
-    async setTaskSuccess(id: number, index: number) {
+    async setTaskState(row: number, index: number, state: Task['state']) {
         await this.sheet.loadCells();
-        this.sheet.getCell(id - 1, 2 + index).backgroundColor = {red: 0, green: 1, blue: 0, alpha: 0.2};
-        await this.sheet.saveUpdatedCells();
-    }
-    async setTaskFailure(id: number, index: number) {
-        await this.sheet.loadCells();
-        this.sheet.getCell(id - 1, 2 + index).backgroundColor = {red: 1, green: 0, blue: 0, alpha: 0.2};
+        this.sheet.getCell(row - 1, 2 + index).backgroundColor = this.getColor(state)!;
         await this.sheet.saveUpdatedCells();
     }
 }

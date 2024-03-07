@@ -24,16 +24,19 @@ telegraf.command('menu', Telegraf.reply('λ'))
 // bot.start((ctx) => ctx.reply('Welcome'))
 // bot.help((ctx) => ctx.reply('Send me a sticker'))
 // bot.on(message('sticker'), (ctx) => ctx.reply('👍'))
-telegraf.hears(/.*/, async (ctx) => {
-    bot.addMessage(ctx.message.text, ctx.chat.id, ctx.message.from.username);
+telegraf.hears(/^[^/].*/, async (ctx) => {
+    const name = ctx.message.from.username
+        || [ctx.message.from.last_name, ctx.message.from.first_name].join(' ')
+        || ctx.chat.id.toString();
+    bot.addMessage(ctx.message.text, ctx.chat.id, name);
 });
 bot.onTask.addEventListener(TasksEvent.type, (e) => {
     const {tasks, date} = e as TasksEvent;
-    for (let task of tasks) {
-        telegraf.telegram.sendMessage(task.chatId, task.message).then(() => {
-            store.onSuccess(task, date)
+    for (let {task, message} of tasks) {
+        telegraf.telegram.sendMessage(message.chatId, message.message).then(() => {
+            store.setTaskState(message, task, 'succeed');
         }).catch(e => {
-            store.onFailure(task, date)
+            store.setTaskState(message, task, 'failed');
         });
     }
 })

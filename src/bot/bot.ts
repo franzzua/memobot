@@ -1,4 +1,4 @@
-import {Task, TaskStore} from "./task.store";
+import {Message, Task, TaskStore} from "./task.store";
 
 const min = 100;
 const hour = 60 * min;
@@ -28,6 +28,7 @@ export class MemoBot {
         if (!date) return;
         console.log(`next task in ${+date - +new Date()}ms`)
         this.timer = setTimeout(() => {
+            tasks.forEach(t => t.task.state = 'pending');
             this.onTask.dispatchEvent(new TasksEvent(tasks, date));
             this.subscribeOnNext();
         }, +date - +new Date())
@@ -35,12 +36,15 @@ export class MemoBot {
 
     public async addMessage(message: string, chatId: number, name: string){
         console.log(`new message '${message}'`);
-        await this.store.addTask({
+        await this.store.addMessage({
             message,
             chatId,
             userName: name,
             createdAt: new Date(),
-            timetable: repeatDurations.map(x => new Date(+new Date() + x))
+            tasks: repeatDurations.map(x => ({
+                date: new Date(+new Date() + x),
+                state: 'new'
+            }))
         });
         await this.subscribeOnNext();
     }
@@ -49,7 +53,7 @@ export class MemoBot {
 
 export class TasksEvent extends Event{
     public static type = 'tasks';
-    constructor(public tasks: Task[], public date: Date) {
+    constructor(public tasks: {message:Message, task: Task}[], public date: Date) {
         super(TasksEvent.type);
     }
 }
