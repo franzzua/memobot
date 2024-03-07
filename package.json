@@ -8,10 +8,22 @@
     "watch": "node configs/esbuild.mjs --watch",
     "run": "nodemon --env-file=configs/.env ./dist/index.js"
   },
+  "engines": {
+    "npm": "please-use-yarn",
+    "yarn": ">= 2"
+  },
   "devDependencies": {
     "@types/node": "^20.11.20",
     "esbuild": "^0.20.1",
     "fastify": "^4.26.1",
+    "tedious": "^17.0.0",
     "telegraf": "^4.16.2"
+  },
+  "packageManager": "yarn@4.1.0",
+  "dependencies": {
+    "google-auth-library": "^9.6.3",
+    "google-spreadsheet": "^4.1.1",
+    "sequelize": "^6.37.1",
+    "telegram": "^2.19.20"
   }
 }
