@@ -15,7 +15,6 @@
     "tedious": "^17.0.0",
     "telegraf": "^4.16.2"
   },
-  "packageManager": "yarn@4.1.0",
   "dependencies": {
     "google-auth-library": "^9.6.3",
     "google-spreadsheet": "^4.1.1",
