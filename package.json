@@ -8,10 +8,6 @@
     "watch": "node configs/esbuild.mjs --watch",
     "run": "nodemon --env-file=configs/.env ./dist/index.js"
   },
-  "engines": {
-    "npm": "please-use-yarn",
-    "yarn": ">= 2"
-  },
   "devDependencies": {
     "@types/node": "^20.11.20",
     "esbuild": "^0.20.1",
