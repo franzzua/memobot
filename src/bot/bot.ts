@@ -1,5 +1,6 @@
-import {Message, Task, TaskStore} from "./task.store";
-
+import { Message, Task, TaskState } from "../types";
+import { v4 as uuid } from "uuid";
+import { TaskDatabase } from "../db/taskDatabase";
 const min = 100;
 const hour = 60 * min;
 const day = 24*hour;
@@ -16,34 +17,43 @@ const repeatDurations = [
 ];
 
 export class MemoBot {
-    constructor(private store: TaskStore) {
+    constructor(private db: TaskDatabase) {
         this.subscribeOnNext();
     }
     private timer: NodeJS.Timeout | undefined;
     public onTask = new EventTarget();
     public async subscribeOnNext(){
         if (this.timer) clearTimeout(this.timer);
-        const {date, tasks} = await this.store.getNextTasks();
-        console.log(`no next task`)
-        if (!date) return;
-        console.log(`next task in ${+date - +new Date()}ms`)
-        this.timer = setTimeout(() => {
-            tasks.forEach(t => t.task.state = 'pending');
-            this.onTask.dispatchEvent(new TasksEvent(tasks, date));
-            this.subscribeOnNext();
-        }, +date - +new Date())
+        const tasks = await this.db.getNextTasks();
+        for (let task of tasks) {
+            const date = task.date;
+            console.log(`next task in ${+date - +new Date()}ms`)
+            this.timer = setTimeout(() => {
+                this.onTask.dispatchEvent(new TasksEvent(task));
+                this.subscribeOnNext();
+            }, +date - +new Date())
+        }
     }
 
     public async addMessage(message: string, chatId: number, name: string){
         console.log(`new message '${message}'`);
-        await this.store.addMessage({
-            message,
+        const id = uuid();
+        await this.db.addMessage({
+            content: message,
+            details: message,
             chatId,
-            userName: name,
             createdAt: new Date(),
+            id,
+            chat: {
+                id: chatId,
+                username: name,
+                userId: name
+            },
             tasks: repeatDurations.map(x => ({
+                messageId: id,
                 date: new Date(+new Date() + x),
-                state: 'new'
+                state: TaskState.new,
+                id: uuid()
             }))
         });
         await this.subscribeOnNext();
@@ -53,7 +63,9 @@ export class MemoBot {
 
 export class TasksEvent extends Event{
     public static type = 'tasks';
-    constructor(public tasks: {message:Message, task: Task}[], public date: Date) {
+    constructor(public task: Pick<Task, "date" | "id"> & {
+        message: Pick<Message, "chatId"|"content"|"details">
+    }) {
         super(TasksEvent.type);
     }
 }

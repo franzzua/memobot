@@ -1,6 +1,7 @@
 import {telegraf} from "./bot/api";
 import fastify from "fastify";
-import {MemoDoc} from "./bot/database";
+
+import { TaskDatabase } from "./db/taskDatabase";
 
 const app = fastify({
 
