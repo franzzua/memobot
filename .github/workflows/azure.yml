@@ -25,17 +25,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 'Install packages'
-        run: yarn
-
-      - name: 'bundle'
-        run:  yarn run build
+      - run: yarn
+      - run: yarn run prisma
+      - run: yarn run compile
+      - run: yarn run bundle
 
       - name: Archive bundled
         uses: actions/upload-artifact@v4
         with:
           name: bundle
-          path: dist/index.js
+          path: dist/index.cjs
 
   deploy:
     runs-on: ubuntu-latest
