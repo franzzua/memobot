@@ -9,6 +9,7 @@ const context = await esbuild.context({
     platform: "node",
     outfile: "./dist/index.cjs",
     target: 'ES2020',
+    minify: process.argv.includes('--minify'),
     format: "cjs",
     external: []
 });

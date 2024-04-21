@@ -8,6 +8,7 @@ const app = fastify({
 const tg = resolve(TelegrafApi);
 
 app.post(`/api/telegraf/${tg.secretPathComponent()}`, tg.hook);
+app.get('/', req => `Ok`);
 
 app.listen({
     port: +process.env.PORT!,
