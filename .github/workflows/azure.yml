@@ -25,17 +25,23 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - run: yarn
-      - run: yarn run prisma
-      - run: yarn run compile
-      - run: yarn run bundle
-      - run: mv ./dist/index.cjs ./dist/index.js
+      - name: build
+        run: |
+          yarn
+          yarn run prisma
+          yarn run compile
+          yarn run bundle
+      - name: output
+        run: |
+          mkdir ./out
+          mv ./dist/index.cjs ./out/index.js
+          cp ./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node ./out
 
       - name: Archive bundled
         uses: actions/upload-artifact@v4
         with:
           name: bundle
-          path: dist/index.js
+          path: out
 
   deploy:
     runs-on: ubuntu-latest
