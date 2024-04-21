@@ -11,7 +11,7 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '18.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
+  NODE_VERSION: '20.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
 
 jobs:
   build:
@@ -33,9 +33,9 @@ jobs:
           yarn run bundle
       - name: output
         run: |
-          mkdir ./out
+          mkdir ./out/node_modules/.prisma/client/ -p
           mv ./dist/index.cjs ./out/index.js
-          cp ./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node ./out
+          cp ./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node ./out/node_modules/.prisma/client/
 
       - name: Archive bundled
         uses: actions/upload-artifact@v4
