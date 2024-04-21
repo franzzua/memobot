@@ -36,7 +36,7 @@ export class MemoBot {
         this.onTask.dispatchEvent(new TasksEvent(tasks));
     }
     public async runNextTask(){
-        if (this.timer) clearTimeout(this.timer);
+        this.timer && clearTimeout(this.timer);
         this.nextTask = await this.db.getNextTask();
         if (!this.nextTask) {
             console.log(`No task left, going to sleep...`);
@@ -76,7 +76,7 @@ export class MemoBot {
             id
         }
         const number = await this.db.addMessage(message, tasks);
-        this.runNextTask();
+        await this.resetTimer();
         return number;
     }
 
@@ -91,15 +91,17 @@ export class MemoBot {
         if (!this.nextTask)
             return;
         if (this.nextTask.message.chatId == chatId) {
-            this.nextTask = null;
-            this.timer && clearTimeout(this.timer);
-            this.runNextTask();
+            await this.resetTimer();
         }
     }
 
     async resume(chatId: string) {
         await this.db.updateChatState({id: chatId, state: ChatState.initial});
-        this.timer && clearTimeout(this.timer);
+        await this.resetTimer();
+    }
+
+    private async resetTimer(){
+        this.nextTask = null;
         this.runNextTask();
     }
 
