@@ -1,5 +1,5 @@
 import process from "node:process";
-import { Telegraf } from "telegraf";
+import { Markup, Telegraf } from "telegraf";
 import { inject, singleton } from "@di";
 import { MemoBot, TasksEvent } from "../bot/bot";
 import { onAnyMessage, onNewCommand } from "./new";
@@ -8,6 +8,8 @@ import { onResume, onStop } from "./stop-resume";
 import { NextTaskData } from "../db/taskDatabase";
 import { TaskState } from "../types";
 import { FastifyInstance } from "fastify";
+import { Api } from "telegram";
+import { onDelete } from "./delete";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -30,7 +32,6 @@ export class TelegrafApi extends Telegraf {
         app.post(`/api/telegraf/${secretPath}`, this.hook);
 
         this.telegram.setWebhook(`${process.env.PUBLIC_URL}/api/telegraf/${secretPath}`)
-
         this.init();
         console.log(`
             RUN bot '${process.env.BOT_TOKEN}'
@@ -38,13 +39,37 @@ export class TelegrafApi extends Telegraf {
         `);
     }
 
-    init(){
+    async init() {
         this.bot.onTask.addEventListener(TasksEvent.type, this.onTaskEvent);
         this.command('new', onNewCommand);
         this.command('stop', onStop);
         this.command('resume', onResume);
+        this.command('start', onStart);
+        this.command('delete', onDelete);
+        this.command('actions', ctx => {
+            ctx.reply('Available actions', {
+                reply_markup: {
+                    keyboard: [
+                        [
+                            {text: '/stop'},
+                            {text: '/resume'}
+                        ],
+                        [
+                            {text: '/delete'},
+                            {text: '/list'}
+                        ]
+                    ],
+                    resize_keyboard: true,
+                    one_time_keyboard: true
+                }
+            });
+        });
         this.hears(/^[^/].*/, onAnyMessage);
-        this.start(onStart);
+        this.launch(() => {
+            console.log('launch');
+        });
+        await this.bot.runMissed();
+        await this.bot.runNextTask();
     }
 
     async [Symbol.asyncDispose](){

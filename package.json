@@ -9,7 +9,7 @@
     "compile": "cmmn compile",
     "compile:watch": "cmmn compile --watch",
     "watch": "node configs/esbuild.mjs --watch",
-    "run": "nodemon --env-file=configs/.env ./dist/index.cjs",
+    "run": "nodemon --env-file=configs/.env ./dist/esm/index.js",
     "db-push": "export $(cat ./configs/.env | xargs) && prisma db push",
     "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js"
   },

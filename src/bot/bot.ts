@@ -24,19 +24,20 @@ export class MemoBot {
     ];
 
     constructor() {
-        this.runNextTask();
+        this.runMissed();
     }
 
     private isDisposed = false;
     private timer: NodeJS.Timeout | undefined;
     private nextTask: NextTaskData | null = null;
     public onTask = new EventTarget();
+
     public async runMissed(){
         const tasks = await this.db.getMissedTasks();
         this.onTask.dispatchEvent(new TasksEvent(tasks));
     }
+
     public async runNextTask(){
-        this.timer && clearTimeout(this.timer);
         this.nextTask = await this.db.getNextTask();
         if (!this.nextTask) {
             console.log(`No task left, going to sleep...`);
@@ -87,6 +88,7 @@ export class MemoBot {
     }
 
     async stop(chatId: string) {
+        console.log('stop', chatId);
         await this.db.updateChatState({id: chatId, state: ChatState.paused});
         if (!this.nextTask)
             return;
@@ -96,12 +98,14 @@ export class MemoBot {
     }
 
     async resume(chatId: string) {
+        console.log('resume', chatId);
         await this.db.updateChatState({id: chatId, state: ChatState.initial});
         await this.resetTimer();
     }
 
     private async resetTimer(){
         this.nextTask = null;
+        this.timer && clearTimeout(this.timer);
         this.runNextTask();
     }
 

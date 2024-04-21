@@ -1,6 +1,6 @@
 import fastify from "fastify";
 import { resolve } from "@di";
-import { TelegrafApi } from "./api";
+import { TelegrafApi } from "./api/index";
 import process from "node:process";
 
 const app = fastify({
