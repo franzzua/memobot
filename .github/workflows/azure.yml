@@ -29,12 +29,13 @@ jobs:
       - run: yarn run prisma
       - run: yarn run compile
       - run: yarn run bundle
+      - run: mv ./dist/index.cjs ./dist/index.js
 
       - name: Archive bundled
         uses: actions/upload-artifact@v4
         with:
           name: bundle
-          path: dist/index.cjs
+          path: dist/index.js
 
   deploy:
     runs-on: ubuntu-latest
