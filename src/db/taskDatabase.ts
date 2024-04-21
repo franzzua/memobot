@@ -1,37 +1,52 @@
-import { PrismaClient, Task } from "@prisma/client";
-import { Chat, Message, TaskState } from "../types";
+import { PrismaClient, Task, Chat, Message, Prisma } from "@prisma/client";
+import { ChatState, TaskState } from "../types";
+import { singleton } from "@di";
 
+const taskInfoSelect: Prisma.TaskSelect = {
+    date: true,
+    id: true,
+    index: true,
+    message: {
+        select: {
+            chatId: true,
+            content: true,
+            details: true,
+            number: true,
+        },
+    }
+};
+const taskInfoWhere: Prisma.TaskWhereInput = {
+    state: TaskState.new,
+    message: {chat: {state: ChatState.initial}}
+}
+
+@singleton()
 export class TaskDatabase {
     private client = new PrismaClient();
 
-    async getNextTasks() {
-        const select = {
-            date: true,
-            id: true,
-            message: {
-                select: {
-                    chatId: true,
-                    content: true,
-                    details: true
-                },
-            }
-        };
-        return [
-            ...await this.client.task.findMany({
-                select,
-                where: { state: TaskState.new, date: {lte: new Date()} },
-            }),
-            await this.client.task.findFirst({
-                select,
-                orderBy: {date: 'asc'},
-                where: { state: TaskState.new, date: {gt: new Date()} },
-            })
-        ].filter(x => x).map(x => x!);
+    getMissedTasks(): Promise<Array<NextTaskData>> {
+        return this.client.task.findMany({
+            select: taskInfoSelect,
+            where: {
+                ...taskInfoWhere,
+                date: {lte: new Date()},
+            },
+        });
+    }
+    getNextTask(): Promise<NextTaskData | null> {
+        return this.client.task.findFirst({
+            select: taskInfoSelect,
+            orderBy: {date: 'asc'},
+            where: {
+                ...taskInfoWhere,
+                date: {gt: new Date()}
+            },
+        });
     }
 
-    async addMessage(message: Message) {
-        await this.client.$transaction(async (x) => {
-            await this.addChat(message.chat);
+    addMessage(message: Omit<Message,"number"|"chat">, tasks: Task[]): Promise<number> {
+        return this.client.$transaction(async (x) => {
+            const number = await this.getMessageCount(message.chatId) + 1;
             await this.client.message.create({
                 data: {
                     id: message.id,
@@ -39,15 +54,17 @@ export class TaskDatabase {
                     details: message.details,
                     chatId: message.chatId,
                     createdAt: message.createdAt,
+                    number
                 }
             });
             await this.client.task.createMany({
-                data: message.tasks,
-            })
+                data: tasks,
+            });
+            return number;
         });
     }
 
-    async addChat(chat: Chat) {
+    async addOrUpdateChat(chat: Omit<Chat, "state">) {
         await this.client.chat.upsert({
             create: chat,
             where: {id: chat.id},
@@ -69,4 +86,21 @@ export class TaskDatabase {
             await x.chat.deleteMany();
         })
     }
+
+    getMessageCount(chatId: string) {
+        return this.client.message.count({
+            where: { chatId }
+        });
+    }
+
+    async updateChatState(chat: Pick<Chat, "id" | "state">) {
+        return this.client.chat.update({
+            where: {id: chat.id},
+            data: {state: chat.state},
+        });
+    }
+}
+
+export type NextTaskData = Pick<Task, "date" | "id" | "index"> & {
+    message: Pick<Message, "chatId"|"content"|"details"|"number">
 }

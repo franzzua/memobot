@@ -1,15 +1,13 @@
-import {telegraf} from "./bot/api";
 import fastify from "fastify";
-
-import { TaskDatabase } from "./db/taskDatabase";
+import { resolve } from "@di";
+import { TelegrafApi } from "./api";
 
 const app = fastify({
 
 });
+const tg = resolve(TelegrafApi);
 
-app.post(`/api/telegraf/${telegraf.secretPathComponent()}`, req => {
-    return telegraf.handleUpdate(req.body as any);
-});
+app.post(`/api/telegraf/${tg.secretPathComponent()}`, tg.hook);
 
 app.listen({
     port: +process.env.PORT!,

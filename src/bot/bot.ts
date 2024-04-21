@@ -1,71 +1,117 @@
-import { Message, Task, TaskState } from "../types";
+import { ChatState, Message, Task, TaskState } from "../types";
 import { v4 as uuid } from "uuid";
-import { TaskDatabase } from "../db/taskDatabase";
-const min = 100;
-const hour = 60 * min;
-const day = 24*hour;
-const week = 7*day;
-const month = 4*week;
-const repeatDurations = [
-    42*min,
-    24*hour,
-    42*hour,
-    week,
-    2*week,
-    month,
-    2*month
-];
+import { NextTaskData, TaskDatabase } from "../db/taskDatabase";
+import { inject, singleton } from "@di";
 
+@singleton()
 export class MemoBot {
-    constructor(private db: TaskDatabase) {
-        this.subscribeOnNext();
+    @inject(TaskDatabase)
+    private db!: TaskDatabase;
+
+    public min = 100;
+    public hour = () => 60 * this.min;
+    public day = () => 24*this.hour();
+    public week = () => 7*this.day();
+    public month = () => 4*this.week();
+    public repeatDurations = [
+        42*this.min,
+        24*this.hour(),
+        42*this.hour(),
+        this.week(),
+        2*this.week(),
+        this.month(),
+        2*this.month()
+    ];
+
+    constructor() {
+        this.runNextTask();
     }
+
+    private isDisposed = false;
     private timer: NodeJS.Timeout | undefined;
+    private nextTask: NextTaskData | null = null;
     public onTask = new EventTarget();
-    public async subscribeOnNext(){
+    public async runMissed(){
+        const tasks = await this.db.getMissedTasks();
+        this.onTask.dispatchEvent(new TasksEvent(tasks));
+    }
+    public async runNextTask(){
         if (this.timer) clearTimeout(this.timer);
-        const tasks = await this.db.getNextTasks();
-        for (let task of tasks) {
-            const date = task.date;
-            console.log(`next task in ${+date - +new Date()}ms`)
-            this.timer = setTimeout(() => {
-                this.onTask.dispatchEvent(new TasksEvent(task));
-                this.subscribeOnNext();
-            }, +date - +new Date())
+        this.nextTask = await this.db.getNextTask();
+        if (!this.nextTask) {
+            console.log(`No task left, going to sleep...`);
+            return;
+        }
+        if (this.isDisposed) return;
+        console.log(`next task in ${+this.nextTask.date - +new Date()}ms`);
+        this.timer = setTimeout(async () => {
+            if (!this.nextTask){
+                this.runNextTask();
+                return;
+            }
+            this.onTask.dispatchEvent(new TasksEvent([this.nextTask]));
+            await this.db.updateTaskState({
+                id: this.nextTask.id,
+                state: TaskState.pending
+            });
+            this.runNextTask();
+        }, +this.nextTask.date - +new Date())
+    }
+
+
+    public async addMessage(content: string, details: string, chatId: string): Promise<number> {
+        const id = uuid();
+        const tasks: Task[] = this.repeatDurations.map((x, index) => ({
+            messageId: id,
+            date: new Date(+new Date() + x),
+            state: TaskState.new,
+            index,
+            id: uuid()
+        }));
+        const message = {
+            content,
+            details,
+            chatId,
+            createdAt: new Date(),
+            id
+        }
+        const number = await this.db.addMessage(message, tasks);
+        this.runNextTask();
+        return number;
+    }
+
+    async [Symbol.asyncDispose]() {
+        this.timer && clearTimeout(this.timer);
+        this.isDisposed = true;
+        console.log('dispose');
+    }
+
+    async stop(chatId: string) {
+        await this.db.updateChatState({id: chatId, state: ChatState.paused});
+        if (!this.nextTask)
+            return;
+        if (this.nextTask.message.chatId == chatId) {
+            this.nextTask = null;
+            this.timer && clearTimeout(this.timer);
+            this.runNextTask();
         }
     }
 
-    public async addMessage(message: string, chatId: number, name: string){
-        console.log(`new message '${message}'`);
-        const id = uuid();
-        await this.db.addMessage({
-            content: message,
-            details: message,
-            chatId,
-            createdAt: new Date(),
-            id,
-            chat: {
-                id: chatId,
-                username: name,
-                userId: name
-            },
-            tasks: repeatDurations.map(x => ({
-                messageId: id,
-                date: new Date(+new Date() + x),
-                state: TaskState.new,
-                id: uuid()
-            }))
-        });
-        await this.subscribeOnNext();
+    async resume(chatId: string) {
+        await this.db.updateChatState({id: chatId, state: ChatState.initial});
+        this.timer && clearTimeout(this.timer);
+        this.runNextTask();
+    }
+
+    async onTaskEnd(id: string, state: TaskState) {
+        await this.db.updateTaskState({ id, state });
     }
 }
 
 
 export class TasksEvent extends Event{
     public static type = 'tasks';
-    constructor(public task: Pick<Task, "date" | "id"> & {
-        message: Pick<Message, "chatId"|"content"|"details">
-    }) {
+    constructor(public tasks: Array<NextTaskData>) {
         super(TasksEvent.type);
     }
 }

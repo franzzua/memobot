@@ -3,14 +3,14 @@ import esbuild from "esbuild";
 
 const context = await esbuild.context({
     entryPoints: {
-        index: 'src/index.ts'
+        index: 'dist/esm/index.js'
     },
     bundle: true,
     platform: "node",
-    outdir: "./dist",
+    outfile: "./dist/index.cjs",
     target: 'ES2020',
     format: "cjs",
-    external: ['crypto']
+    external: []
 });
 
 if (process.argv.includes('--watch')){

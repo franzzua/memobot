@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "ES2016",
     "moduleResolution": "Bundler",
     "module": "ES2020",
     "forceConsistentCasingInFileNames": true,
@@ -8,7 +8,19 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
+    "declaration": true,
     "outDir": "./dist/esm",
-    "baseUrl": "./"
-  }
+    "baseUrl": "./",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "paths": {
+      "@di": ["./src/helpers/di.ts"]
+    }
+  },
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

@@ -4,13 +4,19 @@
   "main": "./dist/main.js",
   "license": "MIT",
   "scripts": {
-    "build": "node configs/esbuild.mjs",
+    "prisma": "prisma generate",
+    "bundle": "node configs/esbuild.mjs",
+    "compile": "cmmn compile",
+    "compile:watch": "cmmn compile --watch",
     "watch": "node configs/esbuild.mjs --watch",
-    "run": "nodemon --env-file=configs/.env ./dist/index.js",
-    "test": "DOTENV_CONFIG_PATH=./configs/.env node --import tsx -r dotenv/config --test src/**/*.spec.ts"
+    "run": "nodemon --env-file=configs/.env ./dist/index.cjs",
+    "db-push": "export $(cat ./configs/.env | xargs) && prisma db push",
+    "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js"
   },
   "type": "module",
   "devDependencies": {
+    "@cmmn/core": "^2.2.3",
+    "@cmmn/tools": "^2.2.3",
     "@types/node": "^20.11.20",
     "@types/uuid": "^9",
     "dotenv": "^16.4.5",
@@ -20,6 +26,7 @@
     "tedious": "^17.0.0",
     "telegraf": "^4.16.2",
     "tsx": "^4.7.2",
+    "typescript": "5.4.5",
     "uuid": "^9.0.1"
   },
   "dependencies": {
