@@ -7,6 +7,7 @@ import { onStart } from "./start";
 import { onResume, onStop } from "./stop-resume";
 import { NextTaskData } from "../db/taskDatabase";
 import { TaskState } from "../types";
+import { FastifyInstance } from "fastify";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -22,11 +23,14 @@ export class TelegrafApi extends Telegraf {
         super(process.env.BOT_TOKEN!, {
             telegram: { webhookReply: true },
         });
+    }
 
-        this.telegram.setWebhook(`${process.env.PUBLIC_URL}/api/telegraf/${this.secretPathComponent()}`)
+    run(app: FastifyInstance){
+        const secretPath = this.secretPathComponent();
+        app.post(`/api/telegraf/${secretPath}`, this.hook);
 
-        process.once('SIGINT', () => this.stop('SIGINT'))
-        process.once('SIGTERM', () => this.stop('SIGTERM'))
+        this.telegram.setWebhook(`${process.env.PUBLIC_URL}/api/telegraf/${secretPath}`)
+
         this.init();
         console.log(`
             RUN bot '${process.env.BOT_TOKEN}'
