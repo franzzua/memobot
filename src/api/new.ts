@@ -2,6 +2,7 @@ import { resolve } from "@di";
 import { MemoBot } from "../bot/bot";
 import { TaskDatabase } from "../db/taskDatabase";
 import { CommandContext } from "./types";
+import { setChatFromContext } from "./start";
 
 const bot = resolve(MemoBot);
 const db = resolve(TaskDatabase);
@@ -29,6 +30,7 @@ const replyDetails = [
 ];
 
 export async function onNewCommand(ctx: CommandContext) {
+    await setChatFromContext(ctx);
     const count = await db.getMessageCount(ctx.chat.id.toString());
     const reply = replyMessages[count] ?? replyMessages.at(-1);
     const state = chatState.get(ctx.chat.id) ?? {};

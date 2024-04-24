@@ -28,16 +28,6 @@ model Message {
   content   String
   details   String
   createdAt DateTime
-  tasks     Task[]
   number    Int
   chat      Chat     @relation(fields: [chatId], references: [id])
-}
-
-model Task {
-  id        String   @id @db.UniqueIdentifier
-  date      DateTime
-  state     Int      @db.TinyInt
-  index     Int      @db.TinyInt
-  messageId String   @db.UniqueIdentifier
-  message   Message  @relation(fields: [messageId], references: [id])
 }

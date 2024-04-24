@@ -1,15 +1,13 @@
 import process from "node:process";
-import { Markup, Telegraf } from "telegraf";
+import { Telegraf } from "telegraf";
 import { inject, singleton } from "@di";
-import { MemoBot, TasksEvent } from "../bot/bot";
+import { MemoBot } from "../bot/bot";
 import { onAnyMessage, onNewCommand } from "./new";
 import { onStart } from "./start";
 import { onResume, onStop } from "./stop-resume";
-import { NextTaskData } from "../db/taskDatabase";
-import { TaskState } from "../types";
-import { FastifyInstance } from "fastify";
-import { Api } from "telegram";
 import { onDelete } from "./delete";
+import { ChatState, Task } from "../types";
+import { TaskDatabase } from "../db/taskDatabase";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -20,6 +18,8 @@ if(!process.env.PUBLIC_URL)
 export class TelegrafApi extends Telegraf {
     @inject(MemoBot)
     private bot!: MemoBot;
+    @inject(TaskDatabase)
+    private db!: TaskDatabase;
 
     constructor() {
         super(process.env.BOT_TOKEN!, {
@@ -27,12 +27,13 @@ export class TelegrafApi extends Telegraf {
         });
     }
 
-    run(app: FastifyInstance){
-        const secretPath = this.secretPathComponent();
-        app.post(`/api/telegraf/${secretPath}`, this.hook);
+    get secretPath(){
+        return 'telegraf';
+    }
 
-        this.telegram.setWebhook(`${process.env.PUBLIC_URL}/api/telegraf/${secretPath}`)
-        this.init();
+    run(){
+        this.telegram.setWebhook(`${process.env.PUBLIC_URL}/api/${this.secretPath}`)
+        this.init().catch(console.error);
         console.log(`
             RUN bot '${process.env.BOT_TOKEN}'
             ON ${process.env.PUBLIC_URL}
@@ -40,7 +41,6 @@ export class TelegrafApi extends Telegraf {
     }
 
     async init() {
-        this.bot.onTask.addEventListener(TasksEvent.type, this.onTaskEvent);
         this.command('new', onNewCommand);
         this.command('stop', onStop);
         this.command('resume', onResume);
@@ -65,38 +65,24 @@ export class TelegrafApi extends Telegraf {
             });
         });
         this.hears(/^[^/].*/, onAnyMessage);
-        this.launch(() => {
-            console.log('launch');
-        });
-        await this.bot.runMissed();
-        await this.bot.runNextTask();
+        await this.launch();
     }
 
     async [Symbol.asyncDispose](){
-        this.bot.onTask.removeEventListener(TasksEvent.type, this.onTaskEvent);
         this.stop();
     }
 
     public hook = (req: {body: any}) => this.handleUpdate(req.body);
-    private onTaskEvent = async (event: Event) => {
-        for (let task of (event as TasksEvent).tasks) {
-            try{
-                await this.telegram.sendMessage(+task.message.chatId, getMessage(task), {
-                    parse_mode: "HTML"
-                });
-                await this.bot.onTaskEnd(task.id, TaskState.succeed);
-            } catch(e) {
-                await this.bot.onTaskEnd(task.id, TaskState.failed);
-            }
-        }
-    }
-}
 
-const taskIndexTitles = [
-    '42m', '24h', '42h', '1w', '2w', '1M', '3M'
-];
-function getMessage(task: NextTaskData){
-    return `<strong>${task.message.content}</strong>\n\n`+
-        `<span class="tg-spoiler">${task.message.details}</span>\n\n`+
-        `#${task.message.number} (${taskIndexTitles[task.index]})`
+    public async sendTask(task: Task) {
+        const chatState = await this.db.getChatState(task.chatId);
+        if (chatState == ChatState.paused)
+            return;
+        const message = `<strong>${task.content}</strong>\n\n`+
+            `<span class="tg-spoiler">${task.details}</span>\n\n`+
+            `#${task.number} (${task.name})`;
+        await this.telegram.sendMessage(+task.chatId, message, {
+            parse_mode: "HTML"
+        });
+    }
 }

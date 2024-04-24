@@ -29,12 +29,17 @@ Enjoy your <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repe
 `;
 
 export async function onStart(ctx: CommandContext) {
+    await setChatFromContext(ctx);
+    return ctx.reply(start, {parse_mode: 'HTML'})
+}
+
+export async function setChatFromContext(ctx: CommandContext){
     const name = ctx.message.from.username
         || [ctx.message.from.last_name, ctx.message.from.first_name].join(' ')
-    await db.addOrUpdateChat({
+    const chat = {
         id: ctx.chat.id.toString(),
         userId: ctx.message.from.id.toString(),
         username: name,
-    });
-    return ctx.reply(start, {parse_mode: 'HTML'})
+    }
+    await db.addOrUpdateChat(chat);
 }

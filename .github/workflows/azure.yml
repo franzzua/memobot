@@ -64,10 +64,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E2A2869CE8BB4501A9EF3C194797C9BB }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A30EADA7244B40A88D3178E109354E2B }}
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
         with:
-          app-name: 'memobot2'
-          slot-name: 'Production'
+          app-name: 'spixmemo'
+          slot-name: 'production'
           package: .

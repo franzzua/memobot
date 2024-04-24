@@ -1,12 +1,17 @@
-import { ChatState, Message, Task, TaskState } from "../types";
-import { v4 as uuid } from "uuid";
-import { NextTaskData, TaskDatabase } from "../db/taskDatabase";
+import { ChatState, Task } from "../types";
+import { TaskDatabase } from "../db/taskDatabase";
 import { inject, singleton } from "@di";
+import { QueueSendMessageResponse, QueueServiceClient } from "@azure/storage-queue";
+import { Timetable } from "./timetable";
+import { v4 as uuid } from "uuid";
 
 @singleton()
 export class MemoBot {
     @inject(TaskDatabase)
     private db!: TaskDatabase;
+
+    private queueServiceClient = QueueServiceClient.fromConnectionString(process.env.QUEUE_CONNECTION_STRING!);
+    private queue = this.queueServiceClient.getQueueClient(process.env.QUEUE_NAME!)
 
     public min = 100;
     public hour = () => 60 * this.min;
@@ -23,52 +28,37 @@ export class MemoBot {
         2*this.month()
     ];
 
-    constructor() {
-        this.runMissed();
+    private lastMessage: QueueSendMessageResponse | null = null;
+    private async sendMessage(task: Task, timeout = 0) {
+        this.lastMessage = await this.queue.sendMessage(JSON.stringify(task), {
+            visibilityTimeout: Math.round(timeout),
+            messageTimeToLive: -1,
+        });
+        // for (let task of tasks) {
+        //     await this.db.updateTaskState({
+        //         id: task.id,
+        //         state: TaskState.pending
+        //     });
+        // }
     }
+    // private async cancelLastMessage(){
+    //     if (!this.lastMessage) return;
+    //     await this.queue.deleteMessage(this.lastMessage.messageId, this.lastMessage.popReceipt).catch();
+    // }
 
-    private isDisposed = false;
-    private timer: NodeJS.Timeout | undefined;
-    private nextTask: NextTaskData | null = null;
-    public onTask = new EventTarget();
-
-    public async runMissed(){
-        const tasks = await this.db.getMissedTasks();
-        this.onTask.dispatchEvent(new TasksEvent(tasks));
-    }
-
-    public async runNextTask(){
-        this.nextTask = await this.db.getNextTask();
-        if (!this.nextTask) {
-            console.log(`No task left, going to sleep...`);
-            return;
-        }
-        if (this.isDisposed) return;
-        console.log(`next task in ${+this.nextTask.date - +new Date()}ms`);
-        this.timer = setTimeout(async () => {
-            if (!this.nextTask){
-                this.runNextTask();
-                return;
-            }
-            this.onTask.dispatchEvent(new TasksEvent([this.nextTask]));
-            await this.db.updateTaskState({
-                id: this.nextTask.id,
-                state: TaskState.pending
-            });
-            this.runNextTask();
-        }, +this.nextTask.date - +new Date())
-    }
+    // private async runNextTask(){
+    //     this.nextTask = await this.db.getNextTask();
+    //     if (!this.nextTask) {
+    //         console.log(`No task left, going to sleep...`);
+    //         return;
+    //     }
+    //     if (this.isDisposed) return;
+    //     await this.sendMessage([this.nextTask], +this.nextTask.date - +new Date());
+    // }
 
 
     public async addMessage(content: string, details: string, chatId: string): Promise<number> {
         const id = uuid();
-        const tasks: Task[] = this.repeatDurations.map((x, index) => ({
-            messageId: id,
-            date: new Date(+new Date() + x),
-            state: TaskState.new,
-            index,
-            id: uuid()
-        }));
         const message = {
             content,
             details,
@@ -76,48 +66,26 @@ export class MemoBot {
             createdAt: new Date(),
             id
         }
-        const number = await this.db.addMessage(message, tasks);
-        await this.resetTimer();
+        const number = await this.db.addMessage(message);
+        for (let task of Timetable) {
+            await this.sendMessage({
+                number, content, details, chatId, name: task.name
+            }, task.time)
+        }
         return number;
     }
 
     async [Symbol.asyncDispose]() {
-        this.timer && clearTimeout(this.timer);
-        this.isDisposed = true;
-        console.log('dispose');
     }
 
     async stop(chatId: string) {
         console.log('stop', chatId);
         await this.db.updateChatState({id: chatId, state: ChatState.paused});
-        if (!this.nextTask)
-            return;
-        if (this.nextTask.message.chatId == chatId) {
-            await this.resetTimer();
-        }
     }
 
     async resume(chatId: string) {
         console.log('resume', chatId);
         await this.db.updateChatState({id: chatId, state: ChatState.initial});
-        await this.resetTimer();
     }
 
-    private async resetTimer(){
-        this.nextTask = null;
-        this.timer && clearTimeout(this.timer);
-        this.runNextTask();
-    }
-
-    async onTaskEnd(id: string, state: TaskState) {
-        await this.db.updateTaskState({ id, state });
-    }
-}
-
-
-export class TasksEvent extends Event{
-    public static type = 'tasks';
-    constructor(public tasks: Array<NextTaskData>) {
-        super(TasksEvent.type);
-    }
 }

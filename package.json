@@ -1,9 +1,10 @@
 {
   "name": "memobot",
   "version": "1.0.0",
-  "main": "./dist/main.js",
+  "main": "./dist/index.cjs",
   "license": "MIT",
   "scripts": {
+    "func": "export $(cat ./configs/.env | xargs) && func start -p 5800",
     "prisma": "prisma generate",
     "bundle": "node configs/esbuild.mjs",
     "compile": "cmmn compile",
@@ -15,6 +16,8 @@
   },
   "type": "module",
   "devDependencies": {
+    "@azure/functions": "^4.4.0",
+    "@azure/storage-queue": "^12.16.0",
     "@cmmn/core": "^2.2.3",
     "@cmmn/tools": "^2.2.3",
     "@types/node": "^20.11.20",

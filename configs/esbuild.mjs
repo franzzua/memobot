@@ -11,7 +11,7 @@ const context = await esbuild.context({
     target: 'ES2020',
     minify: process.argv.includes('--minify'),
     format: "cjs",
-    external: []
+    external: ["@azure/functions-core"]
 });
 
 if (process.argv.includes('--watch')){
