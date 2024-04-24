@@ -13,8 +13,11 @@ app.http(fnName, {
     handler: async (request, context) => {
         context.log(`Http function processed request for url "${request.url}"`);
         context.log('body 2');
-        await tg.handleUpdate(await request.json() as any);
-        return { body: null }
+        try{
+            await tg.handleUpdate(await request.json() as any);
+        } finally {
+            return { body: null }
+        }
     }
 });
 app.storageQueue('tasks', {
