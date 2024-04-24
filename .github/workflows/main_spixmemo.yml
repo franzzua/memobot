@@ -35,10 +35,10 @@ jobs:
         run: |
           mkdir ./out/node_modules/.prisma/client/ -p
           mv ./dist/index.cjs ./out/index.js
-          cp ./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node ./out/node_modules/.prisma/client/
+          cp ./node_modules/.prisma/client/query_engine-windows.dll.node ./out/node_modules/.prisma/client/
           cp ./host.json ./out/
           cp ./local.settings.json ./out/
-          echo '{ "main": "index.js" }' > package.json
+          echo '{ "main": "index.js" }' > ./out/package.json
 
       - name: Zip artifact for deployment
         working-directory: ./out
