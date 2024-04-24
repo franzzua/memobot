@@ -28,7 +28,7 @@ export class TelegrafApi extends Telegraf {
     }
 
     get secretPath(){
-        return 'telegraf';
+        return this.secretPathComponent();
     }
 
     run(){

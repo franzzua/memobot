@@ -6,10 +6,10 @@ import process from "node:process";
 
 const tg = resolve(TelegrafApi);
 tg.run();
-const fnName = tg.secretPath;
-app.http(fnName, {
+app.http('telegraf', {
     methods: ['POST'],
     authLevel: 'anonymous',
+    route: tg.secretPath,
     handler: async (request, context) => {
         context.log(`Http function processed request for url "${request.url}"`);
         context.log('body 2');
@@ -27,5 +27,4 @@ app.storageQueue('tasks', {
     },
     connection: 'QUEUE_CONNECTION_STRING',
     queueName: process.env.QUEUE_NAME!
-})
-console.log('register function', fnName);
+});
