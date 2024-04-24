@@ -15,9 +15,10 @@ app.http(fnName, {
         context.log('body 2');
         try{
             await tg.handleUpdate(await request.json() as any);
-        } finally {
-            return { body: null }
+        } catch(e: any) {
+            context.log(e.message);
         }
+        return { body: null }
     }
 });
 app.storageQueue('tasks', {
