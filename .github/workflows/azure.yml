@@ -38,6 +38,7 @@ jobs:
           cp ./host.json ./out/
           cp ./local.settings.json ./out/
           cp ./.funcignore ./out/
+          echo '{ "main": "index.js" }' > package.json
 
       - name: Archive bundled
         uses: actions/upload-artifact@v4
