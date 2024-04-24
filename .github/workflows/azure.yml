@@ -35,6 +35,9 @@ jobs:
           mkdir ./out/node_modules/.prisma/client/ -p
           mv ./dist/index.cjs ./out/index.js
           cp ./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node ./out/node_modules/.prisma/client/
+          cp ./host.json ./out/
+          cp ./local.settings.json ./out/
+          cp ./.funcignore ./out/
 
       - name: Archive bundled
         uses: actions/upload-artifact@v4
