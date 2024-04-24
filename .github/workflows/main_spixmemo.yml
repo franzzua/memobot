@@ -21,21 +21,27 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Npm'
-        shell: bash
+      - name: build
         run: |
-          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          npm install
-          npm run build --if-present
-          npm run test --if-present
-          popd
+          yarn
+          yarn run prisma
+          yarn run compile
+          yarn run bundle
+      - name: output
+        run: |
+          mkdir ./out/node_modules/.prisma/client/ -p
+          mv ./dist/index.cjs ./out/index.js
+          cp ./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node ./out/node_modules/.prisma/client/
+          cp ./host.json ./out/
+          cp ./local.settings.json ./out/
+          echo '{ "main": "index.js" }' > package.json
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: zip release.zip ./out/* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
