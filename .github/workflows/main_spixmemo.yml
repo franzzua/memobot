@@ -34,8 +34,9 @@ jobs:
       - name: output
         run: |
           mkdir ./out/node_modules/.prisma/client/ -p
-          mv ./dist/index.cjs ./out/index.js
+          cp ./dist/index.cjs ./out/index.js
           cp ./node_modules/.prisma/client/query-engine-windows.exe ./out/node_modules/.prisma/client/
+          cp ./node_modules/.prisma/client/schema.prisma ./out/node_modules/.prisma/client/
           cp ./host.json ./out/
           cp ./local.settings.json ./out/
           echo '{ "main": "index.js" }' > ./out/package.json
