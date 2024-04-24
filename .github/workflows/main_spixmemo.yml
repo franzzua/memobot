@@ -35,10 +35,10 @@ jobs:
         run: |
           mkdir ./out/node_modules/.prisma/client/ -p
           mv ./dist/index.cjs ./out/index.js
-          cp ./node_modules/.prisma/client/query_engine-windows.dll.node ./out/node_modules/.prisma/client/
+          cp ./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node ./out/node_modules/.prisma/client/
           cp ./host.json ./out/
           cp ./local.settings.json ./out/
-          echo '{ "main": "index.js" }' > ./out/package.json
+          echo '{ "main": "index.js" }' > package.json
 
       - name: Zip artifact for deployment
         working-directory: ./out
@@ -65,18 +65,21 @@ jobs:
         with:
           name: node-app
 
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EBEB5659CEFE45149DF6DA936F2666A3 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FAADE9127BAE44D28F48DE5F3BB13C97 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A024A64F53984DC5B93D4FACC476F8FC }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E72CA81035E549AF94748EAC1BAFA917 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C8BCD63459A940289FA9C6628E5E7FA8 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_310F9C634A2E44C3922B02C4FBFC2F78 }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: 'spix-memo'
+          app-name: 'spixmemo'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           
