@@ -59,17 +59,10 @@ jobs:
         with:
           name: bundle
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_D57A3E8CDF644DF99986A79513326A1A }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_7B744D436143462BBF05FD18D0A3440D }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F2EA2AB1F7F9466CA3F32026C75F1D2C }}
-            
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
         with:
           app-name: 'spixmemo'
-          slot-name: 'production'
           package: .
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
