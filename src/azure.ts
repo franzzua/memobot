@@ -11,12 +11,9 @@ app.http('telegraf', {
     authLevel: 'anonymous',
     route: tg.secretPath,
     handler: async (request, context) => {
-        context.log(`Http function processed request for url "${request.url}"`);
-        context.log('body 2');
         try{
             await tg.handleUpdate(await request.json() as any);
         } catch(e: any) {
-            context.log(e.message);
         }
         return { body: null }
     }
