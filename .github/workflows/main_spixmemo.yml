@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir ./out/node_modules/.prisma/client/ -p
           cp ./dist/index.cjs ./out/index.js
-          cp ./node_modules/.prisma/client/query-engine-debian-openssl-3.0.x ./out/node_modules/.prisma/client/
+          cp ./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x ./out/node_modules/.prisma/client/
           cp ./node_modules/.prisma/client/schema.prisma ./out/node_modules/.prisma/client/
           cp ./host.json ./out/
           cp ./local.settings.json ./out/
