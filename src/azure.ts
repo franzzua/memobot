@@ -14,7 +14,9 @@ app.http('telegraf', {
         try{
             await tg.handleUpdate(await request.json() as any);
         } catch(e: any) {
+            context.error('Error:', e?.message ?? e);
         }
+        context.info(`Success request`)
         return { body: null }
     }
 });
