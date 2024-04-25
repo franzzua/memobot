@@ -18,10 +18,10 @@ app.http('telegraf', {
         return { body: null }
     }
 });
-app.storageQueue('tasks', {
-    handler: async (entry: any, context) => {
-        await tg.sendTask(entry as Task);
-    },
-    connection: 'QUEUE_CONNECTION_STRING',
-    queueName: process.env.QUEUE_NAME!
-});
+// app.storageQueue('tasks', {
+//     handler: async (entry: any, context) => {
+//         await tg.sendTask(entry as Task);
+//     },
+//     connection: 'QUEUE_CONNECTION_STRING',
+//     queueName: process.env.QUEUE_NAME!
+// });
