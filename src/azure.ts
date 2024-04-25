@@ -16,14 +16,13 @@ app.http('telegraf', {
         } catch(e: any) {
             context.error('Error:', e?.message ?? e);
         }
-        context.info(`Success request`)
         return { body: null }
     }
 });
-// app.storageQueue('tasks', {
-//     handler: async (entry: any, context) => {
-//         await tg.sendTask(entry as Task);
-//     },
-//     connection: 'QUEUE_CONNECTION_STRING',
-//     queueName: process.env.QUEUE_NAME!
-// });
+app.storageQueue('tasks', {
+    handler: async (entry: any, context) => {
+        await tg.sendTask(entry as Task);
+    },
+    connection: 'QUEUE_CONNECTION_STRING',
+    queueName: process.env.QUEUE_NAME!
+});

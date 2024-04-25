@@ -30,17 +30,13 @@ const replyDetails = [
 ];
 
 export async function onNewCommand(ctx: CommandContext) {
-    try {
-        await setChatFromContext(ctx);
-        const count = await db.getMessageCount(ctx.chat.id.toString());
-        const reply = replyMessages[count] ?? replyMessages.at(-1);
-        const state = chatState.get(ctx.chat.id) ?? {};
-        state.new = 'content';
-        chatState.set(ctx.chat.id, state);
-        return ctx.reply(reply);
-    }catch (e: any){
-        return ctx.reply(e.message);
-    }
+    await setChatFromContext(ctx);
+    const count = await db.getMessageCount(ctx.chat.id.toString());
+    const reply = replyMessages[count] ?? replyMessages.at(-1);
+    const state = chatState.get(ctx.chat.id) ?? {};
+    state.new = 'content';
+    chatState.set(ctx.chat.id, state);
+    return ctx.reply(reply);
 }
 
 export async function onAnyMessage(ctx: CommandContext){
