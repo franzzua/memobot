@@ -21,31 +21,27 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: build
+      - name: 'Resolve Project Dependencies Using Npm'
+        shell: bash
         run: |
-          yarn
-          yarn run prisma
-          yarn run compile
-          yarn run bundle
-      - name: output
-        run: |
-          mkdir ./out/node_modules/.prisma/client/ -p
-          cp ./dist/index.cjs ./out/index.js
-          cp ./node_modules/.prisma/client/query-engine-windows.exe ./out/node_modules/.prisma/client/
-          cp ./node_modules/.prisma/client/schema.prisma ./out/node_modules/.prisma/client/
-          cp ./host.json ./out/
-          cp ./local.settings.json ./out/
-          echo '{ "main": "index.js" }' > ./out/package.json
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          npm install
+          npm run build --if-present
+          npm run test --if-present
+          popd
+
+      - name: Zip artifact for deployment
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
           name: node-app
-          path: ./out/
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -62,18 +58,21 @@ jobs:
         with:
           name: node-app
 
+      - name: Unzip artifact for deployment
+        run: unzip release.zip
+      
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EBEB5659CEFE45149DF6DA936F2666A3 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FAADE9127BAE44D28F48DE5F3BB13C97 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A024A64F53984DC5B93D4FACC476F8FC }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_356BC9C40F74483581504D5BED87DE09 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A7FCAD25CA774798B7F9F94A786FF715 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B09554AF49BA4271BE9B5F2517F4BF82 }}
 
       - name: 'Run Azure Functions Action'
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: 'spix-memo'
+          app-name: 'spixmemo'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           
