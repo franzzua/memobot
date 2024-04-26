@@ -1,17 +1,15 @@
 import { ChatState, Task } from "../types";
 import { TaskDatabase } from "../db/taskDatabase";
 import { inject, singleton } from "@di";
-import { QueueSendMessageResponse, QueueServiceClient } from "@azure/storage-queue";
 import { Timetable } from "./timetable";
-import { v4 as uuid } from "uuid";
+import { TaskQueue } from "../db/taskQueue";
 
 @singleton()
 export class MemoBot {
     @inject(TaskDatabase)
     private db!: TaskDatabase;
-
-    private queueServiceClient = QueueServiceClient.fromConnectionString(process.env.QUEUE_CONNECTION_STRING!);
-    private queue = this.queueServiceClient.getQueueClient(process.env.QUEUE_NAME!)
+    @inject(TaskQueue)
+    private queue!: TaskQueue;
 
     public min = 100;
     public hour = () => 60 * this.min;
@@ -28,19 +26,7 @@ export class MemoBot {
         2*this.month()
     ];
 
-    private lastMessage: QueueSendMessageResponse | null = null;
-    private async sendMessage(task: Task, timeout = 0) {
-        this.lastMessage = await this.queue.sendMessage(JSON.stringify(task), {
-            visibilityTimeout: Math.round(timeout),
-            messageTimeToLive: -1,
-        });
-        // for (let task of tasks) {
-        //     await this.db.updateTaskState({
-        //         id: task.id,
-        //         state: TaskState.pending
-        //     });
-        // }
-    }
+
     // private async cancelLastMessage(){
     //     if (!this.lastMessage) return;
     //     await this.queue.deleteMessage(this.lastMessage.messageId, this.lastMessage.popReceipt).catch();
@@ -58,21 +44,18 @@ export class MemoBot {
 
 
     public async addMessage(content: string, details: string, chatId: string): Promise<number> {
-        const id = uuid();
         const message = {
             content,
             details,
             chatId,
-            createdAt: new Date(),
-            id
         }
-        const number = await this.db.addMessage(message);
+        const id = await this.db.addMessage(message);
         for (let task of Timetable) {
-            await this.sendMessage({
-                number, content, details, chatId, name: task.name
+            await this.queue.sendTask({
+                id, content, details, chatId, name: task.name
             }, task.time)
         }
-        return number;
+        return id;
     }
 
     async [Symbol.asyncDispose]() {

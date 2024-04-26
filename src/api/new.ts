@@ -4,6 +4,7 @@ import { TaskDatabase } from "../db/taskDatabase";
 import { CommandContext } from "./types";
 import { setChatFromContext } from "./start";
 
+
 const bot = resolve(MemoBot);
 const db = resolve(TaskDatabase);
 const chatState = new Map<number, any>();

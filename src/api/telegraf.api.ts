@@ -8,6 +8,7 @@ import { onResume, onStop } from "./stop-resume";
 import { onDelete } from "./delete";
 import { ChatState, Task } from "../types";
 import { TaskDatabase } from "../db/taskDatabase";
+import { Logger } from "telegram";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -20,6 +21,8 @@ export class TelegrafApi extends Telegraf {
     private bot!: MemoBot;
     @inject(TaskDatabase)
     private db!: TaskDatabase;
+    @inject(Logger)
+    private logger!: Logger;
 
     constructor() {
         super(process.env.BOT_TOKEN!, {
@@ -27,13 +30,23 @@ export class TelegrafApi extends Telegraf {
         });
     }
 
-    get secretPath(){
-        return this.secretPathComponent();
+    path = 'telegraf';
+    secretPath = this.secretPathComponent();
+
+    public get hookURL(){
+        return `${process.env.PUBLIC_URL}/${this.path}?secret=${this.secretPath}`;
     }
 
-    run(){
-        this.telegram.setWebhook(`${process.env.PUBLIC_URL}/api/${this.secretPath}`)
-        this.init().catch(console.error);
+    async run(){
+        const hook = await this.telegram.getWebhookInfo();
+        if (!hook || !hook.url?.startsWith(process.env.PUBLIC_URL!)){
+            await this.telegram.setWebhook(this.hookURL);
+            this.logger.info(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
+        } else if (hook.url) {
+            this.secretPath = hook.url.replace(`${process.env.PUBLIC_URL}/${this.path}?secret=`,'');
+            this.logger.info(`New instance joined to cluster, secret: ${this.secretPath.substring(0, 6)}…`);
+        }
+        await this.init();
         console.log(`
             RUN bot '${process.env.BOT_TOKEN}'
             ON ${process.env.PUBLIC_URL}
@@ -65,7 +78,7 @@ export class TelegrafApi extends Telegraf {
             });
         });
         this.hears(/^[^/].*/, onAnyMessage);
-        await this.launch();
+        // await this.launch();
     }
 
     async [Symbol.asyncDispose](){
@@ -80,7 +93,7 @@ export class TelegrafApi extends Telegraf {
             return;
         const message = `<strong>${task.content}</strong>\n\n`+
             `<span class="tg-spoiler">${task.details}</span>\n\n`+
-            `#${task.number} (${task.name})`;
+            `#${task.id} (${task.name})`;
         await this.telegram.sendMessage(+task.chatId, message, {
             parse_mode: "HTML"
         });

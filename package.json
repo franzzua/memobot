@@ -4,7 +4,7 @@
   "main": "./dist/index.cjs",
   "license": "MIT",
   "scripts": {
-    "func": "export $(cat ./configs/.env | xargs) && func start -p 5800",
+    "func": "export $(cat ./configs/.env | xargs) && npx @google-cloud/functions-framework --port=5800 --target=telegraf",
     "prisma": "prisma generate",
     "bundle": "node configs/esbuild.mjs",
     "compile": "cmmn compile",
@@ -12,27 +12,28 @@
     "watch": "node configs/esbuild.mjs --watch",
     "run": "nodemon --env-file=configs/.env ./dist/esm/index.js",
     "db-push": "export $(cat ./configs/.env | xargs) && prisma db push",
-    "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js"
+    "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js",
+    "deploy": " gcloud functions deploy telegraf --region=europe-west1 --runtime=nodejs20 --source=./out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
   },
   "type": "module",
   "devDependencies": {
-    "@azure/functions": "^4.4.0",
-    "@azure/storage-queue": "^12.16.0",
     "@cmmn/core": "^2.2.3",
     "@cmmn/tools": "^2.2.3",
     "@types/node": "^20.11.20",
     "@types/uuid": "^9",
     "dotenv": "^16.4.5",
     "esbuild": "^0.20.1",
-    "fastify": "^4.26.1",
-    "prisma": "^5.12.1",
-    "telegraf": "^4.16.2",
     "tsx": "^4.7.2",
     "typescript": "5.4.5",
     "uuid": "^9.0.1"
   },
   "dependencies": {
-    "@prisma/client": "5.12.1",
+    "@google-cloud/logging-bunyan": "^5.1.0",
+    "@google-cloud/firestore": "^7.6.0",
+    "@google-cloud/functions-framework": "^3.3.0",
+    "@google-cloud/tasks": "^5.3.0",
+    "bunyan": "^1.8.15",
+    "telegraf": "^4.16.2",
     "telegram": "^2.19.20"
   }
 }

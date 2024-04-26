@@ -1,15 +1,19 @@
-import type { Chat as PChat, Message as PMessage } from "@prisma/client";
-
-export type Chat = Omit<PChat, "state"> & {
+export type Chat = {
+    id: string
+    username: string
+    userId: string
     state: ChatState;
 } ;
 
-export type Message = PMessage & {
-    tasks: Array<Task>;
-    chat: Chat
+export type Message = {
+    id: number
+    chatId: string
+    content: string
+    details: string
+    createdAt: Date
 }
 
-export type Task = Pick<Message, "content" | "details" | "number" | "chatId"> & {
+export type Task = Pick<Message, "content" | "details" | "id" | "chatId"> & {
     name: string;
 }
 

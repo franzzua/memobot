@@ -1,9 +1,7 @@
-import { Context } from "telegraf";
 import { resolve } from "@di";
 import { TaskDatabase } from "../db/taskDatabase";
 import { CommandContext } from "./types";
 
-const db = resolve(TaskDatabase);
 
 const start = `
 Ever tried to learn a foreign word, a programming function, or the name of that guy from the party, only to forget it forever within a week?
@@ -34,6 +32,7 @@ export async function onStart(ctx: CommandContext) {
 }
 
 export async function setChatFromContext(ctx: CommandContext){
+    const db = resolve(TaskDatabase);
     const name = ctx.message.from.username
         || [ctx.message.from.last_name, ctx.message.from.first_name].join(' ')
     const chat = {

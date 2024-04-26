@@ -1,4 +1,4 @@
-type ConstructorOf<T> = new (...args: any[]) => T;
+type ConstructorOf<T> = abstract new () => T;
 
 export function inject<T>(dep: ConstructorOf<T>) {
     return function (target: any, context: ClassFieldDecoratorContext<any, T>) {
@@ -30,7 +30,7 @@ class Container {
         if (this.consts.has(dep))
             return this.consts.get(dep);
         if (!factories.has(dep))
-            return new dep();
+            return new (dep as any)();
         if (this.instances.has(dep))
             return this.instances.get(dep);
         const instance = factories.get(dep)?.(this);
