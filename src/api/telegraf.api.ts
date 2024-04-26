@@ -9,6 +9,7 @@ import { onDelete } from "./delete";
 import { ChatState, Task } from "../types";
 import { TaskDatabase } from "../db/taskDatabase";
 import { Logger } from "telegram";
+import { Timetable } from "../bot/timetable";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -47,10 +48,6 @@ export class TelegrafApi extends Telegraf {
             this.logger.info(`New instance joined to cluster, secret: ${this.secretPath.substring(0, 6)}…`);
         }
         await this.init();
-        console.log(`
-            RUN bot '${process.env.BOT_TOKEN}'
-            ON ${process.env.PUBLIC_URL}
-        `);
     }
 
     async init() {
@@ -93,7 +90,7 @@ export class TelegrafApi extends Telegraf {
             return;
         const message = `<strong>${task.content}</strong>\n\n`+
             `<span class="tg-spoiler">${task.details}</span>\n\n`+
-            `#${task.id} (${task.name})`;
+            `#${task.id} (${Timetable[task.index].name})`;
         await this.telegram.sendMessage(+task.chatId, message, {
             parse_mode: "HTML"
         });

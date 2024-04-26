@@ -9,17 +9,16 @@ export class TaskDatabase {
     private store = new Firestore({
         databaseId: 'memobot',
     });
-    private messages = this.store.collection('messages');
     private chats = this.store.collection('chats');
-
+    private getMessages(chatId: string){
+        return this.chats.doc(chatId).collection('messages');
+    }
     @Logger.measure
-    async addMessage(message: Omit<Message, "id" | "createdAt">): Promise<number> {
-        const id = await this.messages
-            .where(Filter.where('chatId', '==', message.chatId))
+    async addMessage(chatId: string, message: Omit<Message, "id" | "createdAt">): Promise<number> {
+        const id = await this.getMessages(chatId)
             .count().get().then(x => x.data().count + 1);
-        await this.messages.add({
+        await this.getMessages(chatId).doc(id.toString()).set({
             ...message,
-            id,
             createdAt: new Date()
         });
         return id;
@@ -39,8 +38,7 @@ export class TaskDatabase {
 
     @Logger.measure
     async getMessageCount(chatId: string): Promise<number> {
-        return this.store.collection('messages')
-            .where(Filter.where('chatId', '==', chatId))
+        return this.getMessages(chatId)
             .count().get().then(x => x.data().count);
     }
 
@@ -52,17 +50,18 @@ export class TaskDatabase {
 
     @Logger.measure
     async getChatState(chatId: string): Promise<ChatState>{
-        return await this.store.doc(`chats/${chatId}`)
+        return await this.chats.doc(chatId)
             .get().then(x => x.get('state'))
             .then(x => x as ChatState);
 
     }
 
-    async removeChatAndMessages(chatId: string) {
-        await this.chats.doc(chatId).delete();
-        const messages = await this.messages.where(Filter.where('chatId', '==', chatId)).get();
-        for (let msg of messages.docs) {
-            await msg.ref.delete();
+    @Logger.measure
+    async removeChat(chatId: string) {
+        const messages = await this.getMessages(chatId).listDocuments()
+        for (let message of messages) {
+            await message.delete();
         }
+        await this.chats.doc(chatId).delete();
     }
 }

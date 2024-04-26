@@ -5,12 +5,11 @@ import * as assert from "node:assert";
 import { ChatState } from "../types";
 import { Logger } from "../logger/logger";
 import { ConsoleLogger } from "../logger/console.logger";
-import { GCSLogger } from "../logger/gcs.logger";
-defaultContainer.override(Logger, GCSLogger);
+defaultContainer.override(Logger, ConsoleLogger);
 
 it('db get count', async function (){
    const db = resolve(TaskDatabase);
-   const chatId = '1';
+   const chatId = '2';
    await db.addOrUpdateChat({
       id: chatId,
       userId: '123',
@@ -18,16 +17,16 @@ it('db get count', async function (){
    });
    const state = await db.getChatState(chatId);
    assert.equal(state, ChatState.initial);
+   console.log(state);
    const x =await  db.getMessageCount(chatId);
    assert.equal(x, 0);
-   await db.addMessage({
-      chatId,
+   await db.addMessage(chatId,{
       details: '123',
       content: '123'
    });
    const count2 =await  db.getMessageCount(chatId);
    assert.equal(count2, 1);
-   await db.removeChatAndMessages(chatId);
+   await db.removeChat(chatId);
 });
 
 async function measure<T>(a: () => Promise<T>, text: string): Promise<T>{

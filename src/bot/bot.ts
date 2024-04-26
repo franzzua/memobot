@@ -1,8 +1,10 @@
-import { ChatState, Task } from "../types";
+import { ChatState, Message, Task } from "../types";
 import { TaskDatabase } from "../db/taskDatabase";
 import { inject, singleton } from "@di";
 import { Timetable } from "./timetable";
 import { TaskQueue } from "../db/taskQueue";
+import { google } from "@google-cloud/tasks/build/protos/protos";
+import tasks = google.cloud.tasks;
 
 @singleton()
 export class MemoBot {
@@ -11,51 +13,24 @@ export class MemoBot {
     @inject(TaskQueue)
     private queue!: TaskQueue;
 
-    public min = 100;
-    public hour = () => 60 * this.min;
-    public day = () => 24*this.hour();
-    public week = () => 7*this.day();
-    public month = () => 4*this.week();
-    public repeatDurations = [
-        42*this.min,
-        24*this.hour(),
-        42*this.hour(),
-        this.week(),
-        2*this.week(),
-        this.month(),
-        2*this.month()
-    ];
-
-
-    // private async cancelLastMessage(){
-    //     if (!this.lastMessage) return;
-    //     await this.queue.deleteMessage(this.lastMessage.messageId, this.lastMessage.popReceipt).catch();
-    // }
-
-    // private async runNextTask(){
-    //     this.nextTask = await this.db.getNextTask();
-    //     if (!this.nextTask) {
-    //         console.log(`No task left, going to sleep...`);
-    //         return;
-    //     }
-    //     if (this.isDisposed) return;
-    //     await this.sendMessage([this.nextTask], +this.nextTask.date - +new Date());
-    // }
-
-
     public async addMessage(content: string, details: string, chatId: string): Promise<number> {
         const message = {
             content,
             details,
-            chatId,
         }
-        const id = await this.db.addMessage(message);
-        for (let task of Timetable) {
-            await this.queue.sendTask({
-                id, content, details, chatId, name: task.name
-            }, task.time)
-        }
+        const id = await this.db.addMessage(chatId, message);
+        await this.sendTask({
+            id, content, details, chatId, index: 0,
+            start: Math.round((+new Date())/1000)
+        });
         return id;
+    }
+
+    public async sendTask(task: Task) {
+        if (task.index >= Timetable.length)
+            return;
+        const delay = Timetable[task.index].time + task.start - +new Date();
+        await this.queue.sendTask(task, delay);
     }
 
     async [Symbol.asyncDispose]() {

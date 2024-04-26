@@ -7,14 +7,15 @@ export type Chat = {
 
 export type Message = {
     id: number
-    chatId: string
     content: string
     details: string
     createdAt: Date
 }
 
-export type Task = Pick<Message, "content" | "details" | "id" | "chatId"> & {
-    name: string;
+export type Task = Pick<Message, "content" | "details" | "id" > & {
+    chatId: string;
+    index: number;
+    start: number;
 }
 
 export const enum ChatState {
