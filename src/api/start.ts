@@ -4,7 +4,7 @@ import { CommandContext } from "./types";
 
 
 const start = `
-😃 Ever tried to learn a foreign word, a programming function, or the name of that guy from the party, only to forget it forever within a week?
+<em>Ever tried to learn a foreign word, a programming function, or the name of that guy from the party, only to forget it forever within a week?</em>
 I get it. Luckily, there's a way to recall anything you need in the long term with close to 100% certainty.
 
 Just <b>type</b> it in the chat, <b>send</b> it, and <b>receive</b> reminders at 7 intervals:
