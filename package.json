@@ -4,7 +4,7 @@
   "main": "./dist/index.cjs",
   "license": "MIT",
   "scripts": {
-    "func": "export $(cat ./configs/.env | xargs) && npx @google-cloud/functions-framework --port=5800 --target=telegraf",
+    "func": "export $(cat ./configs/.env | xargs) && functions-framework --port=5800 --target=telegraf",
     "prisma": "prisma generate",
     "bundle": "node configs/esbuild.mjs",
     "compile": "cmmn compile",

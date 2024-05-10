@@ -1,4 +1,7 @@
 import { CommandContext } from "./types";
+import { resolve } from "@di";
+import { TaskDatabase } from "../db/taskDatabase";
+import { ChatState } from "../types";
 
 
 export async function onDelete(ctx: CommandContext){
@@ -6,8 +9,8 @@ export async function onDelete(ctx: CommandContext){
         reply_markup: {
             keyboard: [
                 [
-                    {text: '/delete-last'},
-                    {text: '/delete-number'},
+                    {text: '/del_last'},
+                    {text: '/del_number'},
                 ]
             ],
             resize_keyboard: true,
@@ -15,3 +18,18 @@ export async function onDelete(ctx: CommandContext){
         }
     });
 }
+
+const db = resolve(TaskDatabase);
+
+export async function onDeleteLast(ctx: CommandContext){
+    const id = await db.deleteLastActiveMessage(ctx.chat.id.toString());
+    if (id == null)
+        return ctx.reply(`You have not items to delete`);
+    return ctx.reply(`Entry #${id} deleted`);
+}
+
+export async function onDeleteNumber(ctx: CommandContext){
+    await db.updateChatState(ctx.chat.id.toString(), ChatState.deleteMessage)
+    return ctx.reply(`Type in the number of the entry`);
+}
+

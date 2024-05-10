@@ -20,7 +20,7 @@ export class MemoBot {
         }
         const id = await this.db.addMessage(chatId, message);
         await this.sendTask({
-            id, content, details, chatId, index: 0,
+            messageId: id, content, details, chatId, index: 0,
             start: Math.round((+new Date())/1000)
         });
         return id;
@@ -29,7 +29,7 @@ export class MemoBot {
     public async sendTask(task: Task) {
         if (task.index >= Timetable.length)
             return;
-        const delay = Timetable[task.index].time + task.start - +new Date();
+        const delay = Timetable[task.index].time + task.start - +new Date()/1000;
         await this.queue.sendTask(task, delay);
     }
 
@@ -38,12 +38,12 @@ export class MemoBot {
 
     async stop(chatId: string) {
         console.log('stop', chatId);
-        await this.db.updateChatState({id: chatId, state: ChatState.paused});
+        await this.db.setIsPaused(chatId, true);
     }
 
     async resume(chatId: string) {
         console.log('resume', chatId);
-        await this.db.updateChatState({id: chatId, state: ChatState.initial});
+        await this.db.setIsPaused(chatId, false);
     }
 
 }

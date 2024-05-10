@@ -1,7 +1,9 @@
 import { Logger } from "./logger";
 import { LoggingBunyan } from "@google-cloud/logging-bunyan";
 import bunyan from "bunyan";
+import { singleton } from "@di";
 
+@singleton()
 export class GCSLogger extends Logger {
     private logging = new LoggingBunyan({
     });

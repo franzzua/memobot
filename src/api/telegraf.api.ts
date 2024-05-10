@@ -2,14 +2,18 @@ import process from "node:process";
 import { Telegraf } from "telegraf";
 import { inject, singleton } from "@di";
 import { MemoBot } from "../bot/bot";
-import { onAnyMessage, onNewCommand } from "./new";
+import { onNewCommand } from "./new";
 import { onStart } from "./start";
 import { onResume, onStop } from "./stop-resume";
-import { onDelete } from "./delete";
+import { onDelete, onDeleteLast, onDeleteNumber } from "./delete";
 import { ChatState, Task } from "../types";
 import { TaskDatabase } from "../db/taskDatabase";
 import { Logger } from "telegram";
 import { Timetable } from "../bot/timetable";
+import { onList, onListComplete, onListCurrent } from "./list";
+import { onAnyMessage } from "./onAnyMessage";
+import { onPractice } from "./practice";
+import { onCallback, onDonate } from "./donate";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -18,6 +22,9 @@ if(!process.env.PUBLIC_URL)
 
 @singleton()
 export class TelegrafApi extends Telegraf {
+    onCallback(data: any) {
+        throw new Error("Method not implemented.");
+    }
     @inject(MemoBot)
     private bot!: MemoBot;
     @inject(TaskDatabase)
@@ -39,7 +46,7 @@ export class TelegrafApi extends Telegraf {
     }
 
     async run(){
-        const hook = await this.telegram.getWebhookInfo();
+        const hook = await this.telegram.getWebhookInfo().catch(() => null);
         if (!hook || !hook.url?.startsWith(process.env.PUBLIC_URL!)){
             await this.telegram.setWebhook(this.hookURL);
             this.logger.info(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
@@ -56,6 +63,14 @@ export class TelegrafApi extends Telegraf {
         this.command('resume', onResume);
         this.command('start', onStart);
         this.command('delete', onDelete);
+        this.command('del_last', onDeleteLast);
+        this.command('del_number', onDeleteNumber);
+        this.command('list', onList);
+        this.command('current', onListCurrent);
+        this.command('complete', onListComplete);
+        this.command('practice', onPractice);
+        this.command('donate', onDonate);
+        this.on('callback_query', onCallback);
         this.command('actions', ctx => {
             ctx.reply('Available actions', {
                 reply_markup: {
@@ -85,12 +100,12 @@ export class TelegrafApi extends Telegraf {
     public hook = (req: {body: any}) => this.handleUpdate(req.body);
 
     public async sendTask(task: Task) {
-        const chatState = await this.db.getChatState(task.chatId);
-        if (chatState == ChatState.paused)
+        const isActive = await this.db.checkMessageActive(task.chatId, task.messageId);
+        if (!isActive)
             return;
         const message = `<strong>${task.content}</strong>\n\n`+
             `<span class="tg-spoiler">${task.details}</span>\n\n`+
-            `#${task.id} (${Timetable[task.index].name})`;
+            `#${task.messageId} (${Timetable[task.index].name})`;
         await this.telegram.sendMessage(+task.chatId, message, {
             parse_mode: "HTML"
         });
