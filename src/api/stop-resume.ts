@@ -23,5 +23,5 @@ export async function onResume(ctx: CommandContext){
         }}
     );
 }
-const onStopText = `🔕 You won’t receive any more reminders from the bot for now \n
-💡 <em>When you need them again, just use the command</em> <b>/resume</b>`;
+const onStopText = `🔕 You won’t receive any more reminders from the bot for now \n`+
+                `💡 <em>When you need them again, just use the command</em> <b>/resume</b>`;
