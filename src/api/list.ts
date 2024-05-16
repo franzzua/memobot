@@ -4,7 +4,7 @@ import { TaskDatabase } from "../db/taskDatabase";
 
 
 export async function onList(ctx: CommandContext){
-    return ctx.reply('List actions', {
+    return ctx.reply('🗒 Choose a list', {
         reply_markup: {
             keyboard: [
                 [
@@ -23,15 +23,17 @@ const db = resolve(TaskDatabase);
 export async function onListCurrent(ctx: CommandContext){
     const messages = await db.getMessages(ctx.chat.id.toString(), true);
     if (messages.length == 0)
-        return ctx.reply(`You aren't learning any items, start learning with /new`);
+        return ctx.reply(`⚠️ You aren't learning any items \n`+
+                        `💡 <em>Start learning with</em> <b>/new</b>`);
     const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
-    return ctx.reply(`Here’s the list of the items you’re learning:\n\n`+msgList);
+    return ctx.reply(`⏳ Here’s the list of the items you’re learning:\n\n`+msgList);
 }
 
 export async function onListComplete(ctx: CommandContext){
     const messages = await db.getMessages(ctx.chat.id.toString(), false);
     if (messages.length == 0)
-        return ctx.reply(`You haven't learnt any items, start learning with /new`);
+        return ctx.reply(`⚠️ You haven't learnt any items \n`+
+                        `💡 <em>Start learning with</em> <b>/new</b>`);
     const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
-    return ctx.reply(`Here’s the list of the items you’ve learnt:\n\n`+msgList);
+    return ctx.reply(`⌛ Here’s the list of the items you’ve learnt:\n\n`+msgList);
 }
