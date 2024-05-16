@@ -29,14 +29,14 @@ export async function onCallback(ctx: Context){
     })
 }
 export const payments: Record<PaymentType, string> = {
-    USD: `Proceed with <a href="https://donate.stripe.com/14k2c4abp1Fhf2o8wy">Stripe</a>`,
-    EUR: `Proceed with <a href="https://revolut.me/newtimesroman">Revolut</a>`,
-    PayPal: `Proceed with <a href="https://paypal.me/spixenglish">PayPal</a>`,
-    RUB: `Proceed with <a href="https://pay.cloudtips.ru/p/aa517638">Tinkoff</a>`,
-    USDT: `USDT: <code>0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a</code>`,
-    BTC: `BTC: <code>1PnaC2R3XC7yuogz6vJe4NbPGcK9Jy8P2X</code>`,
-    ETH: `ETH: <code>0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a</code>`,
-    TON: `TON: <code>UQBwCIZdi8uuWm-gwS_8pTnaMWFYIrkiUpodeWlVsDJbPHPJ</code>`,
+    USD: `💵 Click to proceed with <a href="https://donate.stripe.com/14k2c4abp1Fhf2o8wy">Stripe</a>`,
+    EUR: `💶 Click to proceed with <a href="https://revolut.me/newtimesroman">Revolut</a>`,
+    PayPal: `🌐 Click to proceed with <a href="https://paypal.me/spixenglish">PayPal</a>`,
+    RUB: `🏦 Click to proceed with <a href="https://pay.cloudtips.ru/p/aa517638">Tinkoff</a>`,
+    USDT: `🔗 Copy to proceed with USDT: <code>0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a</code>`,
+    BTC: `🔗 Copy to proceed with BTC: <code>1PnaC2R3XC7yuogz6vJe4NbPGcK9Jy8P2X</code>`,
+    ETH: `🔗 Copy to proceed with ETH: <code>0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a</code>`,
+    TON: `🔗 Copy to proceed with TON: <code>UQBwCIZdi8uuWm-gwS_8pTnaMWFYIrkiUpodeWlVsDJbPHPJ</code>`,
 }
 
 export type PaymentType =
