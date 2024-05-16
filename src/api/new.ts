@@ -7,14 +7,14 @@ import { ChatState } from "../types";
 const db = resolve(TaskDatabase);
 
 const replyMessages = [
-    "Add an item that you want to learn: a word, function, formula, fact, password, year, etc.",
-    "Add an item that you want to learn: a word, function, formula, fact, password, etc.",
-    "Add an item that you want to learn: a word, function, formula, fact, etc.",
-    "Add an item you want to learn: a word, function, formula, etc.",
-    "Add an item you want to learn: a word, function, etc.",
-    "Add an item you want to learn: a word, etc.",
-    "Add an item to learn",
-    "Add an item",
+    "✍️ Add an item that you want to learn: a word, function, formula, fact, password, year, etc.",
+    "✍️ Add an item that you want to learn: a word, function, formula, fact, password, etc.",
+    "✍️ Add an item that you want to learn: a word, function, formula, fact, etc.",
+    "✍️ Add an item you want to learn: a word, function, formula, etc.",
+    "✍️ Add an item you want to learn: a word, function, etc.",
+    "✍️ Add an item you want to learn: a word, etc.",
+    "✍️ Add an item to learn",
+    "✍️ Add an item",
 ];
 
 export async function onNewCommand(ctx: CommandContext) {
