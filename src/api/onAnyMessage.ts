@@ -8,14 +8,14 @@ const db = resolve(TaskDatabase);
 const bot = resolve(MemoBot);
 
 const replyDetails = [
-    "Add item details: the definition, explanation, rule, example, translation, link, etc.",
-    "Add item details: the definition, explanation, rule, example, translation, etc.",
-    "Add item details: the definition, explanation, rule, example, etc.",
-    "Add item details: the definition, explanation, rule, etc.",
-    "Add item details: the definition, explanation, etc.",
-    "Add item details: the definition, etc.",
-    "Add item details",
-    "Add details",
+    "📝 Add item details: the definition, explanation, rule, example, translation, link, etc.",
+    "📝 Add item details: the definition, explanation, rule, example, translation, etc.",
+    "📝 Add item details: the definition, explanation, rule, example, etc.",
+    "📝 Add item details: the definition, explanation, rule, etc.",
+    "📝 Add item details: the definition, explanation, etc.",
+    "📝 Add item details: the definition, etc.",
+    "📝 Add item details",
+    "📝 Add details",
 ];
 
 export async function onAnyMessage(ctx: CommandContext) {
@@ -24,14 +24,14 @@ export async function onAnyMessage(ctx: CommandContext) {
         case ChatState.deleteMessage:
             const id = +ctx.message.text;
             if (!Number.isFinite(id))
-                return ctx.reply(`Input number please`);
+                return ctx.reply(`#️⃣ Type in the number of the entry`);
             const isSuccess = await db.deleteMessage(ctx.chat.id.toString(), id);
             if (!isSuccess){
-                return ctx.reply(`Entry #${id} not found, please provide number of existing entry. \n`+
-                    `You can check existed items with /current`);
+                return ctx.reply(`🚫 Entry #${id} not found. Type in the number of an existing entry. \n`+
+                    `🔍 <em>Find the item in your list with</em> /current <em>or</em> /complete`);
             }
             await db.updateChatState(ctx.chat.id.toString(), ChatState.initial);
-            return ctx.reply(`Entry #${id} deleted`);
+            return ctx.reply(`❌ Entry #${id} deleted`);
         case ChatState.addNew: {
             const content = ctx.message.text;
             await db.updateChatState(ctx.chat.id.toString(), ChatState.setDetails, { content });
@@ -42,7 +42,7 @@ export async function onAnyMessage(ctx: CommandContext) {
         case ChatState.setDetails: {
             const number = await bot.addMessage(stateData.content, ctx.message.text, ctx.chat.id.toString());
             await db.updateChatState(ctx.chat.id.toString(), ChatState.initial);
-            return ctx.reply(`Entry #${number} added`);
+            return ctx.reply(`✅ Entry #${number} added`);
         }
 
     }
