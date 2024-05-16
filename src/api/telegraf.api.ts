@@ -63,8 +63,8 @@ export class TelegrafApi extends Telegraf {
         this.command('resume', onResume);
         this.command('start', onStart);
         this.command('delete', onDelete);
-        this.command('del_last', onDeleteLast);
-        this.command('del_number', onDeleteNumber);
+        this.command('last', onDeleteLast);
+        this.command('number', onDeleteNumber);
         this.command('list', onList);
         this.command('current', onListCurrent);
         this.command('complete', onListComplete);
@@ -72,7 +72,7 @@ export class TelegrafApi extends Telegraf {
         this.command('donate', onDonate);
         this.on('callback_query', onCallback);
         this.command('actions', ctx => {
-            ctx.reply('Available actions', {
+            ctx.reply('🔽 Choose an action from the menu', {
                 reply_markup: {
                     keyboard: [
                         [
