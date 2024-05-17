@@ -28,7 +28,9 @@ export async function onAnyMessage(ctx: CommandContext) {
             const isSuccess = await db.deleteMessage(ctx.chat.id.toString(), id);
             if (!isSuccess){
                 return ctx.reply(`⚠️ Entry #${id} not found. Type in the number of an existing entry \n\n`+
-                    `💡 <em>Find the item in your list with</em> <b>/current</b> <em>or</em> <b>/complete</b>`);
+                    `💡 <em>Find the item in your list with</em> <b>/current</b> <em>or</em> <b>/complete</b>`,{
+                        parse_mode: 'HTML'
+                });
             }
             await db.updateChatState(ctx.chat.id.toString(), ChatState.initial);
             return ctx.reply(`❌ Entry #${id} deleted`);
