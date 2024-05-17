@@ -14,7 +14,12 @@ const context = await esbuild.context({
     alias: {
         'node-fetch': './src/fetch.ts'
     },
-    external: ["@azure/functions-core"]
+    external: [
+        "@google-cloud",
+        "bunyan",
+        "telegraf",
+        "telegram"
+    ]
 });
 
 if (process.argv.includes('--watch')){

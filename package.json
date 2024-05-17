@@ -5,7 +5,6 @@
   "license": "MIT",
   "scripts": {
     "func": "export $(cat ./configs/.env | xargs) && functions-framework --port=5800 --target=telegraf",
-    "prisma": "prisma generate",
     "bundle": "node configs/esbuild.mjs",
     "compile": "cmmn compile",
     "compile:watch": "cmmn compile --watch",
@@ -28,9 +27,9 @@
     "uuid": "^9.0.1"
   },
   "dependencies": {
-    "@google-cloud/logging-bunyan": "^5.1.0",
     "@google-cloud/firestore": "^7.6.0",
     "@google-cloud/functions-framework": "^3.3.0",
+    "@google-cloud/logging-bunyan": "^5.1.0",
     "@google-cloud/tasks": "^5.3.0",
     "bunyan": "^1.8.15",
     "telegraf": "^4.16.2",
