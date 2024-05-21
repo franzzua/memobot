@@ -103,9 +103,12 @@ export class TelegrafApi extends Telegraf {
         const isActive = await this.db.checkMessageActive(task.chatId, task.messageId);
         if (!isActive)
             return;
+        const timetable = Timetable[task.index];
+        if (timetable.skipMessage)
+            return;
         const message = `<strong>${task.content}</strong>\n\n`+
             `<span class="tg-spoiler">${task.details}</span>\n\n`+
-            `#${task.messageId} (${Timetable[task.index].name})`;
+            `#${task.messageId} (${timetable.name})`;
         await this.telegram.sendMessage(+task.chatId, message, {
             parse_mode: "HTML"
         });
