@@ -60,15 +60,9 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: node-app
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
           
       - name: 'deploy'
-        uses: 'google-github-actions/deploy-cloud-functions@v2'
-        timeout-minutes: 10
-        with:
-          name: 'telegraf'
-          runtime: 'nodejs20'
-          region: 'europe-west1'
-          entry_point: 'telegraf'
-          memory_mb: 128,
-          min_instances: 1
-          max_instances: 2
+        run: "gcloud functions deploy telegraf --region=europe-west1 --runtime=nodejs20 --source=. --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
