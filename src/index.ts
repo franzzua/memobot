@@ -7,6 +7,7 @@ import { Logger } from "./logger/logger";
 import { MemoBot } from "./bot/bot";
 import { ConsoleLogger } from "./logger/console.logger";
 import { TaskDatabase } from "./db/taskDatabase";
+import { ServerResponse } from "node:http";
 defaultContainer.override(Logger, ConsoleLogger);
 //
 const tg = resolve(TelegrafApi);
@@ -17,7 +18,11 @@ tg.run().catch(e => {
     console.error(e);
     process.exit(1);
 });
-export const telegraf = async (req: Request, res: Response) => {
+export const path = tg.path;
+export const telegraf = async (
+    req: Pick<Request, "body"|"query">,
+    res: Pick<Response, "sendStatus"> & ServerResponse
+) => {
     return logger.measure(async () => {
         if (req.query.secret !== tg.secretPath)
             return res.sendStatus(401);
