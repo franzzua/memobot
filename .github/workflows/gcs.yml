@@ -70,6 +70,5 @@ jobs:
           region: 'europe-west1'
           entry_point: 'telegraf'
           memory_mb: 128,
-          event_trigger_type: 'http'
           min_instances: 1
           max_instances: 2
