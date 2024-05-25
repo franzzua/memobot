@@ -14,6 +14,7 @@ import { onList, onListComplete, onListCurrent } from "./list";
 import { onAnyMessage } from "./onAnyMessage";
 import { onPractice } from "./practice";
 import { onCallback, onDonate } from "./donate";
+import { ai } from "./ai";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -70,6 +71,7 @@ export class TelegrafApi extends Telegraf {
         this.command('complete', onListComplete);
         this.command('practice', onPractice);
         this.command('donate', onDonate);
+        this.command('ai', ai);
         this.on('callback_query', onCallback);
         this.command('actions', ctx => {
             ctx.reply('🔽 Choose an action from the menu', {
