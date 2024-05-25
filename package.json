@@ -4,12 +4,11 @@
   "main": "./dist/index.cjs",
   "license": "MIT",
   "scripts": {
-    "func": "export $(cat ./configs/.env | xargs) && functions-framework --port=5800 --target=telegraf",
     "bundle": "node configs/esbuild.mjs",
     "compile": "cmmn compile",
     "compile:watch": "cmmn compile --watch",
     "watch": "node configs/esbuild.mjs --watch",
-    "run": "nodemon --env-file=configs/.env ./dist/esm/index.js",
+    "run": "nodemon --env-file=configs/.env ./dist/esm/start.js",
     "db-push": "export $(cat ./configs/.env | xargs) && prisma db push",
     "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js",
     "deploy": "cp ./dist/index.cjs ./out/dist/index.cjs && gcloud functions deploy telegraf --region=europe-west1 --runtime=nodejs20 --source=./out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
@@ -22,6 +21,7 @@
     "@types/uuid": "^9",
     "dotenv": "^16.4.5",
     "esbuild": "^0.20.1",
+    "fastify": "^4.27.0",
     "tsx": "^4.7.2",
     "typescript": "5.4.5",
     "uuid": "^9.0.1"
@@ -31,6 +31,7 @@
     "@google-cloud/functions-framework": "^3.3.0",
     "@google-cloud/logging-bunyan": "^5.1.0",
     "@google-cloud/tasks": "^5.3.0",
+    "@google-cloud/vertexai": "^1.2.0",
     "bunyan": "^1.8.15",
     "telegraf": "^4.16.2",
     "telegram": "^2.19.20"
