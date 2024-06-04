@@ -48,7 +48,7 @@ export class TelegrafApi extends Telegraf {
 
     async run(){
         const hook = await this.telegram.getWebhookInfo().catch(() => null);
-        if (!hook || !hook.url?.startsWith(process.env.PUBLIC_URL!)){
+        if (!hook || !hook.url?.startsWith(`${process.env.PUBLIC_URL!}/${this.path}`)){
             await this.telegram.setWebhook(this.hookURL);
             this.logger.info(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
         } else if (hook.url) {
