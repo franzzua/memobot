@@ -11,7 +11,7 @@
     "run": "nodemon --env-file=configs/.env ./dist/esm/start.js",
     "db-push": "export $(cat ./configs/.env | xargs) && prisma db push",
     "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js",
-    "deploy": "cp ./dist/index.cjs ./out/dist/index.cjs && gcloud functions deploy telegraf --region=europe-west1 --runtime=nodejs20 --source=./out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
+    "deploy": "cp ./dist/index.cjs ./out/dist/index.cjs && gcloud functions deploy telegraf --region=europe-west6 --runtime=nodejs20 --source=./out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
   },
   "type": "module",
   "devDependencies": {

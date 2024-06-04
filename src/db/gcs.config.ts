@@ -1,3 +1,3 @@
 export const gcsConfig = {
-    location: 'europe-west1'
+    location: 'europe-west6'
 }

@@ -10,7 +10,6 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
   NODE_VERSION: '20.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
 
 jobs:
@@ -65,4 +64,4 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
           
       - name: 'deploy'
-        run: "gcloud functions deploy telegraf --region=europe-west1 --runtime=nodejs20 --source=. --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
+        run: "gcloud functions deploy telegraf --region=europe-west6 --runtime=nodejs20 --source=. --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
