@@ -1,9 +1,10 @@
 import { CommandContext } from "./types";
 import { resolve } from "@di";
-import { TaskDatabase } from "../db/taskDatabase";
+import { ChatDatabase } from "../db/chatDatabase";
+import { TelegrafApi } from "./telegraf.api";
 
 
-export async function onList(ctx: CommandContext){
+export async function onList(this: TelegrafApi, ctx: CommandContext){
     return ctx.reply('🗒 Choose a list', {
         reply_markup: {
             keyboard: [
@@ -18,10 +19,9 @@ export async function onList(ctx: CommandContext){
     });
 }
 
-const db = resolve(TaskDatabase);
 
-export async function onListCurrent(ctx: CommandContext){
-    const messages = await db.getMessages(ctx.chat.id.toString(), true);
+export async function onListCurrent(this: TelegrafApi, ctx: CommandContext){
+    const messages = await this.db.getMessages(ctx.chat.id.toString(), true);
     if (messages.length == 0)
         return ctx.reply(`⚠️ You aren't learning any items \n\n💡 <em>Start learning with</em> <b>/new</b>`,{
             parse_mode: 'HTML'
@@ -30,8 +30,8 @@ export async function onListCurrent(ctx: CommandContext){
     return ctx.reply(`⏳ Here’s the list of the items you’re learning:\n\n`+msgList);
 }
 
-export async function onListComplete(ctx: CommandContext){
-    const messages = await db.getMessages(ctx.chat.id.toString(), false);
+export async function onListComplete(this: TelegrafApi, ctx: CommandContext){
+    const messages = await this.db.getMessages(ctx.chat.id.toString(), false);
     if (messages.length == 0)
         return ctx.reply(`⚠️ You haven't learnt any items \n\n💡 <em>Start learning with</em> <b>/new</b>`,{
             parse_mode: 'HTML'

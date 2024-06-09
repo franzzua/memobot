@@ -1,10 +1,11 @@
 import { resolve } from "@di";
-import { TaskDatabase } from "../db/taskDatabase";
+import { ChatDatabase } from "../db/chatDatabase";
 import { CommandContext } from "./types";
 import { setChatFromContext } from "./start";
 import { ChatState } from "../types";
+import { TelegrafApi } from "./telegraf.api";
 
-const db = resolve(TaskDatabase);
+const db = resolve(ChatDatabase);
 
 const replyMessages = [
     "✍️ Add an item that you want to learn: a word, function, formula, fact, password, year, etc.",
@@ -17,8 +18,8 @@ const replyMessages = [
     "✍️ Add an item",
 ];
 
-export async function onNewCommand(ctx: CommandContext) {
-    await setChatFromContext(ctx);
+export async function onNewCommand(this: TelegrafApi, ctx: CommandContext) {
+    await setChatFromContext.call(this, ctx);
     const count = await db.getIdCounter(ctx.chat.id.toString());
     const reply = replyMessages[count] ?? replyMessages.at(-1);
     await db.updateChatState(ctx.chat.id.toString(), ChatState.addNew);

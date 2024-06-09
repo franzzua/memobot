@@ -7,7 +7,7 @@ import { onStart } from "./start";
 import { onResume, onStop } from "./stop-resume";
 import { onDelete, onDeleteLast, onDeleteNumber } from "./delete";
 import { ChatState, Task } from "../types";
-import { TaskDatabase } from "../db/taskDatabase";
+import { ChatDatabase } from "../db/chatDatabase";
 import { Logger } from "telegram";
 import { Timetable } from "../bot/timetable";
 import { onList, onListComplete, onListCurrent } from "./list";
@@ -27,9 +27,9 @@ export class TelegrafApi extends Telegraf {
         throw new Error("Method not implemented.");
     }
     @inject(MemoBot)
-    private bot!: MemoBot;
-    @inject(TaskDatabase)
-    private db!: TaskDatabase;
+    bot!: MemoBot;
+    @inject(ChatDatabase)
+    db!: ChatDatabase;
     @inject(Logger)
     private logger!: Logger;
 
@@ -59,19 +59,19 @@ export class TelegrafApi extends Telegraf {
     }
 
     async init() {
-        this.command('new', onNewCommand);
-        this.command('stop', onStop);
-        this.command('resume', onResume);
-        this.command('start', onStart);
-        this.command('delete', onDelete);
-        this.command('last', onDeleteLast);
-        this.command('number', onDeleteNumber);
-        this.command('list', onList);
-        this.command('current', onListCurrent);
-        this.command('complete', onListComplete);
-        this.command('practice', onPractice);
-        this.command('donate', onDonate);
-        this.command('ai', ai);
+        this.command('new', onNewCommand.bind(this));
+        this.command('stop', onStop.bind(this));
+        this.command('resume', onResume.bind(this));
+        this.command('start', onStart.bind(this));
+        this.command('delete', onDelete.bind(this));
+        this.command('last', onDeleteLast.bind(this));
+        this.command('number', onDeleteNumber.bind(this));
+        this.command('list', onList.bind(this));
+        this.command('current', onListCurrent.bind(this));
+        this.command('complete', onListComplete.bind(this));
+        this.command('practice', onPractice.bind(this));
+        this.command('donate', onDonate.bind(this));
+        this.command('ai', ai.bind(this));
         this.on('callback_query', onCallback);
         this.command('actions', ctx => {
             ctx.reply('🔽 Choose an action from the menu', {
@@ -91,7 +91,7 @@ export class TelegrafApi extends Telegraf {
                 }
             });
         });
-        this.hears(/^[^/].*/, onAnyMessage);
+        this.hears(/^[^/].*/, onAnyMessage.bind(this));
         // await this.launch();
     }
 
@@ -101,18 +101,35 @@ export class TelegrafApi extends Telegraf {
 
     public hook = (req: {body: any}) => this.handleUpdate(req.body);
 
-    public async sendTask(task: Task) {
-        const isActive = await this.db.checkMessageActive(task.chatId, task.messageId);
-        if (!isActive)
-            return;
+    private async getTaskMessage(task: Task){
+        const message = await this.db.getMessage(task.chatId, task.messageId);
+        if (!message) return null;
         const timetable = Timetable[task.index];
-        if (timetable.skipMessage)
-            return;
-        const message = `<strong>${task.content}</strong>\n\n`+
+        return `<strong>${task.content}</strong>\n\n`+
             `<span class="tg-spoiler">${task.details}</span>\n\n`+
-            `#${task.messageId} (${timetable.name})`;
-        await this.telegram.sendMessage(+task.chatId, message, {
-            parse_mode: "HTML"
-        });
+            `#${task.messageId} (${timetable.name}) [${task.index + 1}/${Timetable.length}]`;
+    }
+    
+    public async sendTasks(chatId: string){
+        const isActive = await this.db.checkChatActive(chatId);
+        const isSucceed = isActive ? await this.db.useTasks(chatId, async tasks => {
+            if (!tasks.length)
+                return;
+            const messages = (await Promise.all(tasks.map(t => this.getTaskMessage(t)))).join('\n\n');
+            await this.telegram.sendMessage(+chatId, messages, {
+                parse_mode: "HTML"
+            });
+            for (let task of tasks) {
+                await this.db.increaseProgress(task.chatId, task.messageId);
+            }
+        }) : true;
+        if (isSucceed) {
+            await this.bot.enqueueTasks(chatId);
+        }
+        return isSucceed
+    }
+    
+    private async isSilent(chatId: number, userId: number){
+        const chat = await this.telegram.getChatMember(chatId, userId);
     }
 }

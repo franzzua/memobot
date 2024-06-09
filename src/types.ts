@@ -14,9 +14,11 @@ export type Message = {
 
 export type Task = Pick<Message, "content" | "details" > & {
     messageId: number;
+    userId: number;
     chatId: string;
     index: number;
     start: number;
+    time: number;
 }
 
 export const enum ChatState {
@@ -25,3 +27,4 @@ export const enum ChatState {
     addNew = 3,
     setDetails = 4,
 }
+export type TaskState = 'initial' | 'pending' | 'finished';

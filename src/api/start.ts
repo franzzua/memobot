@@ -1,6 +1,7 @@
 import { resolve } from "@di";
-import { TaskDatabase } from "../db/taskDatabase";
+import { ChatDatabase } from "../db/chatDatabase";
 import { CommandContext } from "./types";
+import { TelegrafApi } from "./telegraf.api";
 
 
 const start = `
@@ -28,13 +29,12 @@ Easy memorisation is just a click away.
 <em>Enjoy your <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a> trainer!</em> ♻️
 `;
 
-export async function onStart(ctx: CommandContext) {
-    await setChatFromContext(ctx);
+export async function onStart(this: TelegrafApi, ctx: CommandContext) {
+    await setChatFromContext.call(this, ctx);
     return ctx.reply(start, {parse_mode: 'HTML'})
 }
 
-export async function setChatFromContext(ctx: CommandContext){
-    const db = resolve(TaskDatabase);
+export async function setChatFromContext(this: TelegrafApi, ctx: CommandContext){
     const name = ctx.message.from.username
         || [ctx.message.from.last_name, ctx.message.from.first_name].join(' ')
     const chat = {
@@ -42,5 +42,5 @@ export async function setChatFromContext(ctx: CommandContext){
         userId: ctx.message.from.id.toString(),
         username: name,
     }
-    await db.addOrUpdateChat(chat);
+    await this.db.addOrUpdateChat(chat);
 }

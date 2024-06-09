@@ -1,5 +1,5 @@
 import {it, test} from "node:test";
-import { TaskDatabase } from "../db/taskDatabase";
+import { ChatDatabase } from "../db/chatDatabase";
 import { inject, resolve } from "@di";
 import * as assert from "node:assert";
 
@@ -14,8 +14,8 @@ it('di resolve', async function (){
 
 class Test {
 
-   @inject(TaskDatabase)
-   db!: TaskDatabase;
+   @inject(ChatDatabase)
+   db!: ChatDatabase;
 
    private isDbOk = this.db != null;
 

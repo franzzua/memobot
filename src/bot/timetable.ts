@@ -11,7 +11,11 @@ export const Timetable = [
     { name: '13 hrs', time: 13 * hour },
     { name: '1 d 2 hrs', time: day + 2 * hour },
     { name: '2 d 8 hrs', time: 2 * day + 8 * hour },
-    // skipMessage is required if delay between messages > 30 days, it will not be sent to user
-    { name: '4 d', time: 4 * day, skipMessage: true },
     { name: '1 w', time: week },
 ];
+
+export const TimetableDelay = 3 * min;
+
+export function now(){
+    return Math.round((+new Date())/1000);
+}

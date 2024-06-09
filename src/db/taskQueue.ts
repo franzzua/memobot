@@ -15,29 +15,30 @@ export class TaskQueue {
     private client = new CloudTasksClient();
     private queue: protos.google.cloud.tasks.v2.IQueue | undefined;
     private async getQueue(){
+        const projectId = await this.client.getProjectId();
+        const name = this.client.queuePath(projectId, gcsConfig.location, 'tasksdev');
         const q = await this.client.getQueue({
-            name: this.client.queuePath( await this.client.getProjectId(), gcsConfig.location, 'tasks'),
+            name,
         }).then(x => x[0]).catch(e => null);
         if (q) return q;
         return this.client.createQueue({
-            parent: this.client.locationPath( await this.client.getProjectId(), gcsConfig.location),
+            parent: this.client.locationPath(projectId, gcsConfig.location),
             queue: {
-                name: this.client.queuePath( await this.client.getProjectId(), gcsConfig.location, 'tasks'),
+                name,
             }
         }).then(x => x[0])
     }
 
-    private lastMessage: any | null = null;
     @Logger.measure
-    async sendTask(task: Task, timeout = 0) {
+    async sendTask(chatId: string, timeout = 0): Promise<string> {
         this.queue ??= await this.getQueue();
-        this.lastMessage = await this.client.createTask({
+        const [task] = await this.client.createTask({
             parent: this.queue.name,
             task: {
                 scheduleTime: {seconds:+new Date()/1000 + timeout},
                 httpRequest: {
                     url: this.tg.hookURL + "&task=1",
-                    body: Buffer.from(JSON.stringify(task)).toString('base64'),
+                    body: Buffer.from(chatId).toString('base64'),
                     headers: {
                         'Content-Type': 'text/plain', // Set content type to ensure compatibility your application's request parsing
                     },
@@ -45,5 +46,13 @@ export class TaskQueue {
                 }
             },
         });
+        return task.name!;
+    }
+
+    async deleteTask(name: string) {
+        console.log('delete task', name);
+        await this.client.deleteTask({
+            name
+        }).catch(e => {});
     }
 }
