@@ -41,12 +41,16 @@ export class MemoBot {
         const nextTaskTime = await this.db.getNextTaskTime(chatId);
         if (!nextTaskTime)
             return;
-        const nextTime = Math.max(nextTaskTime, TimetableDelay + now());
+        let nextTime = Math.max(nextTaskTime, TimetableDelay + now());
         const queueInfo = await this.db.getQueueInfo(chatId);
-        if (queueInfo && queueInfo.time <= nextTime)
-            return;
-        if (queueInfo && queueInfo.time > nextTime)
+        if (queueInfo) {
+            if (queueInfo.time <= nextTime + TimetableDelay / 2)
+                return;
+            if (queueInfo.time <= nextTime + TimetableDelay){
+                nextTime = queueInfo.time + TimetableDelay / 2;
+            }
             await this.queue.deleteTask(queueInfo.name);
+        }
         const queueTaskName = await this.queue.sendTask(chatId, nextTime - now());
         await this.db.setQueueInfo(chatId, {
             time: nextTime,
@@ -55,7 +59,6 @@ export class MemoBot {
         this.logger.send({
             chatId, queueTime: new Date(nextTime * 1000).toISOString(),
             in: nextTime - now()
-            
         });
     }
 

@@ -2,7 +2,7 @@ import { singleton } from "@di";
 import { Chat, ChatState, Message, Task } from "../types";
 import { Filter, Firestore } from "@google-cloud/firestore";
 import { Logger } from "../logger/logger";
-import { now, Timetable } from "../bot/timetable";
+import { now, Timetable, TimetableDelay } from "../bot/timetable";
 
 @singleton()
 export class ChatDatabase {
@@ -147,7 +147,7 @@ export class ChatDatabase {
                 const taskDocs = await t.get(
                     this.tasks(chatId).where(Filter.and(
                         Filter.where('state', '==', 'initial'),
-                        Filter.where('time', '<=', now()),
+                        Filter.where('time', '<=', now() + TimetableDelay / 2),
                     ))
                 ).then(x => x.docs);
                 for (let taskDoc of taskDocs) {
