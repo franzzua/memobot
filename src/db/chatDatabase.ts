@@ -191,6 +191,7 @@ export class ChatDatabase {
 }
 
 export type QueueTaskInfo = {
+    isMoved: boolean;
     time: number;
     name: string;
 }

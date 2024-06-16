@@ -43,16 +43,19 @@ export class MemoBot {
             return;
         let nextTime = Math.max(nextTaskTime, TimetableDelay + now());
         const queueInfo = await this.db.getQueueInfo(chatId);
+        let isMoved = false;
         if (queueInfo) {
             if (queueInfo.time <= nextTime + TimetableDelay / 2)
                 return;
-            if (queueInfo.time <= nextTime + TimetableDelay){
+            if (!queueInfo.isMoved && queueInfo.time <= nextTime + TimetableDelay){
+                isMoved = true;
                 nextTime = queueInfo.time + TimetableDelay / 2;
             }
             await this.queue.deleteTask(queueInfo.name);
         }
         const queueTaskName = await this.queue.sendTask(chatId, nextTime - now());
         await this.db.setQueueInfo(chatId, {
+            isMoved,
             time: nextTime,
             name: queueTaskName,
         });
