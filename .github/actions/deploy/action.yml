@@ -1,21 +1,25 @@
-name: "Build"
-description: 'Build App'
+name: "Deploy"
+description: 'Deploy App'
 inputs:
 outputs:
 runs:
   using: "composite"
   steps:
     - uses: 'google-github-actions/auth@v2'
+      shell: bash
       with:
         credentials_json: '${{ secrets.GCLOUD_SERVICE_ACCOUNT_KEY }}'
 
     - name: Download artifact from build job
       uses: actions/download-artifact@v3
+      shell: bash
       with:
         name: node-app
 
     - name: 'Set up Cloud SDK'
+      shell: bash
       uses: 'google-github-actions/setup-gcloud@v2'
 
     - name: 'deploy'
+      shell: bash
       run: "gcloud functions deploy telegraf --region=europe-west6 --runtime=nodejs20 --source=. --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
