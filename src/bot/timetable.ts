@@ -1,3 +1,5 @@
+import { env } from "../env";
+
 export const min = 60;
 export const hour =60 * min;
 export const day = 24 * hour;
@@ -24,7 +26,7 @@ const ProdTimetable = [
     { name: '3 m', time: 3 * month },
 ];
 
-export const Timetable = process.env.ENVIRONMENT == 'production' ? ProdTimetable : DevTimetable;
+export const Timetable = env.IsProd ? ProdTimetable : DevTimetable;
 export const TimetableDelay = 3 * min;
 
 export function now(){

@@ -12,7 +12,7 @@ on:
 
 env:
   NODE_VERSION: '20.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
-  function: ${{ github.ref == 'refs/heads/main' && 'telegraf' || 'telegraf-staging' }}
+  function: ${{ github.ref == 'refs/heads/main' && 'telegraf' || 'telegraf-stage' }}
 jobs:
   build:
     runs-on: ubuntu-latest
