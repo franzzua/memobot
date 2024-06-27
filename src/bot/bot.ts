@@ -41,7 +41,7 @@ export class MemoBot {
         const nextTaskTime = await this.db.getNextTaskTime(chatId);
         if (!nextTaskTime)
             return;
-        let nextTime = Math.min(Math.max(nextTaskTime, TimetableDelay + now()), 30 * day);
+        let nextTime = Math.min(Math.max(nextTaskTime, TimetableDelay + now()), 30 * day + now());
         const queueInfo = await this.db.getQueueInfo(chatId);
         let isMoved = false;
         if (queueInfo) {
