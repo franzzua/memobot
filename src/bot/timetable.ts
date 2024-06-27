@@ -27,7 +27,7 @@ const ProdTimetable = [
 ];
 
 export const Timetable = env.IsProd ? ProdTimetable : DevTimetable;
-export const TimetableDelay = 3 * min;
+export const TimetableDelay =  env.IsProd ? 42 * fmin : 3 * min;
 
 export function now(){
     return Math.round((+new Date())/1000);
