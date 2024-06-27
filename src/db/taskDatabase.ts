@@ -9,9 +9,9 @@ import { env } from "../env";
 export class TaskDatabase {
 
     private store = new Firestore({
-        databaseId: 'memobot',
+        databaseId: env.IsProd ? 'memobot' : 'memobot_dev',
     });
-    private tasks = this.store.collection(env.IsProd ? 'tasksprod' : 'tasks');
+    private tasks = this.store.collection('tasks');
     
     async clear(){
         const docs = await this.tasks.listDocuments();

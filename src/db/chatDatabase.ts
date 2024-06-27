@@ -3,6 +3,7 @@ import { Chat, ChatState, Message, Task } from "../types";
 import { Filter, Firestore } from "@google-cloud/firestore";
 import { Logger } from "../logger/logger";
 import { now, Timetable, TimetableDelay } from "../bot/timetable";
+import { env } from "../env";
 
 @singleton()
 export class ChatDatabase {
@@ -10,7 +11,7 @@ export class ChatDatabase {
     constructor() {
     }
     private store = new Firestore({
-        databaseId: 'memobot',
+        databaseId: env.IsProd ? 'memobot' : 'memobot_dev',
     });
     private chats = this.store.collection('chats');
     private messages(chatId: string){
