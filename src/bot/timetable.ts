@@ -1,10 +1,10 @@
-const min = 60;
-const hour =60 * min;
-const day = 24 * hour;
-const week = 7 * day;
-const month = 30 * day;
+export const min = 60;
+export const hour =60 * min;
+export const day = 24 * hour;
+export const week = 7 * day;
+export const month = 30 * day;
 
-export const Timetable = [
+const DevTimetable = [
     { name: '3 mins', time: 3 * min },
     { name: '1 hr 50 mins', time: hour + 50 * min },
     { name: '3 hrs 20 mins', time: 3 * hour + 20 * min },
@@ -14,6 +14,17 @@ export const Timetable = [
     { name: '1 w', time: week },
 ];
 
+const ProdTimetable = [
+    { name: '42 mins', time: 42 * min },
+    { name: '24 hrs', time: 24 * hour },
+    { name: '42 hrs', time: 42 * hour },
+    { name: '1 w', time: week },
+    { name: '2 w', time: 2 * week },
+    { name: '1 m', time: month },
+    { name: '3 m', time: 3 * month },
+];
+
+export const Timetable = process.env.ENVIRONMENT == 'production' ? ProdTimetable : DevTimetable;
 export const TimetableDelay = 3 * min;
 
 export function now(){

@@ -1,7 +1,7 @@
 import { Task } from "../types";
 import { ChatDatabase } from "../db/chatDatabase";
 import { inject, resolve, singleton } from "@di";
-import { now, Timetable, TimetableDelay } from "./timetable";
+import { day, now, Timetable, TimetableDelay } from "./timetable";
 import { TaskQueue } from "../db/taskQueue";
 import { Logger } from "../logger/logger";
 
@@ -41,7 +41,7 @@ export class MemoBot {
         const nextTaskTime = await this.db.getNextTaskTime(chatId);
         if (!nextTaskTime)
             return;
-        let nextTime = Math.max(nextTaskTime, TimetableDelay + now());
+        let nextTime = Math.min(Math.max(nextTaskTime, TimetableDelay + now()), 30 * day);
         const queueInfo = await this.db.getQueueInfo(chatId);
         let isMoved = false;
         if (queueInfo) {
