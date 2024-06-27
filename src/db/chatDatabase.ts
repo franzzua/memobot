@@ -11,7 +11,7 @@ export class ChatDatabase {
     constructor() {
     }
     private store = new Firestore({
-        databaseId: env.IsProd ? 'memobot' : 'memobot_dev',
+        databaseId: env.IsProd ? 'memobot' : 'memobot-dev',
     });
     private chats = this.store.collection('chats');
     private messages(chatId: string){
