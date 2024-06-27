@@ -1,3 +1,7 @@
+name: "Build"
+description: 'Build App'
+inputs:
+outputs:
 runs:
   using: "composite"
   steps:
