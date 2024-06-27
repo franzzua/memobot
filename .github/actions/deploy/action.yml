@@ -15,6 +15,7 @@ runs:
       shell: bash
       with:
         name: node-app
+        path: out
 
     - name: 'Set up Cloud SDK'
       shell: bash
@@ -22,4 +23,4 @@ runs:
 
     - name: 'deploy'
       shell: bash
-      run: "gcloud functions deploy telegraf --region=europe-west6 --runtime=nodejs20 --source=. --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
+      run: "gcloud functions deploy telegraf --region=europe-west6 --runtime=nodejs20 --source=out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
