@@ -4,12 +4,16 @@ inputs:
   function:  # id of input
     description: 'Name of function'
     required: true
+  serviceKey:
+    description: 'Service Account Key'
+    required: true
+    
 runs:
   using: "composite"
   steps:
     - uses: 'google-github-actions/auth@v2'
       with:
-        credentials_json: '${{ secrets.GCLOUD_SERVICE_ACCOUNT_KEY }}'
+        credentials_json: '${{ inputs.serviceKey }}'
 
     - name: Download artifact from build job
       uses: actions/download-artifact@v3
