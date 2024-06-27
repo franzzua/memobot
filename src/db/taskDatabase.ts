@@ -3,6 +3,7 @@ import { Chat, ChatState, Message, Task, TaskState } from "../types";
 import { Filter, Firestore, AggregateQuery, AggregateField } from "@google-cloud/firestore";
 import { Logger } from "../logger/logger";
 import { Timetable } from "../bot/timetable";
+import { env } from "../env";
 
 @singleton()
 export class TaskDatabase {
@@ -10,7 +11,7 @@ export class TaskDatabase {
     private store = new Firestore({
         databaseId: 'memobot',
     });
-    private tasks = this.store.collection('tasks');
+    private tasks = this.store.collection(env.IsProd ? 'tasksprod' : 'tasks');
     
     async clear(){
         const docs = await this.tasks.listDocuments();
