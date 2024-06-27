@@ -1,7 +1,5 @@
 name: "Deploy"
 description: 'Deploy App'
-inputs:
-outputs:
 runs:
   using: "composite"
   steps:
