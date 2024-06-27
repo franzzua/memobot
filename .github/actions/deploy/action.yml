@@ -1,24 +1,25 @@
 name: "Deploy"
 description: 'Deploy App'
+inputs:
+  function:  # id of input
+    description: 'Name of function'
+    required: true
 runs:
   using: "composite"
   steps:
     - uses: 'google-github-actions/auth@v2'
-      shell: bash
       with:
         credentials_json: '${{ secrets.GCLOUD_SERVICE_ACCOUNT_KEY }}'
 
     - name: Download artifact from build job
       uses: actions/download-artifact@v3
-      shell: bash
       with:
         name: node-app
         path: out
 
     - name: 'Set up Cloud SDK'
-      shell: bash
       uses: 'google-github-actions/setup-gcloud@v2'
 
     - name: 'deploy'
       shell: bash
-      run: "gcloud functions deploy telegraf --region=europe-west6 --runtime=nodejs20 --source=out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
+      run: "gcloud functions deploy ${{ inputs.function }} --region=europe-west6 --runtime=nodejs20 --source=out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"

@@ -6,7 +6,6 @@ runs:
 
     - name: Setup Node ${{ env.NODE_VERSION }} Environment
       uses: actions/setup-node@v4
-      shell: bash
       with:
         node-version: ${{ env.NODE_VERSION }}
 
@@ -25,7 +24,6 @@ runs:
 
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v3
-      shell: bash
       with:
         name: node-app
         path: ./out/
