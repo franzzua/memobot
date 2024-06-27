@@ -1,0 +1,30 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+runs:
+  using: "composite"
+  steps:
+    - name: 'Checkout GitHub Action'
+      uses: actions/checkout@v4
+
+    - name: Setup Node ${{ env.NODE_VERSION }} Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: build
+      run: |
+        yarn
+        yarn run compile
+        yarn run bundle
+    - name: output
+      run: |
+        mkdir ./out/dist -p
+        cp ./dist/index.cjs ./out/dist/index.cjs
+        cp ./package.json ./out/
+
+    - name: Upload artifact for deployment job
+      uses: actions/upload-artifact@v3
+      with:
+        name: node-app
+        path: ./out/

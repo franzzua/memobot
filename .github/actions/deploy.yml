@@ -1,0 +1,17 @@
+runs:
+  using: "composite"
+  steps:
+    - uses: 'google-github-actions/auth@v2'
+      with:
+        credentials_json: '${{ secrets.GCLOUD_SERVICE_ACCOUNT_KEY }}'
+
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v3
+      with:
+        name: node-app
+
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v2'
+
+    - name: 'deploy'
+      run: "gcloud functions deploy telegraf --region=europe-west6 --runtime=nodejs20 --source=. --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"
