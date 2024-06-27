@@ -16,6 +16,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
       - name: 'Build'
         uses: ./.github/actions/build
 
@@ -26,6 +28,8 @@ jobs:
       id-token: write #This is required for requesting the JWT
 
     steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
       - name: 'Deploy'
         uses: ./.github/actions/deploy
       
