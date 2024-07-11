@@ -5,7 +5,7 @@ import { TelegrafApi } from "./telegraf.api";
 
 
 export async function onList(this: TelegrafApi, ctx: CommandContext){
-    return ctx.reply('🗒 Choose a list', {
+    return ctx.reply('🗒 Please choose a list to view', {
         reply_markup: {
             keyboard: [
                 [
@@ -23,19 +23,19 @@ export async function onList(this: TelegrafApi, ctx: CommandContext){
 export async function onListCurrent(this: TelegrafApi, ctx: CommandContext){
     const messages = await this.db.getMessages(ctx.chat.id.toString(), true);
     if (messages.length == 0)
-        return ctx.reply(`⚠️ You aren't learning any items \n\n💡 <em>Start learning with</em> <b>/new</b>`,{
+        return ctx.reply(`⚠️ You haven't added any items to learn yet \n\n💡 <em>Start adding items with</em> <b>/new</b>`,{
             parse_mode: 'HTML'
         });
     const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
-    return ctx.reply(`⏳ Here’s the list of the items you’re learning:\n\n`+msgList);
+    return ctx.reply(`⏳ Here are the items you're currently learning:\n\n`+msgList);
 }
 
 export async function onListComplete(this: TelegrafApi, ctx: CommandContext){
     const messages = await this.db.getMessages(ctx.chat.id.toString(), false);
     if (messages.length == 0)
-        return ctx.reply(`⚠️ You haven't learnt any items \n\n💡 <em>Start learning with</em> <b>/new</b>`,{
+        return ctx.reply(`⚠️ You haven't learned any items yet \n\n💡 <em>Start learning new items with</em> <b>/new</b>`,{
             parse_mode: 'HTML'
         });
     const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
-    return ctx.reply(`⌛ Here’s the list of the items you’ve learnt:\n\n`+msgList);
+    return ctx.reply(`⌛ Here's what you've learned so far:\n\n`+msgList);
 }
