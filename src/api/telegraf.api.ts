@@ -15,6 +15,7 @@ import { onAnyMessage } from "./onAnyMessage";
 import { onPractice } from "./practice";
 import { onCallback, onDonate } from "./donate";
 import { ai } from "./ai";
+import { onQuiz, onQuizDirect, onQuizReversed } from "./quiz";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -72,6 +73,9 @@ export class TelegrafApi extends Telegraf {
         this.command('practice', onPractice.bind(this));
         this.command('donate', onDonate.bind(this));
         this.command('ai', ai.bind(this));
+        this.command('quiz', onQuiz.bind(this));
+        this.command('directQuiz', onQuizDirect.bind(this));
+        this.command('reversedQuiz', onQuizReversed.bind(this));
         this.on('callback_query', onCallback);
         this.command('actions', ctx => {
             ctx.reply('🔽 Choose an action from the menu', {
