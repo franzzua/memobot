@@ -116,18 +116,18 @@ export class TelegrafApi extends Telegraf {
                case 3:
                case 6:
                    return `<strong>${task.content}</strong>\n\n`+
-                        `<span>${task.details}</span>`;
+                        `${task.details}`;
                case 1:
                    return `<strong>${task.content}</strong>\n\n`+
                        `<span class="tg-spoiler">${task.details}</span>`;
                case 2:
                    return `<strong class="tg-spoiler">${task.content}</strong>\n\n`+
-                       `<span>${task.details}</span>`;
+                       `${task.details}`;
                case 4:
                case 5:
                    if (Math.random() > .5){
                        return `<strong class="tg-spoiler">${task.content}</strong>\n\n`+
-                           `<span>${task.details}</span>`;
+                           `${task.details}`;
                    } else {
                        return `<strong>${task.content}</strong>\n\n`+
                            `<span class="tg-spoiler">${task.details}</span>`;
