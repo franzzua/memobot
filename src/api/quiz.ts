@@ -2,6 +2,7 @@ import { CommandContext } from "./types";
 import { resolve } from "@di";
 import { ChatDatabase } from "../db/chatDatabase";
 import { TelegrafApi } from "./telegraf.api";
+import { ChatState } from "../types";
 
 
 export async function onQuiz(this: TelegrafApi, ctx: CommandContext){
@@ -16,6 +17,7 @@ export async function onQuiz(this: TelegrafApi, ctx: CommandContext){
                 [
                     {text: '/directQuiz'},
                     {text: '/reversedQuiz'},
+                    {text: '/writeQuiz'},
                 ]
             ],
             resize_keyboard: true,
@@ -32,15 +34,39 @@ export async function onQuizDirect(this: TelegrafApi, ctx: CommandContext){
 export async function onQuizReversed(this: TelegrafApi, ctx: CommandContext){
     return quiz.call(this, ctx, true);
 }
+export async function onQuizWrite(this: TelegrafApi, ctx: CommandContext){
+    const [message] = await getRandomMessages.call(this, ctx, 1);
+    await this.db.updateChatState(ctx.chat.id.toString(), ChatState.writeQuiz, {
+        answer: message.content
+    });
+    return ctx.reply(
+        `Write item for provided definition: '${message.details}'`
+    );
+}
+export async function onQuizWriteAnswer(this: TelegrafApi, ctx: CommandContext, data: {
+    answer: string;
+}){
+    await this.db.updateChatState(ctx.chat.id.toString(), ChatState.initial);
+    const isRight = ctx.message.text == data.answer;
+    if (isRight){
+        return ctx.reply('Excellent!');
+    } else {
+        return ctx.reply(`You are wrong, right answer is \`${data.answer}\``);
+    }
+}
 
-
-async function quiz(this: TelegrafApi, ctx: CommandContext, reversed: boolean){
+async function getRandomMessages(this: TelegrafApi, ctx: CommandContext, count: number){
     const messages = await this.db.getMessages(ctx.chat.id.toString(), true);
     const primeModulo = 442009;
     const random = Math.floor(Math.random()*messages.length);
-    const randomMessages = [0,1,2,3]
+    const randomMessages = Array(count).fill(0).map((_,i) => i)
         .map(x => (x * primeModulo + random) % messages.length)
         .map(x => messages[x]);
+    return randomMessages;
+}
+
+async function quiz(this: TelegrafApi, ctx: CommandContext, reversed: boolean){
+    const randomMessages = await getRandomMessages.call(this, ctx, 4);
     const answerIndex = Math.floor(Math.random() * randomMessages.length);
     const answer = randomMessages[answerIndex];
     const question = reversed

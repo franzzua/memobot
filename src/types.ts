@@ -26,5 +26,6 @@ export const enum ChatState {
     deleteMessage = 2,
     addNew = 3,
     setDetails = 4,
+    writeQuiz = 5
 }
 export type TaskState = 'initial' | 'pending' | 'finished';

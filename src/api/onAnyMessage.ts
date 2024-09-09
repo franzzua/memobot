@@ -4,6 +4,7 @@ import { resolve } from "@di";
 import { ChatDatabase } from "../db/chatDatabase";
 import { MemoBot } from "../bot/bot";
 import { TelegrafApi } from "./telegraf.api";
+import { onQuizWriteAnswer } from "./quiz";
 
 
 const replyDetails = [
@@ -20,6 +21,8 @@ const replyDetails = [
 export async function onAnyMessage(this: TelegrafApi, ctx: CommandContext) {
     const { state, stateData } = await this.db.getChatState(ctx.chat.id.toString());
     switch (state) {
+        case ChatState.writeQuiz:
+            return onQuizWriteAnswer.call(this, ctx, stateData);
         case ChatState.deleteMessage:
             const id = +ctx.message.text;
             if (!Number.isFinite(id))
