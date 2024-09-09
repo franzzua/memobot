@@ -110,11 +110,36 @@ export class TelegrafApi extends Telegraf {
         const message = await this.db.getMessage(task.chatId, task.messageId);
         if (!message) return null;
         const timetable = Timetable[task.index];
-        return `<strong>${task.content}</strong>\n\n`+
-            `<span class="tg-spoiler">${task.details}</span>\n\n`+
+        const text = (function (){
+           switch (task.index){
+               case 0:
+               case 3:
+               case 6:
+                   return `<strong>${task.content}</strong>\n\n`+
+                        `<span>${task.details}</span>`;
+               case 1:
+                   return `<strong>${task.content}</strong>\n\n`+
+                       `<span class="tg-spoiler">${task.details}</span>`;
+               case 2:
+                   return `<strong class="tg-spoiler">${task.content}</strong>\n\n`+
+                       `<span>${task.details}</span>`;
+               case 4:
+               case 5:
+                   if (Math.random() > .5){
+                       return `<strong class="tg-spoiler">${task.content}</strong>\n\n`+
+                           `<span>${task.details}</span>`;
+                   } else {
+                       return `<strong>${task.content}</strong>\n\n`+
+                           `<span class="tg-spoiler">${task.details}</span>`;
+                   }
+               default: return `<strong>${task.content}</strong>\n\n`+
+                   `<span class="tg-spoiler">${task.details}</span>`;
+           }
+        })();
+        return `${text}\n\n`+
             `#${task.messageId} (${timetable.name}) [${task.index + 1}/${Timetable.length}]`;
     }
-    
+
     public async sendTasks(chatId: string){
         const isActive = await this.db.checkChatActive(chatId);
         const isSucceed = isActive ? await this.db.useTasks(chatId, async tasks => {
