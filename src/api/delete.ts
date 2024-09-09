@@ -25,11 +25,11 @@ export async function onDeleteLast(this: TelegrafApi, ctx: CommandContext){
     const id = await this.db.deleteLastActiveMessage(ctx.chat.id.toString());
     if (id == null)
         return ctx.reply(`⚠️ There are no items to delete`);
-    return ctx.reply(`❌ Entry #${id} deleted`);
+    return ctx.reply(`❌ Entry #${id} has been deleted`);
 }
 
 export async function onDeleteNumber(this: TelegrafApi, ctx: CommandContext){
     await this.db.updateChatState(ctx.chat.id.toString(), ChatState.deleteMessage)
-    return ctx.reply(`#️⃣ Type in the number of the entry`);
+    return ctx.reply(`#️⃣ Please enter the entry number`);
 }
 
