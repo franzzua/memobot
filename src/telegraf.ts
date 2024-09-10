@@ -13,6 +13,7 @@ export const telegraf = async (
     const tg = resolve(TelegrafApi);
     const db = resolve(ChatDatabase);
     return logger.measure(async () => {
+        console.log(req.query);
         if (req.query.secret !== tg.secretPath)
             return res.sendStatus(401);
         if (req.query.task) {
