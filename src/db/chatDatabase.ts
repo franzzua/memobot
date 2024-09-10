@@ -189,6 +189,17 @@ export class ChatDatabase {
     async getMessage(chatId: string, messageId: number): Promise<Message> {
         return this.messages(chatId).doc(messageId.toString()).get().then(x => x.data() as Message);
     }
+
+    async deleteAllMessage(chatId: string) {
+        const messages = await this.messages(chatId).get();
+        for (let doc of messages.docs) {
+            await doc.ref.delete();
+        }
+        const tasks = await this.messages(chatId).get();
+        for (let doc of tasks.docs) {
+            await doc.ref.delete();
+        }
+    }
 }
 
 export type QueueTaskInfo = {

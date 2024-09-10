@@ -81,4 +81,12 @@ export class MemoBot {
         await this.db.setIsPaused(chatId, false);
     }
 
+    async deleteAllMessages(chatId: string) {
+        const queueInfo = await this.db.getQueueInfo(chatId);
+        if (queueInfo) {
+            await this.queue.deleteTask(queueInfo.name);
+        }
+        await this.db.deleteAllMessage(chatId);
+
+    }
 }
