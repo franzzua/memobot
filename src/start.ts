@@ -5,6 +5,7 @@ import { ConsoleLogger } from "./logger/console.logger";
 import { telegraf } from "./telegraf";
 import { TelegrafApi } from "./api/telegraf.api";
 import process from "node:process";
+import { ImageRender } from "./helpers/image-render";
 
 defaultContainer.override(Logger, ConsoleLogger);
 const app = fastify({
@@ -20,6 +21,13 @@ app.post('/'+tg.path, (req, res) => {
     }, Object.assign(res, {
         sendStatus: code => res.status<number>(code).send()
     }))
+})
+
+app.get('/image', (req) => {
+    const { title, content } = req.query as never;
+    const imageRender = new ImageRender(title, content);
+    imageRender.render();
+    return imageRender.canvas.createPNGStream();
 })
 
 app.listen({

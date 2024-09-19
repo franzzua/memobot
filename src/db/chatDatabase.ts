@@ -4,6 +4,7 @@ import { Filter, Firestore } from "@google-cloud/firestore";
 import { Logger } from "../logger/logger";
 import { now, Timetable, TimetableDelay } from "../bot/timetable";
 import { env } from "../env";
+import { gcsConfig } from "./gcs.config";
 
 @singleton()
 export class ChatDatabase {
@@ -12,6 +13,7 @@ export class ChatDatabase {
     }
     private store = new Firestore({
         databaseId: env.IsProd ? 'memobot' : 'memobot-dev',
+        projectId: gcsConfig.projectId
     });
     private chats = this.store.collection('chats');
     private messages(chatId: string){

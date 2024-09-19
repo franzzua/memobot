@@ -12,7 +12,9 @@ export class TaskQueue {
         return resolve(TelegrafApi)
     }
 
-    private client = new CloudTasksClient();
+    private client = new CloudTasksClient({
+        projectId: gcsConfig.projectId
+    });
     private queue: protos.google.cloud.tasks.v2.IQueue | undefined;
     private async getQueue(){
         const projectId = await this.client.getProjectId();

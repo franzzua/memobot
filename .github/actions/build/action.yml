@@ -21,6 +21,7 @@ runs:
         mkdir ./out/dist -p
         cp ./dist/index.cjs ./out/dist/index.cjs
         cp ./package.json ./out/
+        cp ./assets ./out/
 
     - name: Upload artifact for deployment job
       uses: actions/upload-artifact@v3

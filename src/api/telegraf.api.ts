@@ -16,7 +16,8 @@ import { onPractice } from "./practice";
 import { onCallback, onDonate } from "./donate";
 import { ai } from "./ai";
 import { onQuiz, onQuizDirect, onQuizReversed, onQuizWrite } from "./quiz";
-import { onWipe } from "./onWipe";
+import { onImage, onWipe } from "./onWipe";
+import { ImageRender } from "../helpers/image-render";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -79,6 +80,7 @@ export class TelegrafApi extends Telegraf {
         this.command('directQuiz', onQuizDirect.bind(this));
         this.command('reversedQuiz', onQuizReversed.bind(this));
         this.command('wipe', onWipe.bind(this));
+        this.command('image', onImage.bind(this));
         this.on('callback_query', onCallback);
         this.command('actions', ctx => {
             ctx.reply('🔽 Choose an action from the menu', {
@@ -147,10 +149,24 @@ export class TelegrafApi extends Telegraf {
         const isSucceed = isActive ? await this.db.useTasks(chatId, async tasks => {
             if (!tasks.length)
                 return;
-            const messages = (await Promise.all(tasks.map(t => this.getTaskMessage(t)))).join('\n\n');
-            await this.telegram.sendMessage(+chatId, messages, {
-                parse_mode: "HTML"
-            });
+            const sendImage = true;
+            if (sendImage) {
+                for (let task of tasks) {
+                    const message = await this.db.getMessage(task.chatId, task.messageId);
+                    if (!message) continue;
+                    const image = new ImageRender(task.content, task.details);
+                    image.render();
+                    await this.telegram.sendPhoto(+chatId, {
+                        source: image.canvas.createPNGStream()
+                    })
+                }
+            } else {
+                const messages = (await Promise.all(tasks.map(t => this.getTaskMessage(t)))).join('\n\n');
+
+                await this.telegram.sendMessage(+chatId, messages, {
+                    parse_mode: "HTML"
+                });
+            }
             for (let task of tasks) {
                 await this.db.increaseProgress(task.chatId, task.messageId);
             }
