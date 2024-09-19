@@ -11,6 +11,9 @@ const context = await esbuild.context({
     target: 'ES2020',
     minify: process.argv.includes('--minify'),
     format: "cjs",
+    loader: {
+        '.node': 'file',
+    },
     alias: {
         'node-fetch': './src/fetch.ts'
     },
