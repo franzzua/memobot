@@ -12,7 +12,7 @@ const context = await esbuild.context({
     minify: process.argv.includes('--minify'),
     format: "cjs",
     loader: {
-        '.node': 'file',
+        '.node': 'copy',
     },
     alias: {
         'node-fetch': './src/fetch.ts'
