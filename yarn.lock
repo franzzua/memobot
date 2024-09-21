@@ -6043,8 +6043,8 @@ __metadata:
   linkType: hard
 
 "telegram@npm:^2.19.20":
-  version: 2.25.4
-  resolution: "telegram@npm:2.25.4"
+  version: 2.25.9
+  resolution: "telegram@npm:2.25.9"
   dependencies:
     "@cryptography/aes": "npm:^0.1.1"
     async-mutex: "npm:^0.3.0"
@@ -6067,7 +6067,7 @@ __metadata:
       optional: true
     utf-8-validate:
       optional: true
-  checksum: 10c0/df599ef7ad72b09b8b3d5c0584dd41e2ed92ac95e88a5449b888299a3bc1bf9e63bd49f73a08c18a530d9b0417da7c3e5e0a3c6e633fd62793bcc564ffdbd6fd
+  checksum: 10c0/4ead969f1234b4263155e20b2201475126977515d4702f8434a89661fe0ea58f5c80ad50ad1ed2ce373fe161f055791d4dcfa0013810f5513ad5f068b64a949a
   languageName: node
   linkType: hard
 
