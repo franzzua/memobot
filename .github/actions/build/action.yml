@@ -23,7 +23,6 @@ runs:
       run: |
         mkdir ./out/dist -p
         cp ./dist/index.cjs ./out/dist/index.cjs
-        cp ./dist/*.node ./out/dist/
         cp ./package.json ./out/
         cp ./assets ./out/ -r
 
