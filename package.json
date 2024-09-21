@@ -19,9 +19,8 @@
     "@cmmn/tools": "^2.2.3",
     "@types/node": "^20.11.20",
     "@types/uuid": "^9",
-    "dotenv": "^16.4.5",
-    "esbuild": "^0.20.1",
-    "fastify": "^4.27.0",
+    "dotenv": "16.4.5",
+    "esbuild": "0.23.1",
     "tsx": "^4.7.2",
     "typescript": "5.4.5",
     "uuid": "^9.0.1"
@@ -34,8 +33,9 @@
     "@google-cloud/vertexai": "^1.2.0",
     "bunyan": "^1.8.15",
     "canvas": "2.11.2",
+    "fastify": "^4.27.0",
     "telegraf": "^4.16.2",
     "telegram": "^2.19.20"
   },
-  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
+  "packageManager": "yarn@4.3.1"
 }
