@@ -9,6 +9,9 @@ runs:
       with:
         node-version: ${{ env.NODE_VERSION }}
 
+    - run: corepack enable
+      shell: bash
+
     - name: build
       shell: bash
       run: |
