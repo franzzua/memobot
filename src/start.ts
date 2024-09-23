@@ -26,8 +26,7 @@ app.post('/'+tg.path, (req, res) => {
 app.get('/image', (req) => {
     const { title, content } = req.query as never;
     const imageRender = new ImageRender(title, content);
-    imageRender.render();
-    return imageRender.canvas.createPNGStream();
+    return imageRender.render();
 })
 
 app.listen({

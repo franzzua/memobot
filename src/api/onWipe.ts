@@ -10,8 +10,8 @@ export async function onWipe(this: TelegrafApi, ctx: CommandContext) {
 
 export async function onImage(this: TelegrafApi, ctx: CommandContext) {
     const imageRender = new ImageRender('Hello', 'My dear friend!');
-    imageRender.render();
+    const stream = imageRender.render();
     return ctx.replyWithPhoto({
-        source: imageRender.canvas.createPNGStream()
+        source: stream
     });
 }

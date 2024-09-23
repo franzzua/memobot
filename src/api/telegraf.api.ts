@@ -155,9 +155,9 @@ export class TelegrafApi extends Telegraf {
                     const message = await this.db.getMessage(task.chatId, task.messageId);
                     if (!message) continue;
                     const image = new ImageRender(task.content, task.details);
-                    image.render();
+                    const stream = image.render();
                     await this.telegram.sendPhoto(+chatId, {
-                        source: image.canvas.createPNGStream()
+                        source: stream
                     })
                 }
             } else {
