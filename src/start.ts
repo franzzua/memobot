@@ -5,7 +5,7 @@ import { ConsoleLogger } from "./logger/console.logger";
 import { telegraf } from "./telegraf";
 import { TelegrafApi } from "./api/telegraf.api";
 import process from "node:process";
-import { ImageRender } from "./helpers/image-render";
+import { ImageRender } from "./services/image-render";
 
 defaultContainer.override(Logger, ConsoleLogger);
 const app = fastify({

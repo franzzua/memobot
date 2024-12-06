@@ -1,8 +1,8 @@
-import { CommandContext } from "./types";
+import { CommandContext } from "../types";
 import { resolve } from "@di";
-import { ChatDatabase } from "../db/chatDatabase";
-import { TelegrafApi } from "./telegraf.api";
-import { ChatState } from "../types";
+import { ChatDatabase } from "../../db/chatDatabase";
+import { TelegrafApi } from "../telegraf.api";
+import { ChatState } from "../../types";
 
 
 export async function onQuiz(this: TelegrafApi, ctx: CommandContext){

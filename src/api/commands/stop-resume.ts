@@ -1,9 +1,9 @@
-import { CommandContext } from "./types";
+import { CommandContext } from "../types";
 import { setChatFromContext } from "./start";
-import { TelegrafApi } from "./telegraf.api";
+import { TelegrafApi } from "../telegraf.api";
 
 
-export async function onStop(this: TelegrafApi, ctx: CommandContext){
+export async function stop(this: TelegrafApi, ctx: CommandContext){
     await setChatFromContext.call(this, ctx);
     await this.bot.stop(ctx.chat.id.toString());
     return ctx.reply(onStopText, {parse_mode: "HTML", reply_markup: {
@@ -11,7 +11,7 @@ export async function onStop(this: TelegrafApi, ctx: CommandContext){
     }});
 }
 
-export async function onResume(this: TelegrafApi, ctx: CommandContext){
+export async function resume(this: TelegrafApi, ctx: CommandContext){
     await setChatFromContext.call(this, ctx);
     await this.bot.resume(ctx.chat.id.toString());
     return ctx.reply("🔔 The bot will now resume sending you reminders", {

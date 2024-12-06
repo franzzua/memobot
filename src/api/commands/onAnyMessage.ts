@@ -1,9 +1,9 @@
-import { CommandContext } from "./types";
-import { ChatState } from "../types";
+import { CommandContext } from "../types";
+import { ChatState } from "../../types";
 import { resolve } from "@di";
-import { ChatDatabase } from "../db/chatDatabase";
-import { MemoBot } from "../bot/bot";
-import { TelegrafApi } from "./telegraf.api";
+import { ChatDatabase } from "../../db/chatDatabase";
+import { MemoBot } from "../../bot/bot";
+import { TelegrafApi } from "../telegraf.api";
 import { onQuizWriteAnswer } from "./quiz";
 
 
@@ -19,6 +19,7 @@ const replyDetails = [
 ];
 
 export async function onAnyMessage(this: TelegrafApi, ctx: CommandContext) {
+    console.log(ctx.message);
     const { state, stateData } = await this.db.getChatState(ctx.chat.id.toString());
     switch (state) {
         case ChatState.writeQuiz:

@@ -1,9 +1,9 @@
 import { resolve } from "@di";
-import { ChatDatabase } from "../db/chatDatabase";
-import { CommandContext } from "./types";
+import { ChatDatabase } from "../../db/chatDatabase";
+import { CommandContext } from "../types";
 import { setChatFromContext } from "./start";
-import { ChatState } from "../types";
-import { TelegrafApi } from "./telegraf.api";
+import { ChatState } from "../../types";
+import { TelegrafApi } from "../telegraf.api";
 
 const db = resolve(ChatDatabase);
 

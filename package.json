@@ -9,7 +9,8 @@
     "compile:watch": "cmmn compile --watch",
     "watch": "node configs/esbuild.mjs --watch",
     "run": "nodemon --env-file=configs/.env ./dist/esm/start.js",
-    "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js"
+    "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js",
+    "ngrok": "ngrok http 5800 --domain rabbit-becoming-currently.ngrok-free.app"
   },
   "type": "module",
   "devDependencies": {
@@ -28,6 +29,7 @@
     "@google-cloud/functions-framework": "^3.3.0",
     "@google-cloud/logging-bunyan": "^5.1.0",
     "@google-cloud/tasks": "^5.3.0",
+    "@google-cloud/text-to-speech": "^5.6.0",
     "@google-cloud/vertexai": "^1.2.0",
     "bunyan": "^1.8.15",
     "canvas": "2.11.2",

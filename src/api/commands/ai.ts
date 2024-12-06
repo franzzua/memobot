@@ -1,7 +1,9 @@
-import { CommandContext } from "./types";
+import { CommandContext } from "../types";
 import { VertexAI } from '@google-cloud/vertexai';
 import {auth} from "google-auth-library";
-import { TelegrafApi } from "./telegraf.api";
+import { TelegrafApi } from "../telegraf.api";
+import {resolve} from "@di";
+import {AiModel} from "../../services/ai-model";
 async function getModel(){
     const projectId = await auth.getProjectId();
     const vertexAI = new VertexAI({
@@ -13,10 +15,8 @@ async function getModel(){
 }
 export async function ai(this: TelegrafApi, ctx: CommandContext){
     const [cmd, level, ...text] = ctx.message.text.split(' ');
+    const ai = resolve(AiModel);
     const prompt = `Generate 1 phrase with '${text.join(' ')}' at an ${level} English level. Output phrase only.`;
-    const model = await getModel();
-    const resp = await model.generateContent(prompt);
-    const response = await resp.response;
-    const textResponse = response.candidates?.[0].content?.parts?.[0].text;
+    const textResponse = await ai.prompt(prompt);
     return ctx.reply(textResponse ?? `Write /ai {level} {text}`);
 }

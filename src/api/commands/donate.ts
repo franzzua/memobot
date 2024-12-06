@@ -1,7 +1,7 @@
-import { CommandContext } from "./types";
+import { CommandContext } from "../types";
 import { Context } from "telegraf";
 
-export async function onDonate(ctx: CommandContext){
+export async function donate(ctx: CommandContext){
     return ctx.reply('💳 Please select your payment method', {
         reply_markup: {
             inline_keyboard: [

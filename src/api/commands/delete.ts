@@ -1,8 +1,8 @@
-import { CommandContext } from "./types";
+import { CommandContext } from "../types";
 import { resolve } from "@di";
-import { ChatDatabase } from "../db/chatDatabase";
-import { ChatState } from "../types";
-import { TelegrafApi } from "./telegraf.api";
+import { ChatDatabase } from "../../db/chatDatabase";
+import { ChatState } from "../../types";
+import { TelegrafApi } from "../telegraf.api";
 
 
 export async function onDelete(this: TelegrafApi, ctx: CommandContext){

@@ -1,10 +1,10 @@
-import { CommandContext } from "./types";
+import { CommandContext } from "../types";
 import { resolve } from "@di";
-import { ChatDatabase } from "../db/chatDatabase";
-import { TelegrafApi } from "./telegraf.api";
+import { ChatDatabase } from "../../db/chatDatabase";
+import { TelegrafApi } from "../telegraf.api";
 
 
-export async function onList(this: TelegrafApi, ctx: CommandContext){
+export async function list(this: TelegrafApi, ctx: CommandContext){
     return ctx.reply('🗒 Please choose a list to view', {
         reply_markup: {
             keyboard: [

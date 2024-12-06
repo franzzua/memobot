@@ -1,10 +1,8 @@
-import { resolve } from "@di";
-import { ChatDatabase } from "../db/chatDatabase";
-import { CommandContext } from "./types";
-import { TelegrafApi } from "./telegraf.api";
+import { CommandContext } from "../types";
+import { TelegrafApi } from "../telegraf.api";
 
 
-const start = `
+const startText = `
 <em>Ever tried to learn a foreign word, a programming function, or the name of that guy from the party, only to forget it forever within a week? 🤔</em>
 
 I get it. Luckily, there's a way to recall anything you need in the long term with close to 100% certainty. 👌
@@ -29,9 +27,9 @@ Easy memorisation is just a click away.
 <em>Enjoy your <a href="https://en.wikipedia.org/wiki/Spaced_repetition">spaced repetition</a> trainer!</em> ♻️
 `;
 
-export async function onStart(this: TelegrafApi, ctx: CommandContext) {
+export async function start(this: TelegrafApi, ctx: CommandContext) {
     await setChatFromContext.call(this, ctx);
-    return ctx.reply(start, {parse_mode: 'HTML'})
+    return ctx.reply(startText, {parse_mode: 'HTML'})
 }
 
 export async function setChatFromContext(this: TelegrafApi, ctx: CommandContext){

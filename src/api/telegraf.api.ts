@@ -2,22 +2,14 @@ import process from "node:process";
 import { Telegraf } from "telegraf";
 import { inject, singleton } from "@di";
 import { MemoBot } from "../bot/bot";
-import { onNewCommand } from "./new";
-import { onStart } from "./start";
-import { onResume, onStop } from "./stop-resume";
-import { onDelete, onDeleteLast, onDeleteNumber } from "./delete";
-import { ChatState, Task } from "../types";
+import { Task } from "../types";
 import { ChatDatabase } from "../db/chatDatabase";
 import { Logger } from "telegram";
 import { Timetable } from "../bot/timetable";
-import { onList, onListComplete, onListCurrent } from "./list";
-import { onAnyMessage } from "./onAnyMessage";
-import { onPractice } from "./practice";
-import { onCallback, onDonate } from "./donate";
-import { ai } from "./ai";
-import { onQuiz, onQuizDirect, onQuizReversed, onQuizWrite } from "./quiz";
-import { onImage, onWipe } from "./onWipe";
-import { ImageRender } from "../helpers/image-render";
+import { onAnyMessage } from "./commands/onAnyMessage";
+import { onCallback } from "./commands/donate";
+import { ImageRender } from "../services/image-render";
+import { commands }  from "./commands/index";
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -26,9 +18,6 @@ if(!process.env.PUBLIC_URL)
 
 @singleton()
 export class TelegrafApi extends Telegraf {
-    onCallback(data: any) {
-        throw new Error("Method not implemented.");
-    }
     @inject(MemoBot)
     bot!: MemoBot;
     @inject(ChatDatabase)
@@ -62,25 +51,9 @@ export class TelegrafApi extends Telegraf {
     }
 
     async init() {
-        this.command('new', onNewCommand.bind(this));
-        this.command('stop', onStop.bind(this));
-        this.command('resume', onResume.bind(this));
-        this.command('start', onStart.bind(this));
-        this.command('delete', onDelete.bind(this));
-        this.command('last', onDeleteLast.bind(this));
-        this.command('number', onDeleteNumber.bind(this));
-        this.command('list', onList.bind(this));
-        this.command('current', onListCurrent.bind(this));
-        this.command('complete', onListComplete.bind(this));
-        this.command('practice', onPractice.bind(this));
-        this.command('donate', onDonate.bind(this));
-        this.command('ai', ai.bind(this));
-        this.command('quiz', onQuiz.bind(this));
-        this.command('writeQuiz', onQuizWrite.bind(this));
-        this.command('directQuiz', onQuizDirect.bind(this));
-        this.command('reversedQuiz', onQuizReversed.bind(this));
-        this.command('wipe', onWipe.bind(this));
-        this.command('image', onImage.bind(this));
+        for (let command in commands) {
+            this.command(command, commands[command].bind(this));
+        }
         this.on('callback_query', onCallback);
         this.command('actions', ctx => {
             ctx.reply('🔽 Choose an action from the menu', {
