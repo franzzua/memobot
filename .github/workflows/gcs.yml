@@ -36,5 +36,5 @@ jobs:
         uses: ./.github/actions/deploy
         with: 
           function: '${{ env.function }}'
-          serviceKey: '${{ secrets.GCLOUD_SERVICE_ACCOUNT_KEY }}'
+          WIF: '${{ secrets.GCLOUD_WIF_PROVIDER }}'
       

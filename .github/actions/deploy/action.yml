@@ -4,16 +4,21 @@ inputs:
   function:  # id of input
     description: 'Name of function'
     required: true
-  serviceKey:
-    description: 'Service Account Key'
+  wif:
+    description: 'Google Cloud WIF Provider'
     required: true
     
 runs:
   using: "composite"
   steps:
-    - uses: 'google-github-actions/auth@v2'
+    - name: Google Auth
+      id: auth
+      uses: 'google-github-actions/auth@v2'
       with:
-        credentials_json: '${{ inputs.serviceKey }}'
+        token_format: 'access_token'
+        workload_identity_provider: '${{ inputs.wif }}' # e.g. - projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
+        service_account: 'github@steel-topic-444112-i8.iam.gserviceaccount.com' # e.g. - my-service-account@my-project.iam.gserviceaccount.com
+
 
     - name: Download artifact from build job
       uses: actions/download-artifact@v3
