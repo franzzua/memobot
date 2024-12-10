@@ -19,6 +19,26 @@ gcloud projects add-iam-policy-binding ${project} \
   --member="serviceAccount:${deployer}"
 
 gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/cloudfunctions.developer" \
+  --member="serviceAccount:${deployer}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/appengine.deployer" \
+  --member="serviceAccount:${deployer}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/appengine.deployer" \
+  --member="serviceAccount:${runner}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/cloudbuild.builds.editor" \
+  --member="serviceAccount:${deployer}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/cloudbuild.builds.builder" \
+  --member="serviceAccount:${deployer}"
+
+gcloud projects add-iam-policy-binding ${project} \
   --role="roles/iam.serviceAccountTokenCreator" \
   --member="serviceAccount:${deployer}"
 
@@ -78,28 +98,44 @@ gcloud projects add-iam-policy-binding ${project} \
 
 gcloud projects add-iam-policy-binding ${project} \
   --role="roles/aiplatform.serviceAgent" \
-  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+  --member="serviceAccount:${runner}"
 
 gcloud projects add-iam-policy-binding ${project} \
   --role="roles/aiplatform.user" \
-  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+  --member="serviceAccount:${runner}"
 
 gcloud projects add-iam-policy-binding ${project} \
   --role="roles/iam.serviceAccountTokenCreator" \
-  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+  --member="serviceAccount:${runner}"
 
 
 gcloud projects add-iam-policy-binding ${project} \
   --role="roles/datastore.owner" \
-  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+  --member="serviceAccount:${runner}"
 
 gcloud projects add-iam-policy-binding ${project} \
   --role="roles/datastore.user" \
-  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+  --member="serviceAccount:${runner}"
 
 gcloud projects add-iam-policy-binding ${project} \
   --role="roles/secretmanager.secretAccessor" \
-  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+  --member="serviceAccount:${runner}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/artifactregistry.createOnPushWriter" \
+  --member="serviceAccount:${runner}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/logging.logWriter" \
+  --member="serviceAccount:${runner}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/storage.objectAdmin" \
+  --member="serviceAccount:${runner}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/cloudbuild.builds.builder" \
+  --member="serviceAccount:${runner}"
 
 
 gcloud services enable aiplatform.googleapis.com

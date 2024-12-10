@@ -38,5 +38,5 @@ jobs:
             --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated \
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
-            --set-env-vars=PUBLIC_URL=https://${{ env.region }}-${{ env.project }}.cloudfunctions.net/${{ env.function }} \
+            --set-env-vars=PUBLIC_URL=https://${{ env.function }}-602612727393.europe-west6.run.app
             --run-service-account=app-runner@${{ env.project }}.iam.gserviceaccount.com
