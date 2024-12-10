@@ -10,7 +10,7 @@ import { gcsConfig } from "./gcs.config";
 export class TaskDatabase {
 
     private store = new Firestore({
-        databaseId: env.IsProd ? 'memobot' : 'memobot_dev',
+        databaseId: env.IsProd ? 'memobot' : 'memobot-dev',
         projectId: gcsConfig.projectId
     });
     private tasks = this.store.collection('tasks');
