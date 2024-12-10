@@ -29,7 +29,7 @@ jobs:
         env:
           function: ${{ github.ref == 'refs/heads/main' && 'telegraf' || 'telegraf-stage' }}
           token: ${{ github.ref == 'refs/heads/main' && secrets.BOT_TOKEN || secrets.BOT_TOKEN_STAGE }}
-          env: ${{ github.ref == 'refs/heads/main' && 'prod' || 'stage' }}
+          env: ${{ github.ref == 'refs/heads/main' && 'production' || 'stage' }}
           region: 'europe-west6'
           project: 'steel-topic-444112-i8'
         run: |
@@ -38,4 +38,5 @@ jobs:
             --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated \
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
-            --set-env-vars=PUBLIC_URL=https://${{ env.region }}-${{ env.project }}.cloudfunctions.net/${{ env.function }}
+            --set-env-vars=PUBLIC_URL=https://${{ env.region }}-${{ env.project }}.cloudfunctions.net/${{ env.function }} \
+            --run-service-account=app-runner@${{ env.project }}.iam.gserviceaccount.com

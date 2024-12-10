@@ -70,6 +70,10 @@ gcloud projects add-iam-policy-binding ${project} \
   --role="roles/storage.admin" \
   --member="serviceAccount:${deployer}"
 
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/cloudfunctions.admin" \
+  --member="serviceAccount:${deployer}"
+
 
 
 gcloud projects add-iam-policy-binding ${project} \
@@ -112,4 +116,5 @@ gcloud services enable artifactregistry.googleapis.com
 gcloud services enable run.googleapis.com
 gcloud services enable cloudfunctions.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
+gcloud services enable cloudresourcemanager.googleapis.com
 gcloud services enable translate.googleapis.com
