@@ -134,7 +134,11 @@ gcloud projects add-iam-policy-binding ${project} \
   --member="serviceAccount:${runner}"
 
 gcloud projects add-iam-policy-binding ${project} \
-  --role="roles/cloudbuild.builds.builder" \
+  --role="roles/datastore.owner" \
+  --member="serviceAccount:${runner}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/datastore.restoreAdmin" \
   --member="serviceAccount:${runner}"
 
 
@@ -154,3 +158,4 @@ gcloud services enable cloudfunctions.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
 gcloud services enable cloudresourcemanager.googleapis.com
 gcloud services enable translate.googleapis.com
+gcloud services enable texttospeech.googleapis.com

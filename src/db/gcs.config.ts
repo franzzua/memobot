@@ -1,4 +1,4 @@
 export const gcsConfig = {
     location: 'europe-west6',
-    projectId: 'spix-425421'
+    projectId: 'steel-topic-444112-i8'
 }
