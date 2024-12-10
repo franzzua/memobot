@@ -20,6 +20,3 @@ jobs:
     secrets: inherit
     permissions:
       id-token: write #This is required for requesting the JWT
-    with:
-      function: ${{ github.ref == 'refs/heads/main' && 'telegraf' || 'telegraf-stage' }}
-      wif: ${{ secrets.GCLOUD_WIF_PROVIDER }}
