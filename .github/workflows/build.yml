@@ -1,0 +1,42 @@
+name: "Build"
+
+on:
+  workflow_call:
+
+env:
+  NODE_VERSION: '20.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout GitHub Action'
+        uses: actions/checkout@v4
+
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - run: corepack enable
+        shell: bash
+
+      - name: build
+        shell: bash
+        run: |
+          yarn
+          yarn run compile
+          yarn run bundle
+      - name: output
+        shell: bash
+        run: |
+          mkdir ./out/dist -p
+          cp ./dist/index.cjs ./out/dist/index.cjs
+          cp ./package.json ./out/
+          cp ./assets ./out/ -r
+
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v3
+        with:
+          name: node-app
+          path: ./out/

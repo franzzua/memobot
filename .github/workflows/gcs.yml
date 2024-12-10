@@ -11,30 +11,17 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '20.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
   function: ${{ github.ref == 'refs/heads/main' && 'telegraf' || 'telegraf-stage' }}
+
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v4
-
-      - name: 'Build'
-        uses: ./.github/actions/build
+    uses: ./.github/workflows/build.yml
 
   deploy:
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/deploy.yml
     needs: build
     permissions:
       id-token: write #This is required for requesting the JWT
-
-    steps:
-      - name: 'Checkout GitHub Action'
-        uses: actions/checkout@v4
-      - name: 'Deploy'
-        uses: ./.github/actions/deploy
-        with: 
-          function: '${{ env.function }}'
-          WIF: '${{ secrets.GCLOUD_WIF_PROVIDER }}'
-      
+    with:
+      function: '${{ env.function }}'
+      wif: '${{ secrets.GCLOUD_WIF_PROVIDER }}'

@@ -1,0 +1,38 @@
+name: "Deploy"
+
+on:
+  workflow_call:
+    inputs:
+      function:  # id of input
+        description: 'Name of function'
+        type: string
+        required: true
+      wif:
+        description: 'Google Cloud WIF Provider'
+        type: string
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: '${{ inputs.wif }}' # e.g. - projects/123456789/locations/global/workloadIdentityPools/my-pool/providers/my-provider
+          service_account: 'github@steel-topic-444112-i8.iam.gserviceaccount.com' # e.g. - my-service-account@my-project.iam.gserviceaccount.com
+
+
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v3
+        with:
+          name: node-app
+          path: out
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: 'deploy'
+        run: "gcloud functions deploy ${{ inputs.function }} --region=europe-west6 --runtime=nodejs20 --source=out --entry-point=telegraf --trigger-http --gen2 --allow-unauthenticated"

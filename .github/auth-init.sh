@@ -1,34 +1,105 @@
 #!/bin/bash
 
-gcloud iam service-accounts create "github" --project "steel-topic-444112-i8"
+export project='steel-topic-444112-i8'
+gcloud config set project ${project}
 
-gcloud projects add-iam-policy-binding steel-topic-444112-i8 \
+gcloud iam service-accounts create "github" --project "${project}"
+
+gcloud projects add-iam-policy-binding ${project} \
   --role="roles/cloudfunctions.admin" \
-  --member="serviceAccount:github@steel-topic-444112-i8.iam.gserviceaccount.com"
-    
-gcloud projects add-iam-policy-binding steel-topic-444112-i8 \
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
   --role="roles/iam.serviceAccountTokenCreator" \
-  --member="serviceAccount:github@steel-topic-444112-i8.iam.gserviceaccount.com"
-  
-gcloud projects add-iam-policy-binding steel-topic-444112-i8 \
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
   --role="roles/iam.serviceAccountUser" \
-  --member="serviceAccount:github@steel-topic-444112-i8.iam.gserviceaccount.com"
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
 
-gcloud iam workload-identity-pools create "github" --project="steel-topic-444112-i8" --location="global" --display-name="GitHub Actions Pool"
-gcloud iam workload-identity-pools describe "github" --project="steel-topic-444112-i8" --location="global" --format="value(name)"
+gcloud iam workload-identity-pools create "github" --project="${project}" --location="global" --display-name="GitHub Actions Pool"
+gcloud iam workload-identity-pools describe "github" --project="${project}" --location="global" --format="value(name)"
 
-gcloud iam workload-identity-pools providers create-oidc "my-repo" \
-  --project="steel-topic-444112-i8"  \
+gcloud iam workload-identity-pools providers create-oidc "github" \
+  --project="${project}"  \
   --location="global"  \
   --workload-identity-pool="github"  \
   --display-name="My GitHub repo Provider"  \
   --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner"  \
-  --attribute-condition="assertion.repository_owner == 'AwtorGit'"  \
+  --attribute-condition="assertion.repository_owner == 'franzzua'"  \
   --issuer-uri="https://token.actions.githubusercontent.com"
-  
-  
-gcloud iam workload-identity-pools providers describe "my-repo" \
-  --project="steel-topic-444112-i8" \
+
+
+gcloud iam workload-identity-pools providers describe "github" \
+  --project="${project}" \
   --location="global" \
   --workload-identity-pool="github" \
   --format="value(name)"
+
+gcloud iam service-accounts add-iam-policy-binding "github@${project}.iam.gserviceaccount.com" \
+  --project="${project}" \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/367509383184/locations/global/workloadIdentityPools/github/attribute.repository/AwtorGit/monorepo"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/artifactregistry.repoAdmin" \
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/iam.serviceAccountTokenCreator" \
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/run.admin" \
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/iam.serviceAccountUser" \
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/storage.admin" \
+  --member="serviceAccount:github@${project}.iam.gserviceaccount.com"
+
+
+gcloud iam service-accounts create "app-runner" --project "${project}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/aiplatform.serviceAgent" \
+  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/aiplatform.user" \
+  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/iam.serviceAccountTokenCreator" \
+  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/datastore.owner" \
+  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/datastore.user" \
+  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/secretmanager.secretAccessor" \
+  --member="serviceAccount:app-runner@${project}.iam.gserviceaccount.com"
+
+
+gcloud services enable aiplatform.googleapis.com
+gcloud services enable analytics.googleapis.com
+gcloud services enable bigquery.googleapis.com
+gcloud services enable storage.googleapis.com
+gcloud services enable logging.googleapis.com
+gcloud services enable sql-component.googleapis.com
+gcloud services enable monitoring.googleapis.com
+gcloud services enable compute.googleapis.com
+gcloud services enable iamcredentials.googleapis.com
+gcloud services enable secretmanager.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
+gcloud services enable run.googleapis.com
+gcloud services enable translate.googleapis.com
