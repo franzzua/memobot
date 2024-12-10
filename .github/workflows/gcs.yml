@@ -10,9 +10,6 @@ on:
       - develop
   workflow_dispatch:
 
-env:
-  function: ${{ github.ref == 'refs/heads/main' && 'telegraf' || 'telegraf-stage' }}
-
 jobs:
   build:
     uses: ./.github/workflows/build.yml
@@ -23,5 +20,5 @@ jobs:
     permissions:
       id-token: write #This is required for requesting the JWT
     with:
-      function: '${{ env.function }}'
-      wif: '${{ secrets.GCLOUD_WIF_PROVIDER }}'
+      function: ${{ github.ref == 'refs/heads/main' && 'telegraf' || 'telegraf-stage' }}
+      wif: ${{ secrets.GCLOUD_WIF_PROVIDER }}
