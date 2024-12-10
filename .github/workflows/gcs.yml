@@ -17,6 +17,7 @@ jobs:
   deploy:
     uses: ./.github/workflows/deploy.yml
     needs: build
+    secrets: inherit
     permissions:
       id-token: write #This is required for requesting the JWT
     with:
