@@ -39,5 +39,5 @@ jobs:
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
             --set-env-vars=PUBLIC_URL=https://${{ env.function }}-602612727393.europe-west6.run.app \
-            --run-service-account=projects/${{ env.project}}/serviceAccounts/app-runner@${{ env.project }}.iam.gserviceaccount.com \
+            --run-service-account=app-runner@${{ env.project }}.iam.gserviceaccount.com \
             --build-service-account=projects/${{ env.project}}/serviceAccounts/github@${{ env.project }}.iam.gserviceaccount.com
