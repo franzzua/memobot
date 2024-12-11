@@ -141,6 +141,14 @@ gcloud projects add-iam-policy-binding ${project} \
   --role="roles/datastore.restoreAdmin" \
   --member="serviceAccount:${runner}"
 
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/cloudtasks.admin" \
+  --member="serviceAccount:${runner}"
+
+gcloud projects add-iam-policy-binding ${project} \
+  --role="roles/cloudtasks.enqueuer" \
+  --member="serviceAccount:${runner}"
+
 
 gcloud services enable aiplatform.googleapis.com
 gcloud services enable analytics.googleapis.com

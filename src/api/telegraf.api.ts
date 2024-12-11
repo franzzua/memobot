@@ -122,7 +122,7 @@ export class TelegrafApi extends Telegraf {
         const isSucceed = isActive ? await this.db.useTasks(chatId, async tasks => {
             if (!tasks.length)
                 return;
-            const sendImage = true;
+            const sendImage = false;
             if (sendImage) {
                 for (let task of tasks) {
                     const message = await this.db.getMessage(task.chatId, task.messageId);
