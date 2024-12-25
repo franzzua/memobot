@@ -144,13 +144,13 @@ export class ChatDatabase {
     }
 
     @Logger.measure
-    async useTasks(chatId: string, action: (tasks: Task[]) => Promise<void>): Promise<boolean> {
+    async useTasks(chatId: string, action: (tasks: Task[]) => Promise<void>, time: number): Promise<boolean> {
         return await this.store.runTransaction(async t => {
             try {
                 const taskDocs = await t.get(
                     this.tasks(chatId).where(Filter.and(
                         Filter.where('state', '==', 'initial'),
-                        Filter.where('time', '<=', now() + TimetableDelay / 2),
+                        Filter.where('time', '<=', time + TimetableDelay / 2),
                     ))
                 ).then(x => x.docs);
                 for (let taskDoc of taskDocs) {

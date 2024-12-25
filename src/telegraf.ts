@@ -4,6 +4,8 @@ import { resolve } from "@di";
 import { Logger } from "./logger/logger";
 import { TelegrafApi } from "./api/telegraf.api";
 import { ChatDatabase } from "./db/chatDatabase";
+import {TaskSender} from "./services/task-sender";
+import {MemoBot} from "./bot/bot";
 
 export const telegraf = async (
     req: Pick<Request, "body"|"query">,
@@ -11,6 +13,8 @@ export const telegraf = async (
 ) => {
     const logger = resolve(Logger);
     const tg = resolve(TelegrafApi);
+    const taskSender = resolve(TaskSender);
+    const bot = resolve(MemoBot);
     const db = resolve(ChatDatabase);
     return logger.measure(async () => {
         console.log(req.query);
@@ -18,8 +22,9 @@ export const telegraf = async (
             return res.sendStatus(401);
         if (req.query.task) {
             const chatId = req.body;
-            const isSucceed = await tg.sendTasks(chatId);
+            const isSucceed = await taskSender.sendTasks(chatId);
             if (isSucceed){
+                await bot.enqueueTasks(chatId);
                 console.log('secceed, return 204')
                 return res.sendStatus(204);
             } else {

@@ -19,6 +19,11 @@ const replyMessages = [
 ];
 
 export async function onNewCommand(this: TelegrafApi, ctx: CommandContext) {
+    const [, content, details] = ctx.message.text.split(' ');
+    if (content && details){
+        const number = await this.bot.addMessage(content, details, ctx.chat.id.toString(), ctx.message.from.id);
+        return ctx.reply(`✅ Entry #${number} added`);
+    }
     await setChatFromContext.call(this, ctx);
     const count = await db.getIdCounter(ctx.chat.id.toString());
     const reply = replyMessages[count] ?? replyMessages.at(-1);

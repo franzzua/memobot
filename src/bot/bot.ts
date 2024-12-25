@@ -68,6 +68,16 @@ export class MemoBot {
         });
     }
 
+    public async dequeueNextTask(chatId: string){
+        const nextTask = await this.db.getQueueInfo(chatId);
+        if (!nextTask) {
+            return;
+        }
+        await this.queue.deleteTask(nextTask.name);
+        await this.db.setQueueInfo(chatId, null);
+        return nextTask.time;
+    }
+
     async [Symbol.asyncDispose]() {
     }
 
