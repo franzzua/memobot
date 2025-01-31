@@ -1,19 +1,16 @@
-import { fastify } from "fastify";
-import { defaultContainer, resolve } from "@di";
-import { Logger } from "./logger/logger";
-import { ConsoleLogger } from "./logger/console.logger";
-import { telegraf } from "./telegraf";
-import { TelegrafApi } from "./api/telegraf.api";
+import {fastify} from "fastify";
+import {di} from "@di";
+import {Logger} from "./logger/logger";
+import {ConsoleLogger} from "./logger/console.logger";
+import {telegraf, whatsapp, task} from "./functions/index";
 import process from "node:process";
-import { ImageRender } from "./services/image-render";
 
-defaultContainer.override(Logger, ConsoleLogger);
-const app = fastify({
-    
-});
-const tg = resolve(TelegrafApi);
+di.override(Logger, ConsoleLogger);
 
-app.post('/'+tg.path, (req, res) => {
+const app = fastify({});
+
+app.post('/telegraf', (req, res) => {
+    console.log('telegraf', req.body);
     return telegraf({
         body: req.body,
         query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
@@ -23,19 +20,51 @@ app.post('/'+tg.path, (req, res) => {
     }))
 })
 
-app.get('/image', (req) => {
-    const { title, content } = req.query as never;
-    const imageRender = new ImageRender(title, content);
-    return imageRender.render();
+app.post('/whatsapp', async (req, res) => {
+    // @ts-ignore
+    return whatsapp({
+        body: req.body,
+        query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
+        // @ts-ignore
+    }, Object.assign(res, {
+        sendStatus: code => res.status<number>(code).send()
+    }))
+})
+
+app.post('/task', async (req, res) => {
+    // @ts-ignore
+    return task({
+        body: req.body,
+        query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
+        // @ts-ignore
+    }, Object.assign(res, {
+        sendStatus: code => res.status<number>(code).send()
+    }))
+})
+
+app.get('/whatsapp', (req, res) => {
+    // @ts-ignore
+    const mode = req.query["hub.mode"];
+    // @ts-ignore
+    const token = req.query["hub.verify_token"];
+    // @ts-ignore
+    const challenge = req.query["hub.challenge"];
+    console.log(mode, token, challenge);
+
+    // check the mode and token sent are correct
+    if (mode === "subscribe" && token === process.env.WEBHOOK_VERIFICATION_TOKEN) {
+        // respond with 200 OK and challenge token from the request
+        console.log("Webhook verified successfully!");
+        return challenge;
+    } else {
+        // respond with '403 Forbidden' if verify tokens do not match
+        res.status(403);
+    }
 })
 
 app.listen({
     host: '0.0.0.0',
     port: +(process.env.PORT ?? 5800),
 }).then(x => {
-    tg.run().catch(e => {
-        console.error(e);
-        process.exit(1);
-    })
     console.log('listen', x);
 })

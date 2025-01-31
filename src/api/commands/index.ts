@@ -1,6 +1,4 @@
 import {TelegrafApi} from "../telegraf.api";
-import {CommandContext} from "../types";
-import {Message, Update} from "@telegraf/types";
 import {image} from "./image";
 import {onNewCommand} from "./new";
 import {resume, stop} from "./stop-resume";
@@ -13,9 +11,8 @@ import {ai} from "./ai";
 import {onQuiz, onQuizDirect, onQuizReversed, onQuizWrite} from "./quiz";
 import {wipe} from "./wipe";
 import {voice} from "./voice";
-import {Context} from "telegraf";
-import {CallbackQuery} from "@telegraf/types/markup";
 import {next} from "./next";
+import {CallbackEvent, IncomingMessageEvent} from "../../messengers/messenger";
 
 export const commands = {
     new: onNewCommand,
@@ -43,5 +40,5 @@ export const callbacks: Record<string, Callback> = {
     ...paymentCallbacks
 }
 
-export type Command = (this: TelegrafApi, ctx: CommandContext) => Promise<Message>;
-export type Callback = (this: TelegrafApi, ctx: Context<Update.CallbackQueryUpdate<CallbackQuery.DataQuery>>) => Promise<any>;
+export type Command = (this: TelegrafApi, ctx: IncomingMessageEvent) => Promise<any | void>;
+export type Callback = (this: TelegrafApi, ctx: CallbackEvent) => Promise<any | void>;

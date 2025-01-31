@@ -35,7 +35,8 @@
     "canvas": "2.11.2",
     "fastify": "^4.27.0",
     "telegraf": "^4.16.2",
-    "telegram": "^2.19.20"
+    "telegram": "^2.19.20",
+    "whatsapp": "0.0.5-Alpha"
   },
   "packageManager": "yarn@4.3.1"
 }

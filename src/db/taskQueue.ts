@@ -1,16 +1,13 @@
 import { resolve, singleton } from "@di";
-import { TelegrafApi } from "../api/telegraf.api";
 import { CloudTasksClient, protos } from "@google-cloud/tasks";
 import { gcsConfig } from "./gcs.config";
 import { Logger } from "../logger/logger";
 import { env } from "../env";
+import process from "node:process";
 
 // Instantiates a client.
 @singleton()
 export class TaskQueue {
-    private get tg(){
-        return resolve(TelegrafApi)
-    }
 
     private client = new CloudTasksClient({
         projectId: gcsConfig.projectId
@@ -39,7 +36,7 @@ export class TaskQueue {
             task: {
                 scheduleTime: {seconds:+new Date()/1000 + timeout},
                 httpRequest: {
-                    url: this.tg.hookURL + "&task=1",
+                    url: process.env.PUBLIC_URL + '/task',
                     body: Buffer.from(chatId).toString('base64'),
                     headers: {
                         'Content-Type': 'text/plain', // Set content type to ensure compatibility your application's request parsing

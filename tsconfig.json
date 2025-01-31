@@ -18,7 +18,7 @@
       "DOM"
     ],
     "paths": {
-      "@di": ["./src/helpers/di.ts"]
+      "@di": ["./src/helpers/di/index.ts"]
     }
   },
   "exclude": [

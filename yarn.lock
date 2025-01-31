@@ -929,6 +929,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:~18.11.18":
+  version: 18.11.19
+  resolution: "@types/node@npm:18.11.19"
+  checksum: 10c0/4d9201f3040ca44c0b0345b7e17a650e50a2245c01827099cf9fe11103cb25a31f7dd3b36bf98243f4e6522176c34b37ebde3d6d5e688b3b197e7f7d1b93f6f0
+  languageName: node
+  linkType: hard
+
 "@types/normalize-package-data@npm:^2.4.0":
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
@@ -4085,6 +4092,7 @@ __metadata:
     tsx: "npm:^4.7.2"
     typescript: "npm:5.4.5"
     uuid: "npm:^9.0.1"
+    whatsapp: "npm:0.0.5-Alpha"
   languageName: unknown
   linkType: soft
 
@@ -6456,6 +6464,15 @@ __metadata:
     utf-8-validate: "npm:^5.0.2"
     yaeti: "npm:^0.0.6"
   checksum: 10c0/8be9a68dc0228f18058c9010d1308479f05050af8f6d68b9dbc6baebd9ab484c15a24b2521a5d742a9d78e62ee19194c532992f1047a9b9adf8c3eedb0b1fcdc
+  languageName: node
+  linkType: hard
+
+"whatsapp@npm:0.0.5-Alpha":
+  version: 0.0.5-Alpha
+  resolution: "whatsapp@npm:0.0.5-Alpha"
+  dependencies:
+    "@types/node": "npm:~18.11.18"
+  checksum: 10c0/9c59418d4b0c243b39f5e3b96e14cd569aed19154ac94bded80acd852d11c96730394223ec2608f84c1355e6daf8c6c212c3f0e4eb6034f84d62d5af4a424168
   languageName: node
   linkType: hard
 

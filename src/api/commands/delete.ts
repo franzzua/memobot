@@ -1,11 +1,9 @@
-import { CommandContext } from "../types";
-import { resolve } from "@di";
-import { ChatDatabase } from "../../db/chatDatabase";
 import { ChatState } from "../../types";
 import { TelegrafApi } from "../telegraf.api";
+import {IncomingMessageEvent} from "../../messengers/messenger";
 
 
-export async function onDelete(this: TelegrafApi, ctx: CommandContext){
+export async function onDelete(this: TelegrafApi, ctx: IncomingMessageEvent){
     return ctx.reply('🗑️ Choose an item to delete', {
         reply_markup: {
             keyboard: [
@@ -21,15 +19,15 @@ export async function onDelete(this: TelegrafApi, ctx: CommandContext){
 }
 
 
-export async function onDeleteLast(this: TelegrafApi, ctx: CommandContext){
-    const id = await this.db.deleteLastActiveMessage(ctx.chat.id.toString());
+export async function onDeleteLast(this: TelegrafApi, ctx: IncomingMessageEvent){
+    const id = await this.db.deleteLastActiveMessage(ctx.chat.toString());
     if (id == null)
         return ctx.reply(`⚠️ There are no items to delete`);
     return ctx.reply(`❌ Entry #${id} has been deleted`);
 }
 
-export async function onDeleteNumber(this: TelegrafApi, ctx: CommandContext){
-    await this.db.updateChatState(ctx.chat.id.toString(), ChatState.deleteMessage)
+export async function onDeleteNumber(this: TelegrafApi, ctx: IncomingMessageEvent){
+    await this.db.updateChatState(ctx.chat.toString(), ChatState.deleteMessage)
     return ctx.reply(`#️⃣ Please enter the entry number`);
 }
 

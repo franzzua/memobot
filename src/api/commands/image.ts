@@ -1,11 +1,12 @@
 import {TelegrafApi} from "../telegraf.api";
-import {CommandContext} from "../types";
 import {ImageRender} from "../../services/image-render";
+import {IncomingMessageEvent} from "../../messengers/messenger";
 
-export async function image(this: TelegrafApi, ctx: CommandContext) {
+export async function image(this: TelegrafApi, ctx: IncomingMessageEvent) {
     const imageRender = new ImageRender('Hello', 'My dear friend!');
     const stream = imageRender.render();
-    return ctx.replyWithPhoto({
-        source: stream
+    return ctx.reply({
+        type: 'image',
+        image: stream
     });
 }

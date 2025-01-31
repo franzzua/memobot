@@ -1,10 +1,7 @@
-import {CommandContext} from "../types";
-import {Context} from "telegraf";
-import {Update} from "@telegraf/types";
-import {CallbackQuery} from "@telegraf/types/markup";
 import {Callback} from "./index";
+import {CallbackEvent, ChatEvent, IncomingMessageEvent} from "../../messengers/messenger";
 
-export async function donate(ctx: CommandContext) {
+export async function donate(ctx: IncomingMessageEvent) {
     return ctx.reply('💳 Please select your payment method', {
         reply_markup: {
             inline_keyboard: [
@@ -29,17 +26,15 @@ const payments: Record<PaymentType, string> = {
     EUR: `💶 Pay with <a href="https://revolut.me/newtimesroman">Revolut</a>`,
     PayPal: `🌐 Pay with <a href="https://paypal.me/spixenglish">PayPal</a>`,
     RUB: `🏦 Pay with <a href="https://pay.cloudtips.ru/p/aa517638">Tinkoff</a>`,
-    USDT: `🔗 Pay with USDT: <code>0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a</code>`,
-    BTC: `🔗 Pay with Bitcoin (BTC): <code>1PnaC2R3XC7yuogz6vJe4NbPGcK9Jy8P2X</code>`,
-    ETH: `🔗 Pay with Ethereum (ETH): <code>0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a</code>`,
-    TON: `🔗 Pay with TON: <code>UQBwCIZdi8uuWm-gwS_8pTnaMWFYIrkiUpodeWlVsDJbPHPJ</code>`,
+    USDT: '🔗 Pay with USDT: ```0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a```',
+    BTC: '🔗 Pay with Bitcoin (BTC): ```1PnaC2R3XC7yuogz6vJe4NbPGcK9Jy8P2X```',
+    ETH: '🔗 Pay with Ethereum (ETH): ```0x5d00b2104332feef90cfe4b7eb8be5f7b224ff7a```',
+    TON: '🔗 Pay with TON: ```UQBwCIZdi8uuWm-gwS_8pTnaMWFYIrkiUpodeWlVsDJbPHPJ```',
 }
 
 function getCallback(text: string): Callback {
-    return function (ctx) {
-        return ctx.reply(text, {
-            parse_mode: 'HTML'
-        })
+    return function (ctx: ChatEvent) {
+        return ctx.reply(text)
     };
 }
 

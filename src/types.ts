@@ -14,7 +14,7 @@ export type Message = {
 
 export type Task = Pick<Message, "content" | "details" > & {
     messageId: number;
-    userId: number;
+    userId: string | number;
     chatId: string;
     index: number;
     start: number;

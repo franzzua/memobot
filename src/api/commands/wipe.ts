@@ -1,8 +1,8 @@
 import {TelegrafApi} from "../telegraf.api";
-import {CommandContext} from "../types";
+import {IncomingMessageEvent} from "../../messengers/messenger";
 
-export async function wipe(this: TelegrafApi, ctx: CommandContext) {
-    await this.bot.deleteAllMessages(ctx.chat.id.toString())
+export async function wipe(this: TelegrafApi, ctx: IncomingMessageEvent) {
+    await this.bot.deleteAllMessages(ctx.chat.toString())
     return ctx.reply(`#️⃣ All data is wiped.`);
 }
 

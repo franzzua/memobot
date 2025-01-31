@@ -57,7 +57,7 @@ export class ImageRender {
         const canvas = new Context(this.width, height);
         canvas.drawText(header, this.margin, 0);
         canvas.drawText(content, this.margin, header.height);
-        return canvas.canvas.createPNGStream();
+        return canvas.canvas.toBuffer();
     }
 
 }

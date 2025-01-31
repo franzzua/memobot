@@ -1,16 +1,16 @@
 import {it, test, afterEach} from "node:test";
 import { ChatDatabase } from "../db/chatDatabase";
-import { defaultContainer, inject, resolve } from "@di";
+import { di, inject, resolve } from "@di";
 import * as assert from "node:assert";
 import { ChatState } from "../types";
 import { Logger } from "../logger/logger";
 import { ConsoleLogger } from "../logger/console.logger";
 import { TaskDatabase } from "../db/taskDatabase";
 import { Fn } from "@cmmn/core";
-defaultContainer.override(Logger, ConsoleLogger);
+di.override(Logger, ConsoleLogger);
 
 
-// it('db get count', async function (){
+// it('db get count', async functions (){
 //    const db = resolve(ChatDatabase);
 //    const chatId = '2';
 //
@@ -40,7 +40,7 @@ defaultContainer.override(Logger, ConsoleLogger);
 //    assert.equal(count2, 1);
 //    await db.removeChat(chatId)
 // });
-// it('task use', async function (){
+// it('task use', async functions (){
 //    const db = resolve(ChatDatabase);
 //    const task = {
 //       userId: 1,

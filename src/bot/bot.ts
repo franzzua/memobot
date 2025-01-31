@@ -1,4 +1,3 @@
-import { Task } from "../types";
 import { ChatDatabase } from "../db/chatDatabase";
 import { inject, resolve, singleton } from "@di";
 import { day, now, Timetable, TimetableDelay } from "./timetable";
@@ -16,7 +15,7 @@ export class MemoBot {
 
     constructor() {
     }
-    public async addMessage(content: string, details: string, chatId: string, userId: number): Promise<number> {
+    public async addMessage(content: string, details: string, chatId: string, userId: string | number): Promise<number> {
         const message = {
             content,
             details,
