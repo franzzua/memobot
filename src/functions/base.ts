@@ -4,12 +4,12 @@ import type {Request, Response} from "@google-cloud/functions-framework";
 import {ServerResponse} from "node:http";
 
 export function baseFunction(name: string, handle: (
-    req: Pick<Request, "body" | "query">,
-    res: Pick<Response, "sendStatus"> & ServerResponse
+    req: Pick<Request, "body" | "query" | "method">,
+    res: Pick<Response, "sendStatus"| "status"> & ServerResponse
 ) => Promise<any>) {
     return (
-        req: Pick<Request, "body" | "query">,
-        res: Pick<Response, "sendStatus"> & ServerResponse
+        req: Pick<Request, "body" | "query" | "method">,
+        res: Pick<Response, "sendStatus" | "status"> & ServerResponse
     ) => {
         const logger = resolve(Logger);
         return logger.measure(async () => {
