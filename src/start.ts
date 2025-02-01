@@ -9,10 +9,11 @@ async function initApp() {
     const app = fastify({});
     const functions = await import("./functions/index.js");
     for (let key in functions) {
-        app.post('/' + key, (req, res) => {
+        app.all('/' + key, (req, res) => {
             return functions[key]({
                 body: req.body,
                 query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
+                method: req.method
                 // @ts-ignore
             }, Object.assign(res, {
                 sendStatus: code => res.status<number>(code).send()

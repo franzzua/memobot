@@ -10,8 +10,7 @@ const context = di.child();
 context.factory(Messenger, c => getMessenger('whatsapp', c));
 
 export const whatsapp = baseFunction('whatsapp', async (req, res) => {
-    if (req.method == "get"){
-        console.log(req.query);
+    if (req.method.toLowerCase() == "get"){
         const mode = req.query["hub.mode"];
         // @ts-ignore
         const token = req.query["hub.verify_token"];
