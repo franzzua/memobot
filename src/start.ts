@@ -2,45 +2,23 @@ import {fastify} from "fastify";
 import {di} from "@di";
 import {Logger} from "./logger/logger";
 import {ConsoleLogger} from "./logger/console.logger";
-import {telegraf, whatsapp, task} from "./functions/index";
 import process from "node:process";
 
 di.override(Logger, ConsoleLogger);
 
 const app = fastify({});
-
-app.post('/telegraf', (req, res) => {
-    console.log('telegraf', req.body);
-    return telegraf({
-        body: req.body,
-        query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
-        // @ts-ignore
-    }, Object.assign(res, {
-        sendStatus: code => res.status<number>(code).send()
-    }))
-})
-
-app.post('/whatsapp', async (req, res) => {
-    // @ts-ignore
-    return whatsapp({
-        body: req.body,
-        query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
-        // @ts-ignore
-    }, Object.assign(res, {
-        sendStatus: code => res.status<number>(code).send()
-    }))
-})
-
-app.post('/task', async (req, res) => {
-    // @ts-ignore
-    return task({
-        body: req.body,
-        query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
-        // @ts-ignore
-    }, Object.assign(res, {
-        sendStatus: code => res.status<number>(code).send()
-    }))
-})
+const functions = await import("./functions/index.js");
+for (let key in functions) {
+    app.post('/'+key, (req, res) => {
+        return functions[key]({
+            body: req.body,
+            query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
+            // @ts-ignore
+        }, Object.assign(res, {
+            sendStatus: code => res.status<number>(code).send()
+        }))
+    })
+}
 
 app.get('/whatsapp', (req, res) => {
     // @ts-ignore

@@ -1,18 +1,15 @@
-import {EventEmitter} from "@cmmn/core";
 import process from "node:process";
 import {
     AudioMessage, ChatEvent, IncomingMessageEvent,
     Message,
-    MessageContext,
     MessageOptions,
     Messenger,
-    MessengerEvents,
     TextMessage
 } from "./messenger";
 
 export class WhatsAppMessenger extends Messenger {
 
-    name = 'WhatsApp';
+    name = 'whatsapp';
     private baseApi = `https://graph.facebook.com/${this.apiVersion}/${this.phoneNumberId}`;
 
     constructor(private phoneNumberId: string,
@@ -87,13 +84,43 @@ export class WhatsAppMessenger extends Messenger {
         throw new Error(`WhatsApp error: ${x.status}\n` + await x.text());
     }
 
-    async send(to: string, message: Message, options: MessageOptions = {}) {
+    async send(to: string, message: Message | string, options: MessageOptions = {}) {
+        if (typeof message === "string")
+            message = {type: 'text', text: message};
         const baseOptions = {
             to,
             type: message.type,
             context: options.replyTo ? {
                 message_id: options.replyTo, // shows the message as a reply to the original user message
             } : undefined,
+        }
+        if (options.spoiler && message.type == "text"){
+            await this.fetch({
+                ...baseOptions,
+                type: 'interactive',
+                interactive: {
+                    "type": "list",
+                    "body": {
+                        "text": message.text
+                    },
+                    "action": {
+                        "sections": [
+                            {
+                                "title": message.text,
+                                "rows": [
+                                    {
+                                        "id": "0",
+                                        "title": options.spoiler,
+                                        "description": "<ROW_DESCRIPTION_TEXT>"
+                                    }
+                                ]
+                            }
+                        ],
+                        "button": "Show details",
+                    }
+                }
+            });
+            return;
         }
         switch (message.type) {
             case "text":
@@ -193,8 +220,6 @@ export class WhatsAppChatEvent implements ChatEvent {
     }
 
     reply(message: string | Message, options?: MessageOptions | undefined): Promise<void> {
-        if (typeof message === "string")
-            message = {type: 'text', text: message};
         return this.messenger.send(this.chat, message, options);
     }
 }

@@ -7,6 +7,7 @@ import {ai} from "./ai";
 import {emoji} from "./emoji";
 import {mnemonic} from "./mnemonic";
 import {youglish} from "./youglish";
+import {Messenger} from "../../messengers/messenger";
 
 export const TaskSendHandlers: TaskSendHandler[] = [
     spoiler,
@@ -18,4 +19,4 @@ export const TaskSendHandlers: TaskSendHandler[] = [
     youglish
 ];
 
-export type TaskSendHandler = (this: TaskSender, task: Task, skipNotification: boolean) => Promise<any>;
+export type TaskSendHandler = (this: Messenger, task: Task, skipNotification: boolean) => Promise<any>;

@@ -74,6 +74,12 @@ export class ChatDatabase {
     }
 
     @Logger.measure
+    async getChatMessenger(chatId: string): Promise<string>{
+        return await this.chats.doc(chatId)
+            .get().then(x => x.get('messenger'));
+    }
+
+    @Logger.measure
     async checkChatActive(chatId: string){
         const chat = await this.chats.doc(chatId).get();
         if (!chat.exists)

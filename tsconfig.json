@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "moduleResolution": "Bundler",
-    "module": "ES2020",
+    "module": "Preserve",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,

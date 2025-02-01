@@ -26,7 +26,11 @@ export class TelegrafApi {
     constructor() {
     }
 
+    isInit = false;
+
     async init() {
+        if (this.isInit) return;
+        this.isInit = true;
         await this.messenger.init();
         this.messenger.on('message', async e => {
             const text = await e.text();

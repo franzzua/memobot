@@ -3,7 +3,7 @@ import {EventEmitter} from "@cmmn/core";
 export abstract class Messenger extends EventEmitter<MessengerEvents>{
     abstract name: string;
     abstract init(): Promise<void>;
-    abstract send(to: string | number, message: Message, options: MessageOptions): Promise<void>;
+    abstract send(to: string | number, message: Message | string, options: MessageOptions): Promise<void>;
     abstract handle(request: {
         body: any;
         query: any
@@ -20,6 +20,7 @@ export type MessageOptions = {
     replyTo?: string | number
     preview_url?: boolean;
     reply_markup?: any; // TODO: implement
+    spoiler?: string;
 }
 export type BaseContext = IncomingMessageEvent & {
 }

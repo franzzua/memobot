@@ -14,11 +14,6 @@ export class TelegramChatEvent {
     }
 
     public reply(message: Message | string, options: MessageOptions) {
-        if (typeof message === "string")
-            message = {
-                type: "text",
-                text: message
-            };
         return this.messenger.send(this.chatId, message, options);
     }
 }

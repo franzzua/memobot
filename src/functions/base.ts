@@ -14,6 +14,10 @@ export function baseFunction(name: string, handle: (
         const logger = resolve(Logger);
         return logger.measure(async () => {
             return handle(req, res);
-        }, `function.${name}`).catch();
+        }, `function.${name}`).catch((err) => {
+            logger.send({
+                error: err.message ?? err
+            })
+        });
     }
 }

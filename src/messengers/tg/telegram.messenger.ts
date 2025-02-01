@@ -16,7 +16,7 @@ export class TelegramMessenger extends Messenger {
 
     }
 
-    path = 'telegraf';
+    path = 'telegram';
     secretPath = this.tg.secretPathComponent();
 
     public get hookURL() {
@@ -73,7 +73,9 @@ export class TelegramMessenger extends Messenger {
     }
 
 
-    async send(to: string | number, message: Message, options: MessageOptions): Promise<void> {
+    async send(to: string | number, message: Message | string, options: MessageOptions = {}): Promise<void> {
+        if (typeof message === "string")
+            message = {type: 'text', text: message};
         const tgOptions = {
             disable_notification: options.disable_notification,
             reply_parameters: {
@@ -90,8 +92,10 @@ export class TelegramMessenger extends Messenger {
                 });
                 break;
             case "text":
-                await this.tg.telegram.sendMessage(to, message.text, {
+                await this.tg.telegram.sendMessage(to, message.text.replace(/([^\\])([!.#])/g, '$1\\$2')
+                    +(options.spoiler ? ` ||${options.spoiler}||` : ''), {
                     ...tgOptions,
+                    parse_mode: 'MarkdownV2',
                     reply_markup: options.reply_markup,
                     link_preview_options: {
                         is_disabled: !options.preview_url,
