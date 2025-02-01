@@ -5,44 +5,46 @@ import {ConsoleLogger} from "./logger/console.logger";
 import process from "node:process";
 
 di.override(Logger, ConsoleLogger);
+async function initApp() {
+    const app = fastify({});
+    const functions = await import("./functions/index.js");
+    for (let key in functions) {
+        app.post('/' + key, (req, res) => {
+            return functions[key]({
+                body: req.body,
+                query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
+                // @ts-ignore
+            }, Object.assign(res, {
+                sendStatus: code => res.status<number>(code).send()
+            }))
+        })
+    }
 
-const app = fastify({});
-const functions = await import("./functions/index.js");
-for (let key in functions) {
-    app.post('/'+key, (req, res) => {
-        return functions[key]({
-            body: req.body,
-            query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
-            // @ts-ignore
-        }, Object.assign(res, {
-            sendStatus: code => res.status<number>(code).send()
-        }))
+    app.get('/whatsapp', (req, res) => {
+        // @ts-ignore
+        const mode = req.query["hub.mode"];
+        // @ts-ignore
+        const token = req.query["hub.verify_token"];
+        // @ts-ignore
+        const challenge = req.query["hub.challenge"];
+        console.log(mode, token, challenge);
+
+        // check the mode and token sent are correct
+        if (mode === "subscribe" && token === process.env.WEBHOOK_VERIFICATION_TOKEN) {
+            // respond with 200 OK and challenge token from the request
+            console.log("Webhook verified successfully!");
+            return challenge;
+        } else {
+            // respond with '403 Forbidden' if verify tokens do not match
+            res.status(403);
+        }
     })
+    return app;
 }
 
-app.get('/whatsapp', (req, res) => {
-    // @ts-ignore
-    const mode = req.query["hub.mode"];
-    // @ts-ignore
-    const token = req.query["hub.verify_token"];
-    // @ts-ignore
-    const challenge = req.query["hub.challenge"];
-    console.log(mode, token, challenge);
-
-    // check the mode and token sent are correct
-    if (mode === "subscribe" && token === process.env.WEBHOOK_VERIFICATION_TOKEN) {
-        // respond with 200 OK and challenge token from the request
-        console.log("Webhook verified successfully!");
-        return challenge;
-    } else {
-        // respond with '403 Forbidden' if verify tokens do not match
-        res.status(403);
-    }
-})
-
-app.listen({
+initApp().then(app => app.listen({
     host: '0.0.0.0',
     port: +(process.env.PORT ?? 5800),
 }).then(x => {
     console.log('listen', x);
-})
+}));
