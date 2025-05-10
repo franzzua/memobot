@@ -6,7 +6,7 @@ import {IncomingMessageEvent} from "../../messengers/messenger";
 export async function onQuiz(this: TelegrafApi, ctx: IncomingMessageEvent){
     const messages = await this.db.getMessages(ctx.chat.toString(), true);
     if (messages.length < 4)
-        return ctx.reply(`⚠️ Add new items to start quiz \n\n💡 _Start learning with_ */new*`);
+        return ctx.reply(`⚠️ Add new items to start quiz \n\n💡 <em>Start learning with</em> <b>/new</b>`);
     return ctx.reply('🗒 Choose a quiz', {
         reply_markup: {
             keyboard: [

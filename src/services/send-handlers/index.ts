@@ -1,4 +1,3 @@
-import {TaskSender} from "../task-sender";
 import {Task} from "../../types";
 import {spoiler} from "./spoiler";
 import {image} from "./image";

@@ -23,6 +23,5 @@ export async function resume(this: TelegrafApi, ctx: IncomingMessageEvent) {
         }
     );
 }
-
-const onStopText = `🔕 You won’t receive any more reminders from the bot for now \n\n` +
-    `💡 _When you need them again, just use the command_ */resume*`;
+const onStopText = `🔕 You won’t receive any more reminders from the bot for now \n\n`+
+                `💡 <em>When you need them again, just use the command</em> <b>/resume</b>`;

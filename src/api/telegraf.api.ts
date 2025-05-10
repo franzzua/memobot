@@ -37,14 +37,12 @@ export class TelegrafApi {
             if (text?.text?.startsWith('/')){
                 const match = text?.text?.split(/[\s/]/g);
                 const command = match?.[1];
-                console.log(match, command)
                 if (command && command in commands){
                     await commands[command].call(this, e);
                 }
             } else {
                 await onAnyMessage.call(this, e);
             }
-            console.log('message', text);
         });
         this.messenger.on('callback', async e => {
             const query = e.data as string;

@@ -29,8 +29,7 @@ export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
             const isSuccess = await this.db.deleteMessage(e.chat.toString(), id);
             if (!isSuccess){
                 return e.reply(`⚠️ Entry #${id} not found. Type in the number of an existing entry \n\n`+
-                    `💡 _Find the item in your list with_ */current* _or_ */complete*`,{
-                });
+                    `💡 <em>Find the item in your list with</em> <b>/current</b> <em>or</em> <b>/complete</b>`);
             }
             await this.db.updateChatState(e.chat.toString(), ChatState.initial);
             return e.reply(`❌ Entry #${id} deleted`);

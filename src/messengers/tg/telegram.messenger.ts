@@ -92,10 +92,11 @@ export class TelegramMessenger extends Messenger {
                 });
                 break;
             case "text":
-                await this.tg.telegram.sendMessage(to, message.text.replace(/([^\\])([!.#])/g, '$1\\$2')
-                    +(options.spoiler ? ` ||${options.spoiler}||` : ''), {
+                if (options.spoiler)
+                    message.text += `\n<span class="tg-spoiler">${options.spoiler}</span>`;
+                await this.tg.telegram.sendMessage(to, message.text, {
                     ...tgOptions,
-                    parse_mode: 'MarkdownV2',
+                    parse_mode: 'HTML',
                     reply_markup: options.reply_markup,
                     link_preview_options: {
                         is_disabled: !options.preview_url,
