@@ -1,8 +1,9 @@
 import {Callback} from "./index";
 import {CallbackEvent, ChatEvent, IncomingMessageEvent} from "../../messengers/messenger";
+import {getText} from "../../helpers/getRandomText";
 
 export async function donate(ctx: IncomingMessageEvent) {
-    return ctx.reply('💳 Please select your payment method', {
+    return ctx.reply(getText('/donate', 0), {
         reply_markup: {
             inline_keyboard: [
                 [

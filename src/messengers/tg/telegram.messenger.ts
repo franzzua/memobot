@@ -43,22 +43,7 @@ export class TelegramMessenger extends Messenger {
         // }
         this.tg.on('callback_query', this.onCallbackQuery);
         // this.tg.command('actions', ctx => {
-        //     ctx.reply('🔽 Choose an action from the menu', {
-        //         reply_markup: {
-        //             keyboard: [
-        //                 [
-        //                     {text: '/stop'},
-        //                     {text: '/resume'}
-        //                 ],
-        //                 [
-        //                     {text: '/delete'},
-        //                     {text: '/list'}
-        //                 ]
-        //             ],
-        //             resize_keyboard: true,
-        //             one_time_keyboard: true
-        //         }
-        //     });
+        //
         // });
         this.tg.hears(/.*/, ((ctx: Context) => {
             switch (ctx.updateType) {

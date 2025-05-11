@@ -1,9 +1,10 @@
 import {TelegrafApi} from "../telegraf.api";
 import {IncomingMessageEvent} from "../../messengers/messenger";
+import {getAllText, getText} from "../../helpers/getRandomText";
 
 
 export async function list(this: TelegrafApi, ctx: IncomingMessageEvent) {
-    return ctx.reply('🗒 Please choose a list to view', {
+    return ctx.reply(getAllText('/list'), {
         reply_markup: {
             keyboard: [
                 [
@@ -21,15 +22,21 @@ export async function list(this: TelegrafApi, ctx: IncomingMessageEvent) {
 export async function onListCurrent(this: TelegrafApi, ctx: IncomingMessageEvent) {
     const messages = await this.db.getMessages(ctx.chat.toString(), true);
     if (messages.length == 0)
-        return ctx.reply(`⚠️ You haven't added any items to learn yet \n\n💡 <em>Start adding items with</em> <b>/new</b>`);
+        return ctx.reply([
+            getText('/current', 1),
+            getText('/current', 2),
+        ].join('\n'));
     const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
-    return ctx.reply(`⏳ Here are the items you're currently learning:\n\n`+msgList);
+    return ctx.reply(getText('/current', 0) + `\n\n` + msgList);
 }
 
 export async function onListComplete(this: TelegrafApi, ctx: IncomingMessageEvent) {
     const messages = await this.db.getMessages(ctx.chat.toString(), false);
     if (messages.length == 0)
-        return ctx.reply(`⚠️ You haven't learned any items yet \n\n💡 <em>Start learning new items with</em> <b>/new</b>`);
+        return ctx.reply([
+            getText('/complete', 1),
+            getText('/complete', 2),
+        ].join('\n'));
     const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
-    return ctx.reply(`⌛ Here's what you've learned so far:\n\n` + msgList);
+    return ctx.reply(getText('/complete', 0) + `\n\n` + msgList);
 }
