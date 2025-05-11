@@ -5,9 +5,10 @@ import {Messenger} from "../messengers/messenger";
 import {getMessenger} from "./getMessenger";
 import {Logger} from "../logger/logger";
 import {ConsoleLogger} from "../logger/console.logger";
+import {GCSLogger} from "../logger/gcs.logger";
 
 const context = di.child();
-context.override(Logger, ConsoleLogger);
+context.override(Logger, GCSLogger);
 context.factory(Messenger, c => getMessenger('telegram', c));
 const tg = context.resolve(TelegrafApi);
 tg.init();

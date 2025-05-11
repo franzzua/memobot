@@ -4,12 +4,15 @@ import process from "node:process";
 import type * as tg from "@telegraf/types";
 import {Update} from "@telegraf/types";
 import {TelegramCallbackEvent, TelegramMessageEvent} from "./telegramMessageEvent";
+import {inject} from "@di";
+import {Logger} from "../../logger/logger";
 
 export class TelegramMessenger extends Messenger {
     name = 'telegram';
     tg = new Telegraf(this.token, {
         telegram: { webhookReply: true },
     });
+    @inject(Logger) logger: Logger;
 
     constructor(private token: string) {
         super();
@@ -27,10 +30,10 @@ export class TelegramMessenger extends Messenger {
         const hook = await this.tg.telegram.getWebhookInfo().catch(() => null);
         if (!hook || !hook.url?.startsWith(`${process.env.PUBLIC_URL!}/${this.path}`)) {
             await this.tg.telegram.setWebhook(this.hookURL);
-            // this.logger.info(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
+            this.logger.send(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
         } else if (hook.url) {
             this.secretPath = hook.url.replace(`${process.env.PUBLIC_URL}/${this.path}?secret=`, '');
-            // this.logger.info(`New instance joined to cluster, secret: ${this.secretPath.substring(0, 6)}…`);
+            this.logger.send(`New instance joined to cluster, secret: ${this.secretPath.substring(0, 6)}…`);
         }
         // for (let command in commands) {
         //     this.emit('command', {
