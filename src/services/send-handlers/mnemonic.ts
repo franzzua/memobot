@@ -9,7 +9,7 @@ export const mnemonic: TaskSendHandler = async function mnemonicHandler(task, sk
         Return only one acrostic or creative memory aid without additional text.
     `);
     if (!acrostic) return;
-    return this.send(+task.chatId, acrostic.replace(/\*\*(\w)\*\*/g, m => `<b>${m[1]}</b>`), {
+    return this.send(+task.chatId, acrostic.replace(/\*\*(\w)\*\*/g, m => `<b>${m[2]}</b>`), {
         disable_notification: skipNotification,
     })
 }
