@@ -16,7 +16,7 @@ if (!process.env.PUBLIC_URL)
 @singleton()
 export class TelegrafApi {
     @inject(MemoBot)
-    bot!: MemoBot;
+    accessor bot!: MemoBot;
     @inject(ChatDatabase)
     db!: ChatDatabase;
 

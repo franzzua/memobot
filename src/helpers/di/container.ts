@@ -1,57 +1,106 @@
-import { ConstructorOf } from "./types";
+import type {ConstructorOf, Factory, InjectionToken} from './types';
 
 
 export class Container {
-    public static Default: Container = new Container();
-    private instances = new Map<ConstructorOf<any> | Symbol, any>();
-    private consts = new Map<ConstructorOf<any> | Symbol, any>();
-    private overrides = new Map<ConstructorOf<any> | Symbol, ConstructorOf<any>>();
-    private factories = new Map<ConstructorOf<any> | Symbol, (c: Container) => any>();
+	constructor(private parent: Container | null = null) {
+	}
 
-    resolve<T, TArgs extends any[] = []>(dep: ConstructorOf<T, TArgs> | Symbol, ...args: TArgs): T {
-        const oldContainer = Container.Default;
-        Container.Default = this;
-        try {
-            if ((dep as unknown) == Container) return this as unknown as T;
-            if (this.overrides.has(dep)) dep = this.overrides.get(dep) as ConstructorOf<T>;
-            if (this.consts.has(dep)) return this.consts.get(dep);
-            if (typeof dep !== "function")
-                throw new Error(`${dep} is not a constructor`)
-            if (!this.factories.has(dep)) return new (dep as any)(...args);
-            if (this.instances.has(dep)) return this.instances.get(dep);
-            const instance = this.factories.get(dep)?.(this);
-            this.instances.set(dep, instance);
-            return instance;
-        } finally {
-            Container.Default = oldContainer;
-        }
-    }
+	public static Default: Container = new Container();
+	private instances = new Map<InjectionToken, unknown>();
+	private consts = new Map<InjectionToken, unknown>();
+	private overrides = new Map<
+		InjectionToken,
+		InjectionToken
+	>();
+	private factories = new Map<
+		InjectionToken,
+		Factory<unknown>
+	>();
 
-    async [Symbol.asyncDispose]() {
-        for (let value of this.instances.values()) {
-            await value[Symbol.asyncDispose]?.();
-            await value[Symbol.dispose]?.();
-        }
-        this.instances.clear();
-    }
+	protected getOverride<T>(dep: InjectionToken<T>) {
+		return this.overrides.get(dep) ?? this.parent?.getOverride(dep) ?? dep;
+	}
+	get rootContainer(): Container {
+		return this.parent ? this.parent.rootContainer : this;
+	}
 
-    override(dependency: any, override: any) {
-        this.overrides.set(dependency, override);
-    }
+	protected getResolved<T, TArgs extends unknown[] = []>(dep: InjectionToken<T, TArgs>): T {
+		if ((dep as unknown) === Container) return this as unknown as T;
+		if (this.consts.has(dep)) return this.consts.get(dep) as T;
+		if (this.instances.has(dep)) return this.instances.get(dep) as T;
+		return this.parent?.getResolved(dep)!;
+	}
 
-    const(dependency: any, value: any) {
-        this.consts.set(dependency, value);
-    }
-    factory(dependency: any, value: (c: Container) => unknown) {
-        this.factories.set(dependency, value);
-    }
+	protected getFactory<T>(dep: InjectionToken<T>): Factory<T> {
+		return (this.factories.get(dep) ?? this.parent?.getFactory(dep)) as Factory<T>;
+	}
 
-    child() {
-        const res = new Container();
-        res.consts = new Map(this.consts);
-        res.overrides = new Map(this.overrides);
-        res.factories = new Map(this.factories);
-        res.instances = new Map(this.instances);
-        return res;
-    }
+	protected instantiate<T, TArgs extends unknown[] = []>(
+		dep: InjectionToken<T, TArgs>,
+		...args: TArgs
+	): T {
+		const oldContainer = Container.Default;
+		Container.Default = this;
+		const factory = this.getFactory(dep);
+		try {
+			if (!factory) {
+				if (typeof dep !== "function") {
+					console.error(dep, ` is not a function.`);
+					throw new Error(`Injection of unknown value`);
+				}
+				return new (dep as any)(...args);
+			}
+			const instance = factory(this);
+			if (factory.isScoped) {
+				this.instances.set(dep, instance);
+			} else {
+				this.rootContainer.instances.set(dep, instance);
+			}
+			return instance as T;
+		} finally {
+			Container.Default = oldContainer;
+		}
+	}
+
+	resolve<T, TArgs extends unknown[] = []>(
+		dep: InjectionToken<T, TArgs>,
+		...args: TArgs
+	): T {
+		dep = this.getOverride(dep);
+		return this.getResolved(dep) ?? this.instantiate(dep, ...args);
+	}
+
+	isScoped(token: InjectionToken) {
+		return !!this.getResolved(token);
+	}
+
+	async [Symbol.asyncDispose]() {
+		for (const value of this.instances.values()) {
+			await (value as any)[Symbol.asyncDispose]?.();
+			await (value as any)[Symbol.dispose]?.();
+		}
+		this.instances.clear();
+	}
+
+	override<T, TArgs extends unknown[]>(dependency: InjectionToken<T, TArgs>, override: InjectionToken<T, TArgs>) {
+		this.overrides.set(dependency, override);
+	}
+
+	const<T, TArgs extends unknown[]>(dependency: InjectionToken<T, TArgs>, value: T) {
+		this.consts.set(dependency, value);
+	}
+
+	factory<T, TArgs extends unknown[]>(dependency: InjectionToken<T, TArgs>, value: (c: Container) => T) {
+		this.factories.set(dependency, value);
+	}
+
+	scoped<T, TArgs extends unknown[]>(dependency: ConstructorOf<T, TArgs>, ...args: TArgs) {
+		this.factories.set(dependency, Object.assign(() => new dependency(...args), {
+			isScoped: true
+		}) as Factory<T>);
+	}
+
+	child() {
+		return new Container(this);
+	}
 }

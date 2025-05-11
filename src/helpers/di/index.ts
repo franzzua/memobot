@@ -1,25 +1,34 @@
-import { Container } from "./container";
-import { ConstructorOf } from "./types";
+import {Container} from './container';
+import type {AccessorDecorator, ConstructorOf, FieldDecorator, InjectionToken} from './types';
+import {injectLazy} from "./injectLazy";
 
-export const inject =
-    <T>(dep: ConstructorOf<T, any[]> | Symbol) =>
-        (initial: T | undefined, ctx: ClassFieldDecoratorContext) =>
-            function (this: any) {
-                return resolve(dep) as T;
-            };
-
-export function singleton<TClass extends ConstructorOf<any>>() {
-    return function (target: any, context: ClassDecoratorContext<TClass>) {
-        di.factory(target, () => new target());
-    };
+export const inject = <T, This = unknown>(dep: InjectionToken<T>): AccessorDecorator<This, T> & FieldDecorator<This, T> => {
+	return injectLazy(() => dep);
 }
 
-export function factory<T>(dep: ConstructorOf<T>, factory: (c: Container) => T) {
-    di.factory(dep, factory);
+export function scoped<TClass extends ConstructorOf<unknown>>() {
+	return (target: ConstructorOf<unknown>, context: ClassDecoratorContext<TClass>) => {
+		di.scoped(target);
+	};
 }
 
-// const singletons = new Set<ConstructorOf<any>>();
+export function singleton<TClass extends ConstructorOf<unknown>>() {
+	return (target: ConstructorOf<unknown>, context: ClassDecoratorContext<TClass>) => {
+		di.factory(target, () => new target());
+	};
+}
+
+export function factory<T>(
+	dep: ConstructorOf<T>,
+	factory: (c: Container) => T,
+) {
+	di.factory(dep, Object.assign(factory, { isScoped: true}));
+}
+
 
 export const di = Container.Default;
-export const resolve = <T>(dep: ConstructorOf<T> | Symbol) => Container.Default.resolve(dep);
+export const resolve = <T>(dep: InjectionToken<T>) =>
+	Container.Default.resolve(dep);
+
 export { Container };
+export type { InjectionToken };

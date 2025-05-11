@@ -13,7 +13,6 @@ it('di resolve', async function (){
 
 
 class Test {
-
    @inject(ChatDatabase)
    db!: ChatDatabase;
 

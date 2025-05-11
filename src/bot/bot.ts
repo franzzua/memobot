@@ -7,11 +7,11 @@ import { Logger } from "../logger/logger";
 @singleton()
 export class MemoBot {
     @inject(ChatDatabase)
-    private db!: ChatDatabase;
+    private accessor db!: ChatDatabase;
     @inject(TaskQueue)
-    private queue!: TaskQueue;
+    private accessor queue!: TaskQueue;
     @inject(Logger)
-    private logger!: Logger;
+    private accessor logger!: Logger;
 
     constructor() {
     }

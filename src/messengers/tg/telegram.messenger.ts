@@ -12,7 +12,8 @@ export class TelegramMessenger extends Messenger {
     tg = new Telegraf(this.token, {
         telegram: { webhookReply: true },
     });
-    @inject(Logger) logger!: Logger;
+    @inject(Logger)
+    logger!: Logger;
 
     constructor(private token: string) {
         super();
