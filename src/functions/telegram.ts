@@ -3,8 +3,11 @@ import {TelegrafApi} from "../api/telegraf.api";
 import {baseFunction} from "./base";
 import {Messenger} from "../messengers/messenger";
 import {getMessenger} from "./getMessenger";
+import {Logger} from "../logger/logger";
+import {ConsoleLogger} from "../logger/console.logger";
 
 const context = di.child();
+context.override(Logger, ConsoleLogger);
 context.factory(Messenger, c => getMessenger('telegram', c));
 const tg = context.resolve(TelegrafApi);
 tg.init();

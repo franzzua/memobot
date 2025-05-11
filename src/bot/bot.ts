@@ -61,10 +61,10 @@ export class MemoBot {
             time: nextTime,
             name: queueTaskName,
         });
-        this.logger.send({
-            chatId, queueTime: new Date(nextTime * 1000).toISOString(),
-            in: nextTime - now()
-        });
+        // this.logger.send({
+        //     chatId, queueTime: new Date(nextTime * 1000).toISOString(),
+        //     in: nextTime - now()
+        // });
     }
 
     public async dequeueNextTask(chatId: string){
