@@ -4,16 +4,16 @@ import process from "node:process";
 import type * as tg from "@telegraf/types";
 import {Update} from "@telegraf/types";
 import {TelegramCallbackEvent, TelegramMessageEvent} from "./telegramMessageEvent";
-import {inject} from "@di";
+import {inject, scoped} from "@di";
 import {Logger} from "../../logger/logger";
+import {GCSLogger} from "../../logger/gcs.logger";
 
 export class TelegramMessenger extends Messenger {
     name = 'telegram';
     tg = new Telegraf(this.token, {
         telegram: { webhookReply: true },
     });
-    @inject(Logger)
-    logger!: Logger;
+    logger: Logger = new GCSLogger();
 
     constructor(private token: string) {
         super();
