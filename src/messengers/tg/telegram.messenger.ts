@@ -28,7 +28,6 @@ export class TelegramMessenger extends Messenger {
     }
 
     async init() {
-        console.log(this.logger);
         const hook = await this.tg.telegram.getWebhookInfo().catch(() => null);
         if (!hook || !hook.url?.startsWith(`${process.env.PUBLIC_URL!}/${this.path}`)) {
             await this.tg.telegram.setWebhook(this.hookURL);
