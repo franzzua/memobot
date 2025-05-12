@@ -6,14 +6,14 @@ import {Update} from "@telegraf/types";
 import {TelegramCallbackEvent, TelegramMessageEvent} from "./telegramMessageEvent";
 import {inject, scoped} from "@di";
 import {Logger} from "../../logger/logger";
-import {GCSLogger} from "../../logger/gcs.logger";
 
 export class TelegramMessenger extends Messenger {
     name = 'telegram';
     tg = new Telegraf(this.token, {
         telegram: { webhookReply: true },
     });
-    logger: Logger = new GCSLogger();
+    @inject(Logger)
+    logger!: Logger;
 
     constructor(private token: string) {
         super();
