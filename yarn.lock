@@ -4439,8 +4439,8 @@ __metadata:
     expect: "npm:^29.7.0"
     fastify: "npm:^4.27.0"
     google-spreadsheet: "npm:^4.1.4"
-    telegraf: "npm:^4.16.2"
-    telegram: "npm:^2.19.20"
+    telegraf: "npm:^4.16.3"
+    telegram: "npm:2.26.22"
     tsx: "npm:^4.7.2"
     typescript: "npm:5.8.3"
     uuid: "npm:^9.0.1"
@@ -6423,7 +6423,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"telegraf@npm:^4.16.2":
+"telegraf@npm:^4.16.3":
   version: 4.16.3
   resolution: "telegraf@npm:4.16.3"
   dependencies:
@@ -6441,9 +6441,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"telegram@npm:^2.19.20":
-  version: 2.26.8
-  resolution: "telegram@npm:2.26.8"
+"telegram@npm:2.26.22":
+  version: 2.26.22
+  resolution: "telegram@npm:2.26.22"
   dependencies:
     "@cryptography/aes": "npm:^0.1.1"
     async-mutex: "npm:^0.3.0"
@@ -6466,7 +6466,7 @@ __metadata:
       optional: true
     utf-8-validate:
       optional: true
-  checksum: 10c0/ca0e6282ee3deff4e244bd282b3bb0428239fb1bb71715bd7d1a0f46d5a3445c34bae25ec29ffaa5a285070f9a2cee6d950f62acc20bb34d156fe5a356210a7e
+  checksum: 10c0/2ea3be5341f87498a936ce146aecf3d3a669f0e333244f51ddb046f149a01be4aeb2336f925dc74960f0bffc9615b2ac7d8a52713a11059ca27d6cc5f4e86b31
   languageName: node
   linkType: hard
 

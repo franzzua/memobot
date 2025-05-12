@@ -28,9 +28,9 @@ export class TelegramMessenger extends Messenger {
     }
 
     async init() {
-        this.logger.send(`Current hook: ${this.hookURL}`);
+        this.logger.send(`Current hook: ${this.secretPath.substring(0, 6)}...`);
         const hook = await this.tg.telegram.getWebhookInfo().catch(() => null);
-        this.logger.send(`Resolved hook: ${hook}`);
+        this.logger.send(`Resolved hook: ${hook?.url?.substring(0, 6)}...`);
         if (!hook || !hook.url?.startsWith(`${process.env.PUBLIC_URL!}/${this.path}`)) {
             await this.tg.telegram.setWebhook(this.hookURL);
             this.logger.send(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
