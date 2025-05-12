@@ -6,6 +6,7 @@ import {ChatDatabase} from "../db/chatDatabase";
 import {getMessenger} from "./getMessenger";
 
 export const task = baseFunction('task', async (req, res) => {
+    if (!req || !res) return;
     const taskSender = resolve(TaskSender);
     const bot = resolve(MemoBot);
     const chatDb = resolve(ChatDatabase);

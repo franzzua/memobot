@@ -9,7 +9,7 @@ async function initApp() {
     const app = fastify({});
     const functions = await import("./functions/index.js");
     for (let key in functions) {
-        functions[key]?.init?.();
+        functions[key]();
         app.all('/' + key, (req, res) => {
             return functions[key]({
                 body: req.body,
