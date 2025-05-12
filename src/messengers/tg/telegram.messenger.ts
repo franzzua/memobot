@@ -28,8 +28,9 @@ export class TelegramMessenger extends Messenger {
     }
 
     async init() {
+        this.logger.send(`Current hook: ${this.hookURL}`);
         const hook = await this.tg.telegram.getWebhookInfo().catch(() => null);
-        this.logger.send(`Current hook: ${hook}`);
+        this.logger.send(`Resolved hook: ${hook}`);
         if (!hook || !hook.url?.startsWith(`${process.env.PUBLIC_URL!}/${this.path}`)) {
             await this.tg.telegram.setWebhook(this.hookURL);
             this.logger.send(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
@@ -104,8 +105,10 @@ export class TelegramMessenger extends Messenger {
     }
 
     async handle(req, res) {
-        if (req.query.secret !== this.secretPath)
+        if (req.query.secret !== this.secretPath) {
+            this.logger.send(`Current secret: ${this.secretPath}, but received: ${req.query.secret}`);
             return res.sendStatus(401);
+        }
         // if (req.query.task) {
         //     const chatId = req.body;
         //     const isSucceed = await taskSender.sendTasks(chatId);
