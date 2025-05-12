@@ -17,7 +17,6 @@ async function initTelegram() {
 export const telegram = baseFunction('telegram', async (req, res) => {
     const tg = await (tgLoad ??= initTelegram());
     if (req && res) {
-        console.log('Request:', req.method);
         await tg.messenger.handle(req, res);
     }
 });
