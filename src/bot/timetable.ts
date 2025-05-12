@@ -1,6 +1,6 @@
 import { env } from "../env";
 
-export const min = 60;
+export const min = 6;
 export const hour =60 * min;
 export const day = 24 * hour;
 export const week = 7 * day;

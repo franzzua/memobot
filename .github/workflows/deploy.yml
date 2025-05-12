@@ -28,6 +28,7 @@ jobs:
       - name: 'deploy'
         env:
           function: ${{ github.ref == 'refs/heads/main' && 'telegram' || 'telegram-stage' }}
+          task: ${{ github.ref == 'refs/heads/main' && 'task' || 'task-stage' }}
           token: ${{ github.ref == 'refs/heads/main' && secrets.BOT_TOKEN || secrets.BOT_TOKEN_STAGE }}
           env: ${{ github.ref == 'refs/heads/main' && 'production' || 'stage' }}
           region: 'europe-west6'
@@ -38,6 +39,7 @@ jobs:
             --entry-point=telegram --trigger-http --gen2 --allow-unauthenticated \
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
+            --set-env-vars=TASK_URL=https://${{ env.task }}-602612727393.europe-west6.run.app \
             --set-env-vars=PUBLIC_URL=https://${{ env.function }}-602612727393.europe-west6.run.app \
             --run-service-account=app-runner@${{ env.project }}.iam.gserviceaccount.com \
             --build-service-account=projects/${{ env.project}}/serviceAccounts/github@${{ env.project }}.iam.gserviceaccount.com
@@ -55,6 +57,7 @@ jobs:
             --entry-point=task --trigger-http --gen2 --allow-unauthenticated \
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
+            --set-env-vars=TASK_URL=https://${{ env.function }}-602612727393.europe-west6.run.app \
             --set-env-vars=PUBLIC_URL=https://${{ env.function }}-602612727393.europe-west6.run.app \
             --run-service-account=app-runner@${{ env.project }}.iam.gserviceaccount.com \
             --build-service-account=projects/${{ env.project}}/serviceAccounts/github@${{ env.project }}.iam.gserviceaccount.com
