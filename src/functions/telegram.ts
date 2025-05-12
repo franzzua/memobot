@@ -3,10 +3,12 @@ import {TelegrafApi} from "../api/telegraf.api";
 import {baseFunction} from "./base";
 import {Messenger} from "../messengers/messenger";
 import {getMessenger} from "./getMessenger";
+import {TelegramMessenger} from "../messengers/tg/telegram.messenger";
 
 const context = di.child();
 context.factory(Messenger, c => getMessenger('telegram', c));
 const tg = context.resolve(TelegrafApi);
+console.log((tg.messenger as TelegramMessenger).logger.constructor.name);
 tg.init();
 
 export const telegram = baseFunction('telegram', async (req, res) => {
