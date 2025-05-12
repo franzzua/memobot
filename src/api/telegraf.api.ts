@@ -30,7 +30,6 @@ export class TelegrafApi {
 
     async init() {
         if (this.isInit) return;
-        this.isInit = true;
         await this.messenger.init();
         this.messenger.on('message', async e => {
             const text = await e.text();
@@ -50,6 +49,7 @@ export class TelegrafApi {
                 return callbacks[query].call(this, e);
             }
         })
+        this.isInit = true;
     }
 
     async [Symbol.asyncDispose]() {
