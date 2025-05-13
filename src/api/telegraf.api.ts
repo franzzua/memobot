@@ -6,6 +6,8 @@ import {Logger} from "telegram";
 import {callbacks, commands} from "./commands/index";
 import {Messenger} from "../messengers/messenger";
 import {onAnyMessage} from "./commands/onAnyMessage";
+import {getMessenger} from "../functions/getMessenger";
+import {TaskSender} from "../services/task-sender";
 
 
 if (!process.env.BOT_TOKEN)
@@ -22,6 +24,8 @@ export class TelegrafApi {
 
     @inject(Messenger)
     messenger!: Messenger;
+    @inject(TaskSender)
+    taskSender!: TaskSender;
 
     constructor() {
     }
@@ -52,8 +56,14 @@ export class TelegrafApi {
         this.isInit = true;
     }
 
-    async [Symbol.asyncDispose]() {
-        // this.stop();
-    }
 
+    async invokeTask(chatId: string): Promise<boolean> {
+        const messengerName = await this.db.getChatMessenger(chatId);
+        const messenger = getMessenger(messengerName)!;
+        const isSucceed = await this.taskSender.sendTasks(messenger, chatId);
+        if (isSucceed) {
+            await this.bot.enqueueTasks(chatId);
+        }
+        return isSucceed;
+    }
 }

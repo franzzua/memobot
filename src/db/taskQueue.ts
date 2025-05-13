@@ -36,7 +36,7 @@ export class TaskQueue {
             task: {
                 scheduleTime: {seconds:+new Date()/1000 + timeout},
                 httpRequest: {
-                    url: process.env.TASK_URL + '/task',
+                    url: process.env.PUBLIC_URL + '/task',
                     body: Buffer.from(chatId).toString('base64'),
                     headers: {
                         'Content-Type': 'text/plain', // Set content type to ensure compatibility your application's request parsing

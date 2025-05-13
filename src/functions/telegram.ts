@@ -14,9 +14,22 @@ async function initTelegram() {
     return tg;
 }
 
+export function init(){
+    tgLoad = initTelegram();
+}
+
 export const telegram = baseFunction('telegram', async (req, res) => {
-    const tg = await (tgLoad ??= initTelegram());
+    const tg = await tgLoad;
     if (req && res) {
+        if (req.path.startsWith('/tasks')){
+            const chatId = req.body;
+            const isSucceed = await tg.invokeTask(chatId);
+            if (isSucceed) {
+                return res.sendStatus(204);
+            } else {
+                return res.sendStatus(418);
+            }
+        }
         await tg.messenger.handle(req, res);
     }
 });

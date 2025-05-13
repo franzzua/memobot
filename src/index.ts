@@ -1,8 +1,9 @@
-import { di } from "@di";
-import { Logger } from "./logger/logger";
-import { GCSLogger } from "./logger/gcs.logger";
-import {telegram} from "./functions";
-export { telegram, task } from "./functions";
+import {di} from "@di";
+import {Logger} from "./logger/logger";
+import {GCSLogger} from "./logger/gcs.logger";
+import {init} from "./functions";
 
 di.override(Logger, GCSLogger);
-telegram(null as any, null as any);
+init();
+
+export {telegram} from "./functions/telegram";
