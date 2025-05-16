@@ -10,7 +10,7 @@ export type Message = {
     content: string;
     details: string;
     createdAt: Date;
-    sentCount: number;
+    // sentCount: number;
     number: number;
 }
 

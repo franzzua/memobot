@@ -1,44 +1,26 @@
 import { singleton } from "@di";
-import { Chat, ChatState, Message, Task } from "../types";
-import { Filter, Firestore } from "@google-cloud/firestore";
+import {Chat, ChatState, Message} from "../types";
+import {AggregateField, Filter, Firestore, Timestamp} from "@google-cloud/firestore";
 import { Logger } from "../logger/logger";
-import { now, Timetable, TimetableDelay } from "../bot/timetable";
 import { env } from "../env";
 import { gcsConfig } from "./gcs.config";
+import {SchedulerStorage, Task, TimetableEntity} from "../scheduler/storage/schedulerStorage";
+import {DateTimetable} from "../scheduler/types";
 
 @singleton()
-export class ChatDatabase {
+export class ChatDatabase implements SchedulerStorage<MessageTimetable> {
 
     constructor() {
     }
-    private store = new Firestore({
+    private firestore = new Firestore({
         databaseId: env.IsProd ? 'memobot' : 'memobot-dev',
         projectId: gcsConfig.projectId
     });
-    private chats = this.store.collection('chats');
-    // private messages(chatId: string){
-    //     return this.chats.doc(chatId).collection('messages');
-    // }
-    // private tasks(chatId: string){
-    //     return this.chats.doc(chatId).collection('tasks');
-    // }
-    // @Logger.measure
-    // async addMessage(chatId: string, message: Omit<Message, "id" | "createdAt">): Promise<number> {
-    //     const id = (await this.getIdCounter(chatId) + 1);
-    //     await this.messages(chatId).doc(id.toString()).set({
-    //         ...message,
-    //         createdAt: new Date(),
-    //         progress: 0
-    //     });
-    //     await this.chats.doc(chatId).set({
-    //         idCounter: id
-    //     }, {merge: true});
-    //     return id;
-    // }
+    private chats = this.firestore.collection('chats');
 
     @Logger.measure
     async addOrUpdateChat(chat: Omit<Chat, "state">) {
-        await this.store.doc(`chats/${chat.id}`)
+        await this.firestore.doc(`chats/${chat.id}`)
             .get()
             .then(x => {
                 if (x.exists) return;
@@ -87,136 +69,89 @@ export class ChatDatabase {
         const isPaused = await chat.get('isPaused');
         return !isPaused;
     }
-    //
-    // @Logger.measure
-    // async removeChat(chatId: string) {
-    //     const messages = await this.messages(chatId).listDocuments()
-    //     for (let message of messages) {
-    //         await message.delete();
-    //     }
-    //     await this.chats.doc(chatId).delete();
-    // }
-    //
-    // @Logger.measure
-    // async deleteLastActiveMessage(chatId: string) {
-    //     const message = await this.getMessages(chatId, true);
-    //     if (message.length == 0)
-    //         return null;
-    //     const id = Math.max(...message.map(x => x.id));
-    //     await this.messages(chatId).doc(id.toString()).delete();
-    //     return id;
-    // }
-    //
-    // @Logger.measure
-    // async increaseProgress(chatId: string, messageId: number) {
-    //     const messages = this.messages(chatId);
-    //     const msg = await messages.doc(messageId.toString()).get();
-    //     if (!msg.exists) return;
-    //     await msg.ref.set({
-    //         progress: msg.data()!.progress + 1
-    //     }, {merge: true});
-    // }
-
-    //
-    // @Logger.measure
-    // async getMessages(chatId: string, active: boolean) {
-    //     const messages = await this.messages(chatId)
-    //         .where(Filter.where('progress', active ? '<' : '==', Timetable.length))
-    //         .get();
-    //     return messages.docs.map(x => ({...x.data(), id: + x.id} as Message));
-    // }
-    //
-    // @Logger.measure
-    // async deleteMessage(chatId: string, id: number) {
-    //     const doc = await this.messages(chatId).doc(id.toString()).get();
-    //     if (!doc.exists)
-    //         return false;
-    //     await doc.ref.delete();
-    //     return true;
-    // }
 
     @Logger.measure
     async setIsPaused(chatId: string, isPaused: boolean) {
         await this.chats.doc(chatId).set({isPaused}, {merge: true});
     }
-    //
-    //
-    // @Logger.measure
-    // async addTask(task: Task): Promise<void> {
-    //     await this.tasks(task.chatId).add({
-    //         ...task,
-    //         state: 'initial'
-    //     }).then(x => x.id);
-    // }
 
-    // @Logger.measure
-    // async useTasks(chatId: string, action: (tasks: Task[]) => Promise<void>, time: number): Promise<boolean> {
-    //     return await this.store.runTransaction(async t => {
-    //         try {
-    //             const taskDocs = await t.get(
-    //                 this.tasks(chatId).where(Filter.and(
-    //                     Filter.where('state', '==', 'initial'),
-    //                     Filter.where('time', '<=', time + TimetableDelay / 2),
-    //                 ))
-    //             ).then(x => x.docs);
-    //             for (let taskDoc of taskDocs) {
-    //                 t.update(taskDoc.ref, {
-    //                     state: 'pending'
-    //                 });
-    //             }
-    //             await action(taskDocs.map(x => x.data() as Task));
-    //             for (let taskDoc of taskDocs) {
-    //                 t.delete(taskDoc.ref);
-    //             }
-    //             await this.setQueueInfo(chatId, null);
-    //         }catch (e){
-    //             console.error(e);
-    //             throw e;
-    //         }
-    //     }).then(() => true).catch(() => false);
-    // }
-    
-    async getQueueInfo(chatId: string): Promise<QueueTaskInfo | null> {
-        return this.chats.doc(chatId).get().then(x => x.get('nextTaskTime'));
+
+    private getMessages(chatId: string){
+        return this.chats.doc(chatId).collection('messages');
     }
-    //
-    // async getNextTaskTime(chatId: string){
-    //     return this.tasks(chatId)
-    //         .where(Filter.where('state', '==', 'initial'))
-    //         .orderBy('time', 'asc').limit(1).get()
-    //         .then(x => x.docs[0]?.get('time'));
-    // }
 
-    async setQueueInfo(chatId: string, time: QueueTaskInfo | null) {
-        await this.chats.doc(chatId).set({
-            nextTaskTime: time ?? 0
+    async saveTask(task: Task): Promise<void> {
+        await this.chats.doc(task.id).set(task, {
+            merge: true
+        });
+    }
+
+    async getTask(taskId: string): Promise<Task | undefined> {
+        const result = await this.chats.doc(taskId).get();
+        if (result.get('isPaused')) return undefined;
+        return fixTimestamps(result?.data()) as Task | undefined;
+    }
+
+    async addTimetable(taskId: string, timetable: TimetableEntity<MessageTimetable>): Promise<void> {
+        if (timetable.id)
+            await this.getMessages(taskId).doc(timetable.id).set(timetable);
+        else
+            await this.getMessages(taskId).add(timetable);
+    }
+
+    async getTimetablesBefore(taskId: string, to: Date): Promise<TimetableEntity<MessageTimetable>[]> {
+        const result = await this.getMessages(taskId).where(Filter.and(
+            Filter.where('next', '!=', null),
+            Filter.where('next', '<=', to),
+        )).get();
+        return result.docs.map(x => fixTimestamps(x.data()) as TimetableEntity<MessageTimetable>);
+    }
+
+    async getNextTimetableTime(taskId: string): Promise<Date | null> {
+        const result = await this.getMessages(taskId)
+            .where(Filter.where('next', '!=', null))
+            .orderBy('next', 'asc').limit(1).select('next').get();
+        return fixTimestamps(result.docs[0]?.data().next) ?? null;
+    }
+
+    async getMaxNumber(chatId: string) {
+        const result = await this.getMessages(chatId).aggregate({
+            max: AggregateField.count()
+        }).get();
+        return result.data().max;
+    }
+
+    async deleteMessage(chatId: string, number: number) {
+        const id = await this.getMessages(chatId).where({
+            number
+        }).select('id').limit(1).get();
+        await this.getMessages(chatId).doc(id.docs[0].id).set({
+            deleted: true
         }, {merge: true})
-        
     }
-    //
-    // async getMessage(chatId: string, messageId: number): Promise<Message> {
-    //     return this.messages(chatId).doc(messageId.toString()).get().then(x => x.data() as Message);
-    // }
-    //
-    // async deleteAllMessage(chatId: string) {
-    //     const messages = await this.messages(chatId).get();
-    //     for (let doc of messages.docs) {
-    //         await doc.ref.delete();
-    //     }
-    //     const tasks = await this.messages(chatId).get();
-    //     for (let doc of tasks.docs) {
-    //         await doc.ref.delete();
-    //     }
-    // }
-    async checkUser(chatId: string, userId: string | number) {
-        const chat = await this.chats.doc(chatId).get();
-        if (chat.get('userId') !== userId)
-            throw new Error(`Invalid access by user ${userId} to chat ${chatId}`);
+
+    async updateTimetable(taskId: string, id: string, patch: Partial<MessageTimetable>): Promise<void> {
+        await this.getMessages(taskId).doc(id).set(patch, {merge: true});
+    }
+
+    async removeAllMessages(chatId: string) {
+        const docs = await this.getMessages(chatId).listDocuments();
+        for (let doc of docs) {
+            await doc.delete();
+        }
     }
 }
 
-export type QueueTaskInfo = {
-    isMoved: boolean;
-    time: number;
-    name: string;
+function fixTimestamps(value: unknown){
+    if (!value) return value;
+    if (value instanceof Timestamp) return value.toDate();
+    if (typeof value !== "object") return value;
+    if (Array.isArray(value)) return value.map(fixTimestamps);
+    const res = {} as any;
+    for (let key in value) {
+        res[key] = fixTimestamps(value[key]);
+    }
+    return res;
 }
+
+export type MessageTimetable = Message & DateTimetable

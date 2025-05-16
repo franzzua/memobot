@@ -10,7 +10,7 @@ export async function next(this: TelegrafApi, ctx: IncomingMessageEvent){
     if (!state.unprocessed.length)
         return ctx.reply(`No more tasks...`);
     await this.sendTasks(ctx.chat.toString(), state);
-    const lastDate = new Date(Math.max(...state.unprocessed.map(x => +x.date)));
+    const lastDate = new Date(Math.max(...state.unprocessed.flatMap(x => x.dates.map(x => +x))));
     await state.markProcessed();
     return ctx.reply(`Moved to time ${lastDate.toLocaleString()}`);
 }

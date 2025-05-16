@@ -5,7 +5,6 @@ import {ChatDatabase} from "../db/chatDatabase";
 import {callbacks, commands} from "./commands/index";
 import {Messenger} from "../messengers/messenger";
 import {onAnyMessage} from "./commands/onAnyMessage";
-import {TaskDatabase} from "../db/taskDatabase";
 import {Message} from "../types";
 import {TaskHandle} from "../scheduler/scheduler";
 import {TaskSendHandlers} from "../services/send-handlers/index";
@@ -22,8 +21,6 @@ export class TelegrafApi {
     accessor bot!: MemoBot;
     @inject(ChatDatabase)
     chatDatabase!: ChatDatabase;
-    @inject(TaskDatabase)
-    taskDatabase!: TaskDatabase;
 
     @inject(Messenger)
     messenger!: Messenger;
@@ -38,10 +35,10 @@ export class TelegrafApi {
         await this.messenger.init();
         this.messenger.on('message', async e => {
             const text = await e.text();
-            if (text?.text?.startsWith('/')){
+            if (text?.text?.startsWith('/')) {
                 const match = text?.text?.split(/[\s/]/g);
                 const command = match?.[1];
-                if (command && command in commands){
+                if (command && command in commands) {
                     await commands[command].call(this, e);
                 }
             } else {
@@ -66,24 +63,15 @@ export class TelegrafApi {
         return true;
     }
 
-    async sendTasks(chatId: string, taskState: TaskHandle<Message>){
-        const map = new Map<Message, Date[]>();
-        for (let { data, date} of taskState.unprocessed) {
-            if (!map.has(data))
-                map.set(data, [date])
-            else
-                map.get(data)!.push(date);
-        }
-        for (let [message, dates] of map) {
-            for (let date of dates) {
+    async sendTasks(chatId: string, taskState: TaskHandle<Message>) {
+        for (let {data: message, dates} of taskState.unprocessed) {
+            for (let i = 0; i < dates.length; i++) {
+                let date = dates[i];
                 const skipNotification = date !== dates.at(-1);
-                const content = await TaskSendHandlers[message.sentCount++](message)
+                const content = await TaskSendHandlers[message.invokeCounter + i](message)
                     ?? `Failed generate content`;
-                await this.messenger.send(chatId, content, { disable_notification: skipNotification });
+                await this.messenger.send(chatId, content, {disable_notification: skipNotification});
             }
-            await this.taskDatabase.updateTimetable(chatId, message.id!, {
-                sentCount: message.sentCount
-            })
         }
     }
 }

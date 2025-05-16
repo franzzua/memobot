@@ -16,7 +16,6 @@ const mockMessenger = {
 function testSendHandler(handler: TaskSendHandler): Promise<string | Message | undefined> {
     return handler({
         ...task,
-        sentCount: 0,
         id: null,
         createdAt: new Date(),
         number: 0,

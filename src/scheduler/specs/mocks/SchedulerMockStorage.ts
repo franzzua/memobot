@@ -28,12 +28,12 @@ export class SchedulerMockStorage implements SchedulerStorage {
     async addTimetable(taskId: unknown, timetable: TimetableEntity): Promise<void> {
         this.storage.get(taskId)!.timetables.push(timetable);
     }
-    async getTimetables(taskId: unknown, from: Date, to: Date | null): Promise<TimetableEntity[]> {
+    async getTimetablesBefore(taskId: unknown, to: Date): Promise<TimetableEntity[]> {
         return this.storage.get(taskId)!.timetables
-            .filter(x => x.next && x.next > from && (!to || x.next <= to));
+            .filter(x => x.next && x.next <= to);
     }
-    async getNextTimetableTime(taskId: unknown, from: Date): Promise<Date | null> {
-        const timetables = await this.getTimetables(taskId, from, null);
+    async getNextTimetableTime(taskId: unknown): Promise<Date | null> {
+        const timetables = this.storage.get(taskId)!.timetables;
         const times = timetables.map(x => x.next);
         let min: Date | null = null;
         for (let time of times) {

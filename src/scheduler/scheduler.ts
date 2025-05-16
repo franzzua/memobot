@@ -14,15 +14,6 @@ export class Scheduler<
     ) {
     }
 
-    async removeTask(taskId: TaskId): Promise<void> {
-        const task = await this.storage.getTask(taskId);
-        if (!task) return;
-        if (task.scheduleId) {
-            await this.queue.unschedule(task.scheduleId);
-        }
-        await this.storage.deleteTask(taskId);
-    }
-
     /**
      * Add timetable to existing task. If timetable have not future events - it's skipped.
      * @param taskId
@@ -35,7 +26,6 @@ export class Scheduler<
             id: taskId,
             scheduledAt: null,
             scheduleId: null,
-            last: new Date()
         } as Task<TaskId, ScheduleId>;
         if (!task.scheduledAt || task.scheduledAt > next){
             await this.updateTask(task, next);
@@ -43,6 +33,8 @@ export class Scheduler<
         await this.storage.addTimetable(taskId, {
             ...timetable,
             next: next,
+            last: new Date(),
+            invokeCounter: 0
         });
     }
     /**
@@ -56,34 +48,34 @@ export class Scheduler<
             unprocessed: [],
             markProcessed: () => Promise.resolve()
         };
-        const from = task.last;
-        const timetables = await this.storage.getTimetables(taskId, from, before);
+        const timetables = await this.storage.getTimetablesBefore(taskId, before);
         const result: TaskHandle<TimetableData> = {
             unprocessed: [],
             markProcessed: async () => {
-                if (!timetables.length) return;
-                task.last = before;
                 let min: Date | null = null;
-                for (const timetable of timetables) {
+                for (const { data: timetable, dates} of result.unprocessed) {
                     const helper =  TimetableHelper.get(timetable);
                     const next = helper.getNextTimeAfter(before);
+                    await this.storage.updateTimetable(taskId, timetable.id, {
+                        next,
+                        last: timetable.next,
+                        invokeCounter: timetable.invokeCounter + dates.length
+                    } as Partial<TimetableData & TimetableEntity>);
                     if (!next) continue;
-                    if (!min || next < min) min = next;
-                    await this.storage.updateTimetable(taskId, timetable.id, { next } as Partial<TimetableData & TimetableEntity>);
+                    if (!min || next < min)
+                        min = next;
                 }
-                min = await this.storage.getNextTimetableTime(taskId, before) ?? min;
+                min = await this.storage.getNextTimetableTime(taskId) ?? min;
                 await this.updateTask(task, min);
             }
         }
         for (const timetable of timetables) {
             const helper =  TimetableHelper.get(timetable);
-            const invocations = helper.getTimesBetween(from, before);
-            for (let invocation of invocations) {
-                result.unprocessed.push({
-                    date: invocation,
-                    data: timetable
-                });
-            }
+            const invocations = helper.getTimesBetween(timetable.last, before);
+            result.unprocessed.push({
+                dates: invocations,
+                data: timetable
+            });
         }
         return result;
     }
@@ -100,6 +92,9 @@ export class Scheduler<
 }
 
 export type TaskHandle<TimetableData> = {
-    unprocessed: Array<{ data: TimetableData, date: Date }>;
+    unprocessed: Array<{
+        data: TimetableEntity<TimetableData & Timetable>,
+        dates: Date[]
+    }>;
     markProcessed(): Promise<void>;
 }
