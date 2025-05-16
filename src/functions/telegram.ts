@@ -21,7 +21,7 @@ export function init(){
 export const telegram = baseFunction('telegram', async (req, res) => {
     const tg = await tgLoad;
     if (req && res) {
-        if (req.path.startsWith('/tasks')){
+        if (req.path.startsWith('/task')){
             const chatId = req.body;
             const isSucceed = await tg.invokeTask(chatId);
             if (isSucceed) {

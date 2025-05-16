@@ -13,17 +13,14 @@ const mockMessenger = {
     }
 } as unknown as Messenger;
 
-function testSendHandler(handler: TaskSendHandler): Promise<string | Message> {
-    return handler.call(mockMessenger, {
+function testSendHandler(handler: TaskSendHandler): Promise<string | Message | undefined> {
+    return handler({
         ...task,
-        details: '',
-        messageId: 0,
-        chatId: '0',
-        index: 0,
-        start: 0,
-        time: 0,
-        userId: 0
-    }, false);
+        sentCount: 0,
+        id: null,
+        createdAt: new Date(),
+        number: 0,
+    });
 }
 const task = {
     content: 'Influence',

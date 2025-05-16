@@ -20,7 +20,7 @@ export async function list(this: TelegrafApi, ctx: IncomingMessageEvent) {
 
 
 export async function onListCurrent(this: TelegrafApi, ctx: IncomingMessageEvent) {
-    const messages = await this.db.getMessages(ctx.chat.toString(), true);
+    const messages = await this.bot.getMessages(ctx.chat.toString(), true);
     if (messages.length == 0)
         return ctx.reply([
             getText('/current', 1),
@@ -31,7 +31,7 @@ export async function onListCurrent(this: TelegrafApi, ctx: IncomingMessageEvent
 }
 
 export async function onListComplete(this: TelegrafApi, ctx: IncomingMessageEvent) {
-    const messages = await this.db.getMessages(ctx.chat.toString(), false);
+    const messages = await this.bot.getMessages(ctx.chat.toString(), false);
     if (messages.length == 0)
         return ctx.reply([
             getText('/complete', 1),

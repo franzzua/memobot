@@ -2,12 +2,13 @@ import process from "node:process";
 import {inject, singleton} from "@di";
 import {MemoBot} from "../bot/bot";
 import {ChatDatabase} from "../db/chatDatabase";
-import {Logger} from "telegram";
 import {callbacks, commands} from "./commands/index";
 import {Messenger} from "../messengers/messenger";
 import {onAnyMessage} from "./commands/onAnyMessage";
-import {getMessenger} from "../functions/getMessenger";
-import {TaskSender} from "../services/task-sender";
+import {TaskDatabase} from "../db/taskDatabase";
+import {Message} from "../types";
+import {TaskHandle} from "../scheduler/scheduler";
+import {TaskSendHandlers} from "../services/send-handlers/index";
 
 
 if (!process.env.BOT_TOKEN)
@@ -20,12 +21,12 @@ export class TelegrafApi {
     @inject(MemoBot)
     accessor bot!: MemoBot;
     @inject(ChatDatabase)
-    db!: ChatDatabase;
+    chatDatabase!: ChatDatabase;
+    @inject(TaskDatabase)
+    taskDatabase!: TaskDatabase;
 
     @inject(Messenger)
     messenger!: Messenger;
-    @inject(TaskSender)
-    taskSender!: TaskSender;
 
     constructor() {
     }
@@ -58,12 +59,31 @@ export class TelegrafApi {
 
 
     async invokeTask(chatId: string): Promise<boolean> {
-        const messengerName = await this.db.getChatMessenger(chatId);
-        const messenger = getMessenger(messengerName)!;
-        const isSucceed = await this.taskSender.sendTasks(messenger, chatId);
-        if (isSucceed) {
-            await this.bot.enqueueTasks(chatId);
+        const state = await this.bot.getTaskState(chatId, new Date());
+        if (!state.unprocessed) return true;
+        await this.sendTasks(chatId, state);
+        await state.markProcessed();
+        return true;
+    }
+
+    async sendTasks(chatId: string, taskState: TaskHandle<Message>){
+        const map = new Map<Message, Date[]>();
+        for (let { data, date} of taskState.unprocessed) {
+            if (!map.has(data))
+                map.set(data, [date])
+            else
+                map.get(data)!.push(date);
         }
-        return isSucceed;
+        for (let [message, dates] of map) {
+            for (let date of dates) {
+                const skipNotification = date !== dates.at(-1);
+                const content = await TaskSendHandlers[message.sentCount++](message)
+                    ?? `Failed generate content`;
+                await this.messenger.send(chatId, content, { disable_notification: skipNotification });
+            }
+            await this.taskDatabase.updateTimetable(chatId, message.id!, {
+                sentCount: message.sentCount
+            })
+        }
     }
 }

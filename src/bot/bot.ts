@@ -1,80 +1,71 @@
-import { ChatDatabase } from "../db/chatDatabase";
-import { inject, resolve, singleton } from "@di";
-import { day, now, Timetable, TimetableDelay } from "./timetable";
-import { TaskQueue } from "../db/taskQueue";
-import { Logger } from "../logger/logger";
+import {ChatDatabase} from "../db/chatDatabase";
+import {inject, singleton} from "@di";
+import {Timetable} from "./timetable";
+import {Scheduler} from "../scheduler/scheduler";
+import {Message} from "../types";
+import {TaskScheduler} from "../db/task.scheduler";
+import {TimetablePolicyType} from "../scheduler/types";
+import {TaskDatabase} from "../db/taskDatabase";
 
 @singleton()
 export class MemoBot {
     @inject(ChatDatabase)
     private accessor db!: ChatDatabase;
-    @inject(TaskQueue)
-    private accessor queue!: TaskQueue;
-    @inject(Logger)
-    private accessor logger!: Logger;
-
+    @inject(TaskDatabase)
+    private accessor taskDatabase!: TaskDatabase;
+    @inject(TaskScheduler)
+    private accessor scheduler!: Scheduler<Message>
     constructor() {
     }
     public async addMessage(content: string, details: string, chatId: string, userId: string | number): Promise<number> {
-        const message = {
-            content,
-            details,
-        }
-        const id = await this.db.addMessage(chatId, message);
-
-        for (let i = 0; i < Timetable.length; i++){
-            let t = Timetable[i];
-            await this.db.addTask({
-                details, chatId, index: i, userId,
-                start: now(),
-                messageId: id, content,
-                time: now() + t.time
-            });
-        }
-
-        await this.enqueueTasks(chatId);
-        return id;
-    }
-
-    public async enqueueTasks(chatId: string) {
-        const nextTaskTime = await this.db.getNextTaskTime(chatId);
-        if (!nextTaskTime) {
-            return;
-        }
-        let nextTime = Math.min(Math.max(nextTaskTime, TimetableDelay + now()), 30 * day + now());
-        const queueInfo = await this.db.getQueueInfo(chatId);
-        let isMoved = false;
-        if (queueInfo) {
-            if (queueInfo.time > now()) {
-                if (queueInfo.time <= nextTime + TimetableDelay / 2)
-                    return;
-                if (!queueInfo.isMoved && queueInfo.time <= nextTime + TimetableDelay) {
-                    isMoved = true;
-                    nextTime = queueInfo.time + TimetableDelay / 2;
-                }
-            }
-            await this.queue.deleteTask(queueInfo.name);
-        }
-        const queueTaskName = await this.queue.sendTask(chatId, nextTime - now());
-        await this.db.setQueueInfo(chatId, {
-            isMoved,
-            time: nextTime,
-            name: queueTaskName,
+        const currentTime = +new Date();
+        const dates = Timetable.map(t => new Date(currentTime + t.time * 1000));
+        const maxNumber = await this.taskDatabase.getMaxNumber(chatId);
+        await this.scheduler.schedule(chatId, {
+            id: `message.${maxNumber}`,
+            content, details, createdAt: new Date(),
+            type: TimetablePolicyType.Dates,
+            dates,
+            sentCount: 0,
+            number: maxNumber + 1
         });
-        // this.logger.send({
-        //     chatId, queueTime: new Date(nextTime * 1000).toISOString(),
-        //     in: nextTime - now()
-        // });
+        return maxNumber + 1;
     }
+    //
+    // public async enqueueTasks(chatId: string) {
+    //     const nextTaskTime = await this.db.getNextTaskTime(chatId);
+    //     if (!nextTaskTime) {
+    //         return;
+    //     }
+    //     let nextTime = Math.min(Math.max(nextTaskTime, TimetableDelay + now()), 30 * day + now());
+    //     const queueInfo = await this.db.getQueueInfo(chatId);
+    //     let isMoved = false;
+    //     if (queueInfo) {
+    //         if (queueInfo.time > now()) {
+    //             if (queueInfo.time <= nextTime + TimetableDelay / 2)
+    //                 return;
+    //             if (!queueInfo.isMoved && queueInfo.time <= nextTime + TimetableDelay) {
+    //                 isMoved = true;
+    //                 nextTime = queueInfo.time + TimetableDelay / 2;
+    //             }
+    //         }
+    //         await this.queue.deleteTask(queueInfo.name);
+    //     }
+    //     const queueTaskName = await this.queue.sendTask(chatId, nextTime - now());
+    //     await this.db.setQueueInfo(chatId, {
+    //         isMoved,
+    //         time: nextTime,
+    //         name: queueTaskName,
+    //     });
+    //     // this.logger.send({
+    //     //     chatId, queueTime: new Date(nextTime * 1000).toISOString(),
+    //     //     in: nextTime - now()
+    //     // });
+    // }
 
-    public async dequeueNextTask(chatId: string){
-        const nextTask = await this.db.getQueueInfo(chatId);
-        if (!nextTask) {
-            return;
-        }
-        await this.queue.deleteTask(nextTask.name);
-        await this.db.setQueueInfo(chatId, null);
-        return nextTask.time;
+
+    public async getTaskState(chatId: string, date: Date){
+        return await this.scheduler.getTaskState(chatId, date);
     }
 
     async [Symbol.asyncDispose]() {
@@ -91,11 +82,27 @@ export class MemoBot {
     }
 
     async deleteAllMessages(chatId: string) {
-        const queueInfo = await this.db.getQueueInfo(chatId);
-        if (queueInfo) {
-            await this.queue.deleteTask(queueInfo.name);
-        }
-        await this.db.deleteAllMessage(chatId);
+        await this.scheduler.removeTask(chatId);
+    }
 
+    async deleteLastActiveMessage(chatId: string): Promise<number> {
+        // TODO: get last message number
+        const maxNumber = await this.taskDatabase.getMaxNumber(chatId);
+        await this.taskDatabase.deleteMessage(chatId, maxNumber);
+        return maxNumber;
+    }
+
+    async getMessages(chatId: string, isActive: boolean): Promise<Message[]> {
+        // TODO: get messages
+        return [];
+    }
+
+    async deleteMessage(chatId: string, id: number) {
+        // TODO: get last message number
+        return 0;
+    }
+
+    getNextMessageTime(chatId: string) {
+        return this.taskDatabase.getNextTimetableTime(chatId, new Date());
     }
 }

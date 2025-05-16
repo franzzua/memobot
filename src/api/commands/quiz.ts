@@ -4,7 +4,7 @@ import {IncomingMessageEvent} from "../../messengers/messenger";
 
 
 export async function onQuiz(this: TelegrafApi, ctx: IncomingMessageEvent){
-    const messages = await this.db.getMessages(ctx.chat.toString(), true);
+    const messages = await this.bot.getMessages(ctx.chat.toString(), true);
     if (messages.length < 4)
         return ctx.reply(`⚠️ Add new items to start quiz \n\n💡 <em>Start learning with</em> <b>/new</b>`);
     return ctx.reply('🗒 Choose a quiz', {
@@ -32,7 +32,7 @@ export async function onQuizReversed(this: TelegrafApi, ctx: IncomingMessageEven
 }
 export async function onQuizWrite(this: TelegrafApi, ctx: IncomingMessageEvent){
     const [message] = await getRandomMessages.call(this, ctx, 1);
-    await this.db.updateChatState(ctx.chat.toString(), ChatState.writeQuiz, {
+    await this.chatDatabase.updateChatState(ctx.chat.toString(), ChatState.writeQuiz, {
         answer: message.content
     });
     return ctx.reply(
@@ -44,7 +44,7 @@ export async function onQuizWriteAnswer(this: TelegrafApi, ctx: IncomingMessageE
 }){
     const message = await ctx.text();
     if (!message) return;
-    await this.db.updateChatState(ctx.chat.toString(), ChatState.initial);
+    await this.chatDatabase.updateChatState(ctx.chat.toString(), ChatState.initial);
     const isRight = message.text == data.answer;
     if (isRight){
         return ctx.reply('Excellent!');
@@ -54,7 +54,7 @@ export async function onQuizWriteAnswer(this: TelegrafApi, ctx: IncomingMessageE
 }
 
 async function getRandomMessages(this: TelegrafApi, ctx: IncomingMessageEvent, count: number){
-    const messages = await this.db.getMessages(ctx.chat.toString(), true);
+    const messages = await this.bot.getMessages(ctx.chat.toString(), true);
     const primeModulo = 442009;
     const random = Math.floor(Math.random()*messages.length);
     const randomMessages = Array(count).fill(0).map((_,i) => i)

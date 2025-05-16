@@ -1,7 +1,7 @@
 import {di} from "@di";
 import {Logger} from "./logger/logger";
 import {GCSLogger} from "./logger/gcs.logger";
-import {init} from "./functions";
+import {init} from "./functions/telegram";
 
 di.override(Logger, GCSLogger);
 init();

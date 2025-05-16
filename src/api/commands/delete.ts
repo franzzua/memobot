@@ -21,7 +21,7 @@ export async function onDelete(this: TelegrafApi, ctx: IncomingMessageEvent){
 
 
 export async function onDeleteLast(this: TelegrafApi, ctx: IncomingMessageEvent){
-    const id = await this.db.deleteLastActiveMessage(ctx.chat.toString());
+    const id = await this.bot.deleteLastActiveMessage(ctx.chat.toString());
     if (id == null)
         return ctx.reply(getText('/number', 3));
     const text = getAllText('/last', id.toString());
@@ -29,7 +29,7 @@ export async function onDeleteLast(this: TelegrafApi, ctx: IncomingMessageEvent)
 }
 
 export async function onDeleteNumber(this: TelegrafApi, ctx: IncomingMessageEvent){
-    await this.db.updateChatState(ctx.chat.toString(), ChatState.deleteMessage)
+    await this.chatDatabase.updateChatState(ctx.chat.toString(), ChatState.deleteMessage)
     return ctx.reply(getText('/number', 0));
 }
 

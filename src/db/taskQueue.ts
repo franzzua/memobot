@@ -1,57 +1,32 @@
-import { resolve, singleton } from "@di";
-import { CloudTasksClient, protos } from "@google-cloud/tasks";
+import { singleton } from "@di";
+import { protos } from "@google-cloud/tasks";
 import { gcsConfig } from "./gcs.config";
-import { Logger } from "../logger/logger";
 import { env } from "../env";
 import process from "node:process";
+import {GoogleTaskScheduler} from "../scheduler/queue/googleTaskScheduler";
 
 // Instantiates a client.
 @singleton()
-export class TaskQueue {
-
-    private client = new CloudTasksClient({
-        projectId: gcsConfig.projectId
-    });
-    private queue: protos.google.cloud.tasks.v2.IQueue | undefined;
-    private async getQueue(){
-        const projectId = await this.client.getProjectId();
-        const name = this.client.queuePath(projectId, gcsConfig.location, env.IsProd ? 'tasks' : 'tasksdev');
-        const q = await this.client.getQueue({
-            name,
-        }).then(x => x[0]).catch(e => null);
-        if (q) return q;
-        return this.client.createQueue({
-            parent: this.client.locationPath(projectId, gcsConfig.location),
-            queue: {
-                name,
-            }
-        }).then(x => x[0])
-    }
-
-    @Logger.measure
-    async sendTask(chatId: string, timeout = 0): Promise<string> {
-        this.queue ??= await this.getQueue();
-        const [task] = await this.client.createTask({
-            parent: this.queue.name,
-            task: {
-                scheduleTime: {seconds:+new Date()/1000 + timeout},
-                httpRequest: {
-                    url: process.env.PUBLIC_URL + '/task',
-                    body: Buffer.from(chatId).toString('base64'),
-                    headers: {
-                        'Content-Type': 'text/plain', // Set content type to ensure compatibility your application's request parsing
-                    },
-                    httpMethod: 'POST',
-                }
-            },
+export class TaskQueue extends GoogleTaskScheduler{
+    constructor() {
+        super({
+            projectId: gcsConfig.projectId,
+            location: gcsConfig.location,
+            queueName: env.IsProd ? 'tasks' : 'tasksdev'
         });
-        return task.name!;
     }
 
-    async deleteTask(name: string) {
-        console.log('delete task', name);
-        await this.client.deleteTask({
-            name
-        }).catch(e => {});
+    getTaskInfo(taskId: string): Promise<Omit<protos.google.cloud.tasks.v2.ITask, "scheduleTime">> {
+        return Promise.resolve({
+            httpRequest: {
+                url: process.env.PUBLIC_URL + '/task',
+                body: Buffer.from(taskId).toString('base64'),
+                headers: {
+                    'Content-Type': 'text/plain', // Set content type to ensure compatibility your application's request parsing
+                },
+                httpMethod: 'POST',
+            }
+        })
     }
+
 }
