@@ -15,7 +15,7 @@ export abstract class SchedulerStorage<
 
 export type Task<TaskId = string, ScheduleId = string> = {
     id: TaskId;
-    scheduleId?: ScheduleId;
+    scheduleId: ScheduleId | null;
     scheduledAt: Date | null;
 };
 export type TimetableEntity<TTimetable extends Timetable = Timetable> = TTimetable & {

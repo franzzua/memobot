@@ -23,7 +23,8 @@ export class MemoBot {
             content, details, createdAt: new Date(),
             type: TimetablePolicyType.Dates,
             dates,
-            number: maxNumber + 1
+            number: maxNumber + 1,
+            deleted: false
         });
         return maxNumber + 1;
     }
@@ -36,11 +37,12 @@ export class MemoBot {
     }
 
     async stop(chatId: string) {
-        console.log('stop', chatId);
         await this.db.setIsPaused(chatId, true);
+        // TODO: stop
     }
 
     async resume(chatId: string) {
+        // TODO: resume
         console.log('resume', chatId);
         await this.db.setIsPaused(chatId, false);
     }
@@ -49,20 +51,21 @@ export class MemoBot {
         await this.db.removeAllMessages(chatId);
     }
 
-    async deleteLastActiveMessage(chatId: string): Promise<number> {
-        const maxNumber = await this.db.getMaxNumber(chatId);
-        await this.db.deleteMessage(chatId, maxNumber);
-        return maxNumber;
-    }
 
     async getMessages(chatId: string, isActive: boolean): Promise<Message[]> {
-        // TODO: get messages
-        return [];
+        const allMessages = await this.db.getAllMessages(chatId, isActive);
+        return allMessages.filter(x => !x.deleted);
     }
 
-    async deleteMessage(chatId: string, id: number) {
-        // TODO: get last message number
-        return 0;
+    async deleteLastActiveMessage(chatId: string): Promise<number> {
+        const maxNumber = await this.db.getMaxNumber(chatId);
+        return this.deleteMessage(chatId, maxNumber);
+    }
+
+    async deleteMessage(chatId: string, number: number) {
+        await this.db.deleteMessage(chatId, number);
+        await this.scheduler.unschedule(chatId, `message.${number - 1}`);
+        return number;
     }
 
     getNextMessageTime(chatId: string) {

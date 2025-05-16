@@ -19,6 +19,7 @@ function testSendHandler(handler: TaskSendHandler): Promise<string | Message | u
         id: null,
         createdAt: new Date(),
         number: 0,
+        deleted: false,
     });
 }
 const task = {

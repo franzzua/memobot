@@ -80,13 +80,21 @@ export class Scheduler<
         return result;
     }
 
-
+    async unschedule(taskId: TaskId, scheduleId: ScheduleId): Promise<void> {
+        const entity = await this.storage.getTask(taskId);
+        if (!entity) return;
+        await this.storage.updateTimetable(taskId, scheduleId, {
+            next: null
+        } as Partial<TimetableData & TimetableEntity>);
+        const next = await this.storage.getNextTimetableTime(taskId);
+        await this.updateTask(entity, next);
+    }
     private async updateTask(entity: Task<TaskId, ScheduleId>, date: Date | null): Promise<void> {
         if (entity.scheduleId) {
             await this.queue.unschedule(entity.scheduleId);
         }
         entity.scheduledAt = date;
-        entity.scheduleId = date ? await this.queue.scheduleTask(entity.id, date) : undefined;
+        entity.scheduleId = date ? await this.queue.scheduleTask(entity.id, date) : null;
         await this.storage.saveTask(entity);
     }
 }

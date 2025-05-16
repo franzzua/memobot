@@ -26,7 +26,7 @@ export async function onListCurrent(this: TelegrafApi, ctx: IncomingMessageEvent
             getText('/current', 1),
             getText('/current', 2),
         ].join('\n'));
-    const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
+    const msgList = messages.map(x => `#${x.number} ${x.content}`).join('\n')
     return ctx.reply(getText('/current', 0) + `\n\n` + msgList);
 }
 
@@ -37,6 +37,6 @@ export async function onListComplete(this: TelegrafApi, ctx: IncomingMessageEven
             getText('/complete', 1),
             getText('/complete', 2),
         ].join('\n'));
-    const msgList = messages.map(x => `#${x.id} ${x.content}`).join('\n')
+    const msgList = messages.map(x => `#${x.number} ${x.content}`).join('\n')
     return ctx.reply(getText('/complete', 0) + `\n\n` + msgList);
 }

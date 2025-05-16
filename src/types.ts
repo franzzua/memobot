@@ -12,6 +12,7 @@ export type Message = {
     createdAt: Date;
     // sentCount: number;
     number: number;
+    deleted: boolean;
 }
 
 export type Task = Pick<Message, "content" | "details" > & {
