@@ -1,4 +1,4 @@
-import {ChatDatabase} from "../db/chatDatabase";
+import {ChatsDatabase} from "../db/chatsDatabase";
 import {inject, singleton} from "@di";
 import {Timetable, TimetableDelay} from "./timetable";
 import {Scheduler} from "../scheduler/scheduler";
@@ -8,8 +8,8 @@ import {TimetablePolicyType} from "../scheduler/types";
 
 @singleton()
 export class MemoBot {
-    @inject(ChatDatabase)
-    private accessor db!: ChatDatabase;
+    @inject(ChatsDatabase)
+    private accessor db!: ChatsDatabase;
     @inject(TaskScheduler)
     private accessor scheduler!: Scheduler<Message>
     constructor() {

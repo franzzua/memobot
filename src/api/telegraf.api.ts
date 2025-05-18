@@ -1,13 +1,14 @@
 import process from "node:process";
 import {inject, singleton} from "@di";
 import {MemoBot} from "../bot/bot";
-import {ChatDatabase} from "../db/chatDatabase";
+import {ChatsDatabase} from "../db/chatsDatabase";
 import {callbacks, commands} from "./commands/index";
 import {Messenger} from "../messengers/messenger";
 import {onAnyMessage} from "./commands/onAnyMessage";
 import {Message} from "../types";
 import {TaskHandle} from "../scheduler/scheduler";
 import {TaskSendHandlers} from "../services/send-handlers/index";
+import {Logger} from "../logger/logger";
 
 
 if (!process.env.BOT_TOKEN)
@@ -19,8 +20,10 @@ if (!process.env.PUBLIC_URL)
 export class TelegrafApi {
     @inject(MemoBot)
     accessor bot!: MemoBot;
-    @inject(ChatDatabase)
-    chatDatabase!: ChatDatabase;
+    @inject(ChatsDatabase)
+    chatDatabase!: ChatsDatabase;
+    @inject(Logger)
+    logger!: Logger;
 
     @inject(Messenger)
     messenger!: Messenger;
@@ -68,8 +71,10 @@ export class TelegrafApi {
             for (let i = 0; i < dates.length; i++) {
                 let date = dates[i];
                 const skipNotification = date !== dates.at(-1);
-                const content = await TaskSendHandlers[message.invokeCounter + i](message)
-                    ?? `Failed generate content`;
+                const content = await this.logger.measure(
+                    () => TaskSendHandlers[message.invokeCounter + i](message),
+                    'Generator.'+TaskSendHandlers[message.invokeCounter + i].name
+                ) ?? `Failed generate content`;
                 await this.messenger.send(chatId, content, {disable_notification: skipNotification});
             }
         }

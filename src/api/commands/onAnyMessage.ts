@@ -24,7 +24,7 @@ export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
         case ChatState.addNew: {
             const content = message.text;
             await this.chatDatabase.updateChatState(e.chat.toString(), ChatState.setDetails, { content });
-            const count = await this.chatDatabase.getIdCounter(e.chat.toString());
+            const count = await this.chatDatabase.getMaxNumber(e.chat.toString());
             const reply = getRandomText('/new-details', e.user.id, count);
             return e.reply(reply);
         }
