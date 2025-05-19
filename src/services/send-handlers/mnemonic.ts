@@ -9,5 +9,5 @@ export const mnemonic: TaskSendHandler = async function mnemonicHandler(task) {
         Return only one acrostic or creative memory aid without additional text.
     `);
     if (!acrostic) return;
-    return acrostic.replace(/\*\*(\w)\*\*/g, m => `<b>${m[2]}</b>`);
+    return acrostic.replace(/\*\*(.)\*\*/g, m => `<b>${m[2]}</b>`);
 }
