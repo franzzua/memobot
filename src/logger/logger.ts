@@ -3,7 +3,7 @@ import { resolve } from "@di";
 export abstract class Logger {
     public abstract send(data: any);
 
-    public measure<T>(func: () => T, action: string): T{
+    public measure<T>(func: () => T, action: string): T | Promise<T> {
         const start = performance.now();
         const getDuration = () => Math.round(performance.now() - start);
         try{
