@@ -7,7 +7,7 @@ import process from "node:process";
 di.override(Logger, ConsoleLogger);
 async function initApp() {
     const app = fastify({});
-    const functions = await import("./functions/index.js");
+    const functions = await import("./functions");
     for (let key in functions) {
         app.all('/' + key, (req, res) => {
             return functions[key]({
