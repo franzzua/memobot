@@ -1,10 +1,11 @@
 import { ChatState } from "../../types";
 import { TelegrafApi } from "../telegraf.api";
 import {IncomingMessageEvent} from "../../messengers/messenger";
+import {getAllText, getText} from "../../helpers/getRandomText";
 
 
 export async function onDelete(this: TelegrafApi, ctx: IncomingMessageEvent){
-    return ctx.reply('🗑️ Choose an item to delete', {
+    return ctx.reply(getAllText('/delete'), {
         reply_markup: {
             keyboard: [
                 [
@@ -20,14 +21,15 @@ export async function onDelete(this: TelegrafApi, ctx: IncomingMessageEvent){
 
 
 export async function onDeleteLast(this: TelegrafApi, ctx: IncomingMessageEvent){
-    const id = await this.db.deleteLastActiveMessage(ctx.chat.toString());
+    const id = await this.bot.deleteLastActiveMessage(ctx.chat.toString());
     if (id == null)
-        return ctx.reply(`⚠️ There are no items to delete`);
-    return ctx.reply(`❌ Entry #${id} has been deleted`);
+        return ctx.reply(getText('/number', 3));
+    const text = getAllText('/last', id.toString());
+    return ctx.reply(text);
 }
 
 export async function onDeleteNumber(this: TelegrafApi, ctx: IncomingMessageEvent){
-    await this.db.updateChatState(ctx.chat.toString(), ChatState.deleteMessage)
-    return ctx.reply(`#️⃣ Please enter the entry number`);
+    await this.chatDatabase.updateChatState(ctx.chat.toString(), ChatState.deleteMessage)
+    return ctx.reply(getText('/number', 0));
 }
 

@@ -1,25 +1,24 @@
 import {fastify} from "fastify";
-import {di} from "@cmmn/core";
+import {di} from "@di";
 import {Logger} from "./logger/logger";
 import {ConsoleLogger} from "./logger/console.logger";
 import process from "node:process";
+import {init, telegram} from "./functions/telegram";
 
 di.override(Logger, ConsoleLogger);
+init();
 async function initApp() {
     const app = fastify({});
-    const functions = await import("./functions");
-    for (let key in functions) {
-        app.all('/' + key, (req, res) => {
-            return functions[key]({
-                body: req.body,
-                query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
-                method: req.method
-                // @ts-ignore
-            }, Object.assign(res, {
-                sendStatus: code => res.status<number>(code).send()
-            }))
-        })
-    }
+    app.all('/*', (req, res) => {
+        return telegram({
+            body: req.body,
+            query: Object.fromEntries(new URLSearchParams(req.query as string).entries()),
+            method: req.method,
+            path: req.url
+        }, Object.assign(res, {
+            sendStatus: code => res.status<number>(code).send()
+        } as any))
+    })
     return app;
 }
 

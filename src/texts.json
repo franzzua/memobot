@@ -1,0 +1,125 @@
+{
+  "/new": [
+    "What would you like to add to your learning list? It could be a word, a fact, a date, a formula, or even a programming function",
+    "Tell me something you'd like to learn, like a word, a fact, a date, or a formula",
+    "What would you like to learn today? Maybe a word, a fact, or a date?",
+    "Add something you'd like to learn, like a word or a fact",
+    "What would you like to learn? A word, perhaps?",
+    "Add something to learn",
+    "What do you want to learn?",
+    "Add an item to your learning list",
+    "✍️ What’s on your mind to learn today?",
+    "✍️ Add something you want to remember—words, formulas, or fun facts!",
+    "✍️ Got a new idea or fact to save? Add it here.",
+    "✍️ Let’s jot down something you want to learn!",
+    "✍️ Write down anything you’d like to keep track of.",
+    "✍️ Learning something new? Add it to your list!",
+    "✍️ What’s something worth remembering? Add it here.",
+    "✍️ Add a word, formula, or tip you’d like to learn.",
+    "✍️ Have something to save for later? Let’s add it!",
+    "✍️ What’s next on your learning journey?",
+    "✍️ Type in a new item you’d like to learn or memorize.",
+    "✍️ Add something cool or useful you came across!",
+    "✍️ Got a tricky concept? Save it now.",
+    "✍️ Add an idea or fact you’d like to stick with you.",
+    "✍️ What’s worth learning today? Add it here.",
+    "✍️ Type out a new item to explore or remember.",
+    "✍️ Let’s save something important to learn!",
+    "✍️ What should go on your learning list?",
+    "✍️ Ready to add something new? Let’s do it.",
+    "✍️ Write down something to commit to memory.",
+    "✍️ Got a fact or concept to log? Type it here.",
+    "✍️ What’s something you’d like to hold on to?",
+    "✍️ Add a word, a date, or even just an idea.",
+    "✍️ Let’s store something useful for your learning!",
+    "✍️ Think of something to learn? Add it now.",
+    "✍️ Time to jot down a new word or concept!",
+    "✍️ What do you want to add to your list today?",
+    "✍️ Capture a formula, a phrase, or any detail here.",
+    "✍️ What’s one thing you’d like to study next?",
+    "✍️ Write down anything worth remembering.",
+    "✍️ Got something in mind to explore? Add it!",
+    "✍️ Add a new piece of knowledge to your stash.",
+    "✍️ What do you want to master next? Save it here.",
+    "✍️ Add a word, formula, or fact to your learning stack.",
+    "✍️ What would you like to focus on learning?",
+    "✍️ Save a thought or fact that caught your eye.",
+    "✍️ Learning something new? Add it to your tracker!",
+    "✍️ Ready to record a new idea or fact?",
+    "✍️ What’s worth noting down today?",
+    "✍️ Add something you’d like to revisit later.",
+    "✍️ Type a word, formula, or idea to store.",
+    "✍️ Add a little something to grow your knowledge.",
+    "✍️ What do you need to remember? Add it here!",
+    "✍️ Jot down a new piece of knowledge or insight.",
+    "✍️ Got something tricky? Let’s save it for you.",
+    "✍️ What’s the next item on your learning radar?",
+    "✍️ Let’s capture something new for your memory bank!",
+    "✍️ Add a quick note about what you’re learning.",
+    "✍️ What’s the latest thing you want to master?",
+    "✍️ Got an idea or fact? Let’s add it right now."
+  ],
+  "/new-details": [
+    "Could you provide some details—like a definition, explanation, rule, example, or a link?",
+    "Please add some details such as a definition, explanation, rule, example, or translation.",
+    "Add the details—definition, explanation, rule, or example.",
+    "Add some details such as definition, explanation, or rule.",
+    "Include some details like a definition and explanation.",
+    "Add details like the definition.",
+    "Provide the item details.",
+    "Add the details."
+  ],
+  "/new-success": [
+    "Great! I've added entry #{...}.",
+    "Brilliant! I've added entry #{...}."
+  ],
+  "/actions": [
+    "Please choose an action from the menu below."
+  ],
+  "/stop": [
+    "You won't get any more reminders for now",
+    "If you need reminders again, just use the command /resume."
+  ],
+  "/resume": [
+    "All set! I'll start sending you reminders again."
+  ],
+  "/delete": [
+    "Please select an item to delete."
+  ],
+  "/last": [
+    "Entry #{...} has been deleted."
+  ],
+  "/number": [
+    "Please enter the entry number.",
+    "I couldn't find entry #{...}. Please enter a valid number.",
+    "You can check your list with /current or /complete.",
+    "There are no items to delete."
+  ],
+  "/list": [
+    "Please choose a list to view."
+  ],
+  "/current": [
+    "Here are the items you're currently learning:",
+    "You haven't added any items to learn yet.",
+    "Start adding items with /new."
+  ],
+  "/complete": [
+    "Here's what you've learned so far:",
+    "You haven't learned any items yet.",
+    "Start learning new items with /new."
+  ],
+  "/practice": [
+    "Want to book an English lesson? Reach out to @spixenglish."
+  ],
+  "/donate": [
+    "Please select your payment method.",
+    "Pay with Stripe.",
+    "Pay with Revolut.",
+    "Pay with PayPal.",
+    "Pay with Tinkoff.",
+    "Pay with USDT.",
+    "Pay with Bitcoin (BTC).",
+    "Pay with Ethereum (ETH).",
+    "Pay with TON."
+  ]
+}

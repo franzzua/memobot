@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export project='steel-topic-444112-i8'
+export project='spixmemo'
 export repo_owner='franzzua'
 export repo_name='memobot'
 export deployer_name=github

@@ -6,10 +6,13 @@ export type Chat = {
 } ;
 
 export type Message = {
-    id: number
-    content: string
-    details: string
-    createdAt: Date
+    id: string | null;
+    content: string;
+    details: string;
+    createdAt: Date;
+    // sentCount: number;
+    number: number;
+    deleted: boolean;
 }
 
 export type Task = Pick<Message, "content" | "details" > & {

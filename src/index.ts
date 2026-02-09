@@ -1,10 +1,9 @@
-import { di, resolve } from "@cmmn/core";
-import { TelegrafApi } from "./api/telegraf.api";
-import process from "node:process";
-import { Logger } from "./logger/logger";
-import { GCSLogger } from "./logger/gcs.logger";
+import {di} from "@di";
+import {Logger} from "./logger/logger";
+import {GCSLogger} from "./logger/gcs.logger";
+import {init} from "./functions/telegram";
 
 di.override(Logger, GCSLogger);
+init();
 
-// is used by Google Function
-export { telegram, whatsapp, task } from "./functions";
+export {telegram} from "./functions/telegram";

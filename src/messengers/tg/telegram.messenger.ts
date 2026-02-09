@@ -4,12 +4,16 @@ import process from "node:process";
 import type * as tg from "@telegraf/types";
 import {Update} from "@telegraf/types";
 import {TelegramCallbackEvent, TelegramMessageEvent} from "./telegramMessageEvent";
+import {inject, scoped} from "@di";
+import {Logger} from "../../logger/logger";
 
 export class TelegramMessenger extends Messenger {
     name = 'telegram';
     tg = new Telegraf(this.token, {
         telegram: { webhookReply: true },
     });
+    @inject(Logger)
+    logger!: Logger;
 
     constructor(private token: string) {
         super();
@@ -24,13 +28,17 @@ export class TelegramMessenger extends Messenger {
     }
 
     async init() {
+        this.logger.send(`Current hook: ${this.secretPath.substring(0, 6)}...`);
         const hook = await this.tg.telegram.getWebhookInfo().catch(() => null);
+        this.logger.send(`Resolved hook: ${hook?.url?.substring(0, hook?.url?.length-50)}...`);
         if (!hook || !hook.url?.startsWith(`${process.env.PUBLIC_URL!}/${this.path}`)) {
-            await this.tg.telegram.setWebhook(this.hookURL);
-            // this.logger.info(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
+            await this.tg.telegram.setWebhook(this.hookURL, {
+                drop_pending_updates: true,
+            });
+            this.logger.send(`New instance created a cluster, secret: ${this.secretPath.substring(0, 6)}…`);
         } else if (hook.url) {
             this.secretPath = hook.url.replace(`${process.env.PUBLIC_URL}/${this.path}?secret=`, '');
-            // this.logger.info(`New instance joined to cluster, secret: ${this.secretPath.substring(0, 6)}…`);
+            this.logger.send(`New instance joined to cluster, secret: ${this.secretPath.substring(0, 6)}…`);
         }
         // for (let command in commands) {
         //     this.emit('command', {
@@ -43,22 +51,7 @@ export class TelegramMessenger extends Messenger {
         // }
         this.tg.on('callback_query', this.onCallbackQuery);
         // this.tg.command('actions', ctx => {
-        //     ctx.reply('🔽 Choose an action from the menu', {
-        //         reply_markup: {
-        //             keyboard: [
-        //                 [
-        //                     {text: '/stop'},
-        //                     {text: '/resume'}
-        //                 ],
-        //                 [
-        //                     {text: '/delete'},
-        //                     {text: '/list'}
-        //                 ]
-        //             ],
-        //             resize_keyboard: true,
-        //             one_time_keyboard: true
-        //         }
-        //     });
+        //
         // });
         this.tg.hears(/.*/, ((ctx: Context) => {
             switch (ctx.updateType) {
@@ -92,10 +85,11 @@ export class TelegramMessenger extends Messenger {
                 });
                 break;
             case "text":
-                await this.tg.telegram.sendMessage(to, message.text.replace(/([^\\])([!.#])/g, '$1\\$2')
-                    +(options.spoiler ? ` ||${options.spoiler}||` : ''), {
+                if (options.spoiler)
+                    message.text += `\n<span class="tg-spoiler">${options.spoiler}</span>`;
+                await this.tg.telegram.sendMessage(to, message.text, {
                     ...tgOptions,
-                    parse_mode: 'MarkdownV2',
+                    parse_mode: 'HTML',
                     reply_markup: options.reply_markup,
                     link_preview_options: {
                         is_disabled: !options.preview_url,
@@ -113,8 +107,10 @@ export class TelegramMessenger extends Messenger {
     }
 
     async handle(req, res) {
-        if (req.query.secret !== this.secretPath)
+        if (req.query.secret !== this.secretPath) {
+            this.logger.send(`Current secret: ${this.secretPath}, but received: ${req.query.secret}`);
             return res.sendStatus(401);
+        }
         // if (req.query.task) {
         //     const chatId = req.body;
         //     const isSucceed = await taskSender.sendTasks(chatId);

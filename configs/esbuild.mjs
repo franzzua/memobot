@@ -1,6 +1,5 @@
-import path from "node:path";
 import esbuild from "esbuild";
-import pkgJson from "../package.json" assert {type: "json"};
+import pkgJson from "../package.json" with {type: "json"};
 
 const context = await esbuild.context({
     entryPoints: {
@@ -18,11 +17,11 @@ const context = await esbuild.context({
     alias: {
         'node-fetch': './src/fetch.ts'
     },
-    external: Object.keys(pkgJson.dependencies)
+    external: Object.keys(pkgJson.dependencies),
 });
 
 if (process.argv.includes('--watch')){
-    context.watch();
+    await context.watch();
 } else {
     await context.rebuild();
     await context.dispose();
