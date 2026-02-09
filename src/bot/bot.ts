@@ -1,5 +1,5 @@
 import {ChatsDatabase} from "../db/chatsDatabase";
-import {inject, singleton} from "@di";
+import {inject, singleton} from "@cmmn/core";
 import {Timetable, TimetableDelay} from "./timetable";
 import {Scheduler} from "../scheduler/scheduler";
 import {Message} from "../types";

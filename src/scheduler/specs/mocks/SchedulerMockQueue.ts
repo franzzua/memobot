@@ -1,5 +1,5 @@
 import {SchedulerBackend} from "../../shared";
-import {scoped} from "@di";
+import {scoped} from "@cmmn/core";
 
 @scoped()
 export class SchedulerMockQueue implements SchedulerBackend {

@@ -1,7 +1,7 @@
 import { Logger } from "./logger";
 import { LoggingBunyan } from "@google-cloud/logging-bunyan";
 import bunyan from "bunyan";
-import { singleton } from "@di";
+import { singleton } from "@cmmn/core";
 import {gcsConfig} from "../db/gcs.config";
 
 @singleton()

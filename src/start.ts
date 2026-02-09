@@ -1,5 +1,5 @@
 import {fastify} from "fastify";
-import {di} from "@di";
+import {di} from "@cmmn/core";
 import {Logger} from "./logger/logger";
 import {ConsoleLogger} from "./logger/console.logger";
 import process from "node:process";

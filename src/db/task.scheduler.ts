@@ -1,6 +1,6 @@
 import {Scheduler} from "../scheduler/scheduler";
 import {Message} from "../types";
-import {di, singleton} from "@di";
+import {di, singleton} from "@cmmn/core";
 import {TaskQueue} from "./taskQueue";
 import {ChatsDatabase} from "./chatsDatabase";
 

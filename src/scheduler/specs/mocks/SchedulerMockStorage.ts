@@ -1,6 +1,6 @@
 import { Timetable } from "src/scheduler/types";
 import {TimetableEntity, SchedulerStorage, Task} from "../../storage/schedulerStorage";
-import {scoped} from "@di";
+import {scoped} from "@cmmn/core";
 
 @scoped()
 export class SchedulerMockStorage implements SchedulerStorage {

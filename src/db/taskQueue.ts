@@ -1,4 +1,4 @@
-import { singleton } from "@di";
+import { singleton } from "@cmmn/core";
 import { protos } from "@google-cloud/tasks";
 import { gcsConfig } from "./gcs.config";
 import { env } from "../env";

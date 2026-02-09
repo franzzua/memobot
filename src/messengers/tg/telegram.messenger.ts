@@ -4,7 +4,7 @@ import process from "node:process";
 import type * as tg from "@telegraf/types";
 import {Update} from "@telegraf/types";
 import {TelegramCallbackEvent, TelegramMessageEvent} from "./telegramMessageEvent";
-import {inject, scoped} from "@di";
+import {inject, scoped} from "@cmmn/core";
 import {Logger} from "../../logger/logger";
 
 export class TelegramMessenger extends Messenger {

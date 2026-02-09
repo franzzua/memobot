@@ -1,4 +1,4 @@
-import {resolve} from "@di";
+import {resolve} from "@cmmn/core";
 import {AiModel} from "../../services/ai-model";
 import {IncomingMessageEvent, Messenger} from "../../messengers/messenger";
 import {TelegrafApi} from "../telegraf.api";
