@@ -1,4 +1,4 @@
-import {resolve} from "@di";
+import {resolve} from "@cmmn/core";
 import {Logger} from "../logger/logger";
 import type {Request, Response} from "@google-cloud/functions-framework";
 import {ServerResponse} from "node:http";

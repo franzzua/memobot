@@ -1,4 +1,4 @@
-import {singleton} from "@di";
+import {singleton} from "@cmmn/core";
 import {auth} from "google-auth-library";
 import {GenerativeModel, VertexAI} from "@google-cloud/vertexai";
 

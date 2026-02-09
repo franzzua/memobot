@@ -1,4 +1,4 @@
-import { singleton } from "@di";
+import { singleton } from "@cmmn/core";
 import { Chat, ChatState, Message, Task } from "../types";
 import { Filter, Firestore } from "@google-cloud/firestore";
 import { Logger } from "../logger/logger";

@@ -1,4 +1,4 @@
-import { resolve } from "@di";
+import { resolve } from "@cmmn/core";
 
 export abstract class Logger {
     public abstract send(data: any);

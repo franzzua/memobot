@@ -1,4 +1,4 @@
-import { di, resolve } from "@di";
+import { di, resolve } from "@cmmn/core";
 import { TelegrafApi } from "./api/telegraf.api";
 import process from "node:process";
 import { Logger } from "./logger/logger";

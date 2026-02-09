@@ -1,4 +1,4 @@
-import {resolve} from "@di";
+import {resolve} from "@cmmn/core";
 import {TelegrafApi} from "../telegraf.api";
 import {TaskSender} from "../../services/task-sender";
 import {IncomingMessageEvent} from "../../messengers/messenger";

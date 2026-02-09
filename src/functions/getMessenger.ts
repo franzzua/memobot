@@ -1,4 +1,4 @@
-import {Container, di} from "@di";
+import {Container, di} from "@cmmn/core";
 import {TelegramMessenger} from "../messengers/tg/telegram.messenger";
 import process from "node:process";
 import {WhatsAppMessenger} from "../messengers/whatsAppMessenger";

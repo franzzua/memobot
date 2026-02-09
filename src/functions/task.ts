@@ -1,5 +1,5 @@
 import {baseFunction} from "./base";
-import {resolve} from "@di";
+import {resolve} from "@cmmn/core";
 import {TaskSender} from "../services/task-sender";
 import {MemoBot} from "../bot/bot";
 import {ChatDatabase} from "../db/chatDatabase";

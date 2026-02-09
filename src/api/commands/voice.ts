@@ -1,5 +1,5 @@
 import {TelegrafApi} from "../telegraf.api";
-import {resolve} from "@di";
+import {resolve} from "@cmmn/core";
 import {TextToSpeech} from "../../services/text-to-speech";
 import {AiModel} from "../../services/ai-model";
 import {IncomingMessageEvent} from "../../messengers/messenger";

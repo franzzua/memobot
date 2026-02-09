@@ -1,4 +1,4 @@
-import { resolve } from "@di";
+import { resolve } from "@cmmn/core";
 import { ChatDatabase } from "../../db/chatDatabase";
 import { setChatFromContext } from "./start";
 import { ChatState } from "../../types";

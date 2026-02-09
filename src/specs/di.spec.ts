@@ -1,6 +1,6 @@
 import {it, test} from "node:test";
 import { ChatDatabase } from "../db/chatDatabase";
-import { inject, resolve } from "@di";
+import { inject, resolve } from "@cmmn/core";
 import * as assert from "node:assert";
 
 it('di resolve', async function (){

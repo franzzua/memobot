@@ -1,5 +1,5 @@
 import { ChatDatabase } from "../db/chatDatabase";
-import { inject, resolve, singleton } from "@di";
+import { inject, resolve, singleton } from "@cmmn/core";
 import { day, now, Timetable, TimetableDelay } from "./timetable";
 import { TaskQueue } from "../db/taskQueue";
 import { Logger } from "../logger/logger";

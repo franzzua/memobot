@@ -1,5 +1,5 @@
 import { Logger } from "./logger";
-import { singleton } from "@di";
+import { singleton } from "@cmmn/core";
 
 @singleton()
 export class ConsoleLogger extends Logger {

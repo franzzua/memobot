@@ -1,4 +1,4 @@
-import {di} from "@di";
+import {di} from "@cmmn/core";
 import {TelegrafApi} from "../api/telegraf.api";
 import {baseFunction} from "./base";
 import {Messenger} from "../messengers/messenger";

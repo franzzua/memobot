@@ -14,14 +14,15 @@
   },
   "type": "module",
   "devDependencies": {
-    "@cmmn/core": "^2.2.3",
-    "@cmmn/tools": "^2.2.3",
+    "@cmmn/core": "3.0.0-alpha-4",
+    "@cmmn/tools": "3.0.0-alpha-4",
+    "@swc-node/register": "1.11.1",
     "@types/node": "^20.11.20",
     "@types/uuid": "^9",
     "dotenv": "16.4.5",
     "esbuild": "0.23.1",
     "tsx": "^4.7.2",
-    "typescript": "5.4.5",
+    "typescript": "5.9.3",
     "uuid": "^9.0.1"
   },
   "dependencies": {

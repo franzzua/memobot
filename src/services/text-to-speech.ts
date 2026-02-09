@@ -1,5 +1,5 @@
 import textToSpeech from "@google-cloud/text-to-speech";
-import {singleton} from "@di";
+import {singleton} from "@cmmn/core";
 
 @singleton()
 export class TextToSpeech{

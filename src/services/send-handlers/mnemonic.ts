@@ -1,5 +1,5 @@
 import type {TaskSendHandler} from "./index";
-import {resolve} from "@di";
+import {resolve} from "@cmmn/core";
 import {AiModel} from "../ai-model";
 
 export const mnemonic: TaskSendHandler = async function mnemonicHandler(task, skipNotification) {

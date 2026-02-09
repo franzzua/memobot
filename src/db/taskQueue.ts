@@ -1,4 +1,4 @@
-import { resolve, singleton } from "@di";
+import { resolve, singleton } from "@cmmn/core";
 import { CloudTasksClient, protos } from "@google-cloud/tasks";
 import { gcsConfig } from "./gcs.config";
 import { Logger } from "../logger/logger";

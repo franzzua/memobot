@@ -1,5 +1,5 @@
 import {baseFunction} from "./base";
-import {di} from "@di";
+import {di} from "@cmmn/core";
 import {Messenger} from "../messengers/messenger";
 import {WhatsAppMessenger} from "../messengers/whatsAppMessenger";
 import process from "node:process";

@@ -1,6 +1,6 @@
 import {Task} from "../types";
 import {now} from "../bot/timetable";
-import {inject, singleton} from "@di";
+import {inject, singleton} from "@cmmn/core";
 import {ChatDatabase} from "../db/chatDatabase";
 import {TaskSendHandlers} from "./send-handlers/index";
 

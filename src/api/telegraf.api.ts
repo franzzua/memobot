@@ -1,5 +1,5 @@
 import process from "node:process";
-import {inject, singleton} from "@di";
+import {inject, singleton} from "@cmmn/core";
 import {MemoBot} from "../bot/bot";
 import {ChatDatabase} from "../db/chatDatabase";
 import {Logger} from "telegram";

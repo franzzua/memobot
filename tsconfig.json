@@ -1,25 +1,8 @@
 {
+  "extends": "@cmmn/tools/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2020",
-    "moduleResolution": "Bundler",
-    "module": "Preserve",
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "noImplicitAny": false,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "declaration": true,
-    "sourceMap": true,
     "outDir": "./dist/esm",
-    "baseUrl": "./",
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "paths": {
-      "@di": ["./src/helpers/di/index.ts"]
-    }
+    "baseUrl": "./"
   },
   "exclude": [
     "dist",
