@@ -1,12 +1,12 @@
 import { resolve } from "@cmmn/core";
-import { ChatsDatabase } from "../../db/chatsDatabase";
 import { setChatFromContext } from "./start";
 import { ChatState } from "../../types";
 import { TelegrafApi } from "../telegraf.api";
 import {IncomingMessageEvent} from "../../messengers/messenger";
 import {getRandomText} from "../../helpers/getRandomText";
+import {PrismaSchedulerStorage} from "../../db/prismaSchedulerStorage";
 
-const db = resolve(ChatsDatabase);
+const db = resolve(PrismaSchedulerStorage);
 
 export async function onNewCommand(this: TelegrafApi, ctx: IncomingMessageEvent) {
     const message = await ctx.text();

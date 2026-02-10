@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Chat {
+  id          String    @id
+  username    String
+  userId      String
+  state       Int
+  stateData   String?
+  isPaused    Boolean
+  scheduleId  String?
+  scheduledAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+}
+
+model Message {
+  id            String    @id @default(uuid())
+  chat          Chat      @relation(fields: [chatId], references: [id])
+  chatId        String
+  content       String
+  details       String
+  createdAt     DateTime
+  number        Int
+  deleted       Boolean
+  type          Int
+  dates         String
+  last          DateTime
+  next          DateTime?
+  invokeCounter Int
+}

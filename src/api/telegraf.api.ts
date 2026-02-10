@@ -1,7 +1,6 @@
 import process from "node:process";
 import {inject, singleton} from "@cmmn/core";
 import {MemoBot} from "../bot/bot";
-import {ChatsDatabase} from "../db/chatsDatabase";
 import {callbacks, commands} from "./commands/index";
 import {Messenger} from "../messengers/messenger";
 import {onAnyMessage} from "./commands/onAnyMessage";
@@ -9,6 +8,7 @@ import {Message} from "../types";
 import {TaskHandle} from "../scheduler/scheduler";
 import {TaskSendHandlers} from "../services/send-handlers/index";
 import {Logger} from "../logger/logger";
+import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
 
 
 if (!process.env.BOT_TOKEN)
@@ -20,8 +20,8 @@ if (!process.env.PUBLIC_URL)
 export class TelegrafApi {
     @inject(MemoBot)
     accessor bot!: MemoBot;
-    @inject(ChatsDatabase)
-    chatDatabase!: ChatsDatabase;
+    @inject(PrismaSchedulerStorage)
+    chatDatabase!: PrismaSchedulerStorage;
     @inject(Logger)
     logger!: Logger;
 

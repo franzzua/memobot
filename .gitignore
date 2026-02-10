@@ -4,3 +4,4 @@ node_modules
 configs/.env
 out
 .yarn
+/generated/prisma

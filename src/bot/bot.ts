@@ -1,15 +1,15 @@
-import {ChatsDatabase} from "../db/chatsDatabase";
 import {inject, singleton} from "@cmmn/core";
 import {Timetable, TimetableDelay} from "./timetable";
 import {Scheduler} from "../scheduler/scheduler";
 import {Message} from "../types";
 import {TaskScheduler} from "../db/task.scheduler";
 import {TimetablePolicyType} from "../scheduler/types";
+import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
 
 @singleton()
 export class MemoBot {
-    @inject(ChatsDatabase)
-    private accessor db!: ChatsDatabase;
+    @inject(PrismaSchedulerStorage)
+    private accessor db!: PrismaSchedulerStorage;
     @inject(TaskScheduler)
     private accessor scheduler!: Scheduler<Message>
     constructor() {
