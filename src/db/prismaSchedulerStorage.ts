@@ -192,7 +192,7 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
         const { dates, ...rest } = msg;
         return {
             ...rest,
-            dates: JSON.parse(dates),
+            dates: JSON.parse(dates).map(x => new Date(x)),
         } as unknown as TimetableEntity<MessageTimetable>; 
     }
 }

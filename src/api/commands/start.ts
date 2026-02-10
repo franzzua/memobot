@@ -37,7 +37,6 @@ export async function setChatFromContext(this: TelegrafApi, ctx: IncomingMessage
         id: ctx.chat.toString(),
         userId: ctx.user.id.toString(),
         username: ctx.user.name!,
-        messenger: this.messenger.name,
     };
     await this.chatDatabase.addOrUpdateChat(chat);
 }
