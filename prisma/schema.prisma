@@ -36,3 +36,12 @@ model Message {
   next          DateTime?
   invokeCounter Int
 }
+
+model Word {
+  id          String  @id @default(uuid(7))
+  word        String
+  description String?
+  type        String?
+  level       Float?
+  frequency   Float?
+}

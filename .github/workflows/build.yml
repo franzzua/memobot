@@ -26,12 +26,11 @@ jobs:
         run: |
           yarn
           yarn run compile
-          yarn run bundle
       - name: output
         shell: bash
         run: |
           mkdir ./out/dist -p
-          cp ./dist/index.cjs ./out/dist/index.cjs
+          cp -r ./dist/esm/* ./out/dist/
           cp ./package.json ./out/
           cp ./assets ./out/ -r
 

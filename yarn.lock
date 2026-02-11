@@ -149,19 +149,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cmmn/core@npm:3.0.0-alpha-4":
-  version: 3.0.0-alpha-4
-  resolution: "@cmmn/core@npm:3.0.0-alpha-4"
+"@cmmn/core@npm:3.0.0-alpha-6":
+  version: 3.0.0-alpha-6
+  resolution: "@cmmn/core@npm:3.0.0-alpha-6"
   dependencies:
     throttle-debounce: "npm:5.0.2"
     uuidv7: "npm:1.0.2"
-  checksum: 10c0/99c0f40350750006a97ff18baf13027ba49f2f953a559cb13d5fa8abd76fe8312dc1d27731ffcd9d2a84115bbd7bc409199dba5f506fbcda7cea94ad098dd3f7
+  checksum: 10c0/c2c5775b4941a93aa4791ba4dbe50aeec70b2a824db414a32b1bb9cb83452dea2d35075a8c874d104dcbe5b47df8f839161d476b14b5e38b4448b56c7de40e71
   languageName: node
   linkType: hard
 
-"@cmmn/tools@npm:3.0.0-alpha-4":
-  version: 3.0.0-alpha-4
-  resolution: "@cmmn/tools@npm:3.0.0-alpha-4"
+"@cmmn/tools@npm:3.0.0-alpha-6":
+  version: 3.0.0-alpha-6
+  resolution: "@cmmn/tools@npm:3.0.0-alpha-6"
   dependencies:
     "@biomejs/biome": "npm:1.9.4"
     "@fastify/caching": "npm:9.0.3"
@@ -195,7 +195,7 @@ __metadata:
     "@swc-node/register": "*"
   bin:
     cmmn: dist/esm/bin.js
-  checksum: 10c0/72a82ee273477285dabd829cd97b71f445bb464221352f0b0d51de465b74cf848aac823d160fdd14839de04fde00361979f5b5be70bdc79ad499e1e1dc414302
+  checksum: 10c0/470d075ab647a8ab46a5210ced99539219bc1c4a37b8cf63ba52faf153e32e3c8bd473934aa1e9b0f4a3187c801617f1f61ec242a21bfb0c25be663230e4cf1d
   languageName: node
   linkType: hard
 
@@ -5265,8 +5265,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "memobot@workspace:."
   dependencies:
-    "@cmmn/core": "npm:3.0.0-alpha-4"
-    "@cmmn/tools": "npm:3.0.0-alpha-4"
+    "@cmmn/core": "npm:3.0.0-alpha-6"
+    "@cmmn/tools": "npm:3.0.0-alpha-6"
     "@google-cloud/firestore": "npm:^7.6.0"
     "@google-cloud/functions-framework": "npm:^3.3.0"
     "@google-cloud/logging-bunyan": "npm:^5.1.0"
