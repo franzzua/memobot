@@ -1,7 +1,7 @@
-import { Logger } from "./logger";
-import { LoggingBunyan } from "@google-cloud/logging-bunyan";
+import {Logger} from "./logger";
+import {LoggingBunyan} from "@google-cloud/logging-bunyan";
 import bunyan from "bunyan";
-import { singleton } from "@cmmn/core";
+import {singleton} from "@cmmn/core";
 import {gcsConfig} from "../db/gcs.config";
 
 @singleton()
@@ -9,7 +9,7 @@ export class GCSLogger extends Logger {
     private logging = new LoggingBunyan({
         projectId: gcsConfig.projectId
     });
-    private logger =  bunyan.createLogger({
+    private logger = bunyan.createLogger({
         // The JSON payload of the log as it appears in Cloud Logging
         // will contain "name": "my-service"
         name: 'telegraf',
