@@ -29,14 +29,12 @@ jobs:
       - name: output
         shell: bash
         run: |
-          rm -rf /tmp/out
           mkdir ./out/dist -p
           cp -r ./dist/esm/* ./out/
           cp ./package.json ./out/
           cp ./yarn.lock ./out/
           cp ./.yarnrc.yml ./out/
           cp ./assets ./out/ -r
-          mv ./out /tmp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
