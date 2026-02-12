@@ -14,5 +14,5 @@ logger.measure(() => execSync(`npx prisma migrate deploy`, {
 }), 'prisma migrate')
 
 
-const telegram = await import("./functions/telegram");
-export {telegram};
+const { telegram } = await import("./functions/telegram");
+export { telegram };
