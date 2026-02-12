@@ -39,7 +39,7 @@ jobs:
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
             --set-env-vars=DATABASE_URL=postgresql://postgres:${{ secrets.DB_PASSWORD }}@10.101.32.3:5432/memobot-dev \
-            --set-env-vars=PUBLIC_URL=https://${{ env.function }}-602612727393.europe-west6.run.app \
+            --set-env-vars=PUBLIC_URL=https://europe-west6-spixmemo.cloudfunctions.net/${{ env.function }} \
             --run-service-account=app-runner@${{ env.project }}.iam.gserviceaccount.com \
             --build-service-account=projects/${{ env.project}}/serviceAccounts/github@${{ env.project }}.iam.gserviceaccount.com
 
