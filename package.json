@@ -1,14 +1,15 @@
 {
   "name": "memobot",
   "version": "1.0.0",
-  "main": "./dist/src/index.js",
+  "main": "./src/index.js",
   "license": "MIT",
   "scripts": {
     "compile": "cmmn compile",
     "run": "node --watch --env-file=configs/.env --import @cmmn/tools/import ./src/start.ts",
     "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js",
     "ngrok": "ngrok http 5800 --domain rabbit-becoming-currently.ngrok-free.app",
-    "import": "node --env-file=scripts/.env scripts/import-texts.js"
+    "import": "node --env-file=scripts/.env scripts/import-texts.js",
+    "gcp-build": "prisma generate && prisma migrate deploy"
   },
   "type": "module",
   "devDependencies": {
