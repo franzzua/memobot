@@ -6,9 +6,9 @@ import {IncomingMessageEvent} from "../../messengers/messenger";
 import {getRandomText} from "../../helpers/getRandomText";
 import {PrismaSchedulerStorage} from "../../db/prismaSchedulerStorage";
 
-const db = resolve(PrismaSchedulerStorage);
 
 export async function onNewCommand(this: TelegrafApi, ctx: IncomingMessageEvent) {
+    const db = resolve(PrismaSchedulerStorage);
     const message = await ctx.text();
     if (!message) return;
     const [, content, details] = message.text.split(' ');

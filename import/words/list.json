@@ -1,252 +1,1752 @@
 [
-{ "index": 1, "word": "ADVANCE", "description": "to put forward a claim" },
-{ "index": 2, "word": "ASSERT", "description": "to put forward an argument or state that something is true" },
-{ "index": 3, "word": "CONJECTURE", "description": "n.,hypothesis; v.,hypothesize" },
-{ "index": 4, "word": "(PRE)SUPPOSITION", "description": "an idea assumed beforehand about a subject" },
-{ "index": 5, "word": "SURMISE", "description": "to assume; draw a conclusion without strong evidence" },
-{ "index": 6, "word": "BOLSTER", "description": "to provide support for an argument" },
-{ "index": 7, "word": "BUTTRESS", "description": "to provide support for an argument" },
-{ "index": 8, "word": "SUBSTANTIATE", "description": "to provide evidence to support or prove a claim" },
-{ "index": 9, "word": "CORROBORATE", "description": "to confirm or support a claim" },
-{ "index": 10, "word": "VALIDATE", "description": "to prove the accuracy of a claim" },
-{ "index": 11, "word": "CONCEDE", "description": "to admit that an opposing claim is true or valid" },
-{ "index": 12, "word": "ACKNOWLEDGE", "description": "to accept or admit the validity of a claim" },
-{ "index": 13, "word": "REBUT", "description": "to offer an argument a against a claim believed to be false" },
-{ "index": 14, "word": "REFUTE", "description": "to prove that a claim is false" },
-{ "index": 15, "word": "GRAPPLE WITH", "description": "to try to deal with or understand a difficult problem" },
-{ "index": 16, "word": "RUMINATE ABOUT", "description": "to think deeply about; turn something over in one's mind" },
-{ "index": 17, "word": "INFER", "description": "to deduce or conclude from evidence and reasoning" },
-{ "index": 18, "word": "PROPONENT", "description": "person who supports a claim or course of action" },
-{ "index": 19, "word": "DETRACTOR", "description": "person who criticizes a claim or course of action" },
-{ "index": 20, "word": "SKEPTIC", "description": "person who questions or doubts a claim" },
-{ "index": 21, "word": "ABRUPT", "description": "sudden or unexpected" },
-{ "index": 22, "word": "ADAMANT", "description": "extremely stubborn; fixed in one's viewpoint" },
-{ "index": 23, "word": "ABUNDANT", "description": "plentiful" },
-{ "index": 24, "word": "ACCENTUATE", "description": "to make more noticeable or prominent" },
-{ "index": 25, "word": "ACCLAIM", "description": "enthusiastic and public praise" },
-{ "index": 26, "word": "ADAPTATION", "description": "a change made to accommodate new circumstances" },
-{ "index": 27, "word": "ADVANTAGEOUS", "description": "creating favorable circumstances" },
-{ "index": 28, "word": "AESTHETIC", "description": "related to the study or appreciation of beauty" },
-{ "index": 29, "word": "AFFECTING", "description": "touching the emotions; moving" },
-{ "index": 30, "word": "AFFINITY", "description": "a strong attraction or liking" },
-{ "index": 31, "word": "AMBIGUOUS", "description": "unclear; open to more than one interpretation" },
-{ "index": 32, "word": "AMBIVALENCE", "description": "having mixed feelings" },
-{ "index": 33, "word": "AMELIORATE", "description": "to make better; improve" },
-{ "index": 34, "word": "AMORPHOUS", "description": "shapeless; synonym for \"nebulous\"" },
-{ "index": 35, "word": "ANALOGY", "description": "a comparison intended to provide clarification" },
-{ "index": 36, "word": "ANIMOSITY", "description": "strong feelings of dislike or hatred" },
-{ "index": 37, "word": "ANNOTATE", "description": "to make notes to help explain or clarify" },
-{ "index": 38, "word": "ANOMALY", "description": "deviation from the norm; atypical" },
-{ "index": 39, "word": "ANTITHETICAL", "description": "characterized by extreme contrast" },
-{ "index": 40, "word": "APPEASE", "description": "to make peace by giving into demands" },
-{ "index": 41, "word": "APPRAISE", "description": "to assess the value or quality of something" },
-{ "index": 42, "word": "APPROXIMATE", "description": "close but not completely accurate" },
-{ "index": 43, "word": "AUGMENT", "description": "to increase" },
-{ "index": 44, "word": "AUSTERE", "description": "very plain, without decoration" },
-{ "index": 45, "word": "CATALYZE", "description": "to cause or speed up a reaction" },
-{ "index": 46, "word": "CATASTROPHIC", "description": "utterly disastrous" },
-{ "index": 47, "word": "CEASE", "description": "to stop, halt" },
-{ "index": 48, "word": "CIRCUMVENT", "description": "to find a way around; avoid" },
-{ "index": 49, "word": "CITE", "description": "to quote or reference from a work to support an argument" },
-{ "index": 50, "word": "COALESCE", "description": "to come together to form a single mass" },
-{ "index": 51, "word": "COARSENESS", "description": "roughness, harshness" },
-{ "index": 52, "word": "COLLABORATION", "description": "the act of working with another person or people" },
-{ "index": 53, "word": "COMMONPLACE", "description": "common, ordinary" },
-{ "index": 54, "word": "COMPRISE", "description": "to include, contain" },
-{ "index": 55, "word": "CONFINE", "description": "to restrict within a limited area" },
-{ "index": 56, "word": "CONFOUND", "description": "to utterly confuse, baffle" },
-{ "index": 57, "word": "CONSENSUS", "description": "general agreement" },
-{ "index": 58, "word": "CONSPICUOUS", "description": "clearly visible; noticeable" },
-{ "index": 59, "word": "CONSUMPTION", "description": "the process of eating or using up" },
-{ "index": 60, "word": "CONTINGENT", "description": "dependent upon; subject to" },
-{ "index": 61, "word": "CONTRIVE", "description": "to think up" },
-{ "index": 62, "word": "COPIOUS", "description": "abundant; plentiful" },
-{ "index": 63, "word": "CREDIBLE", "description": "believable" },
-{ "index": 64, "word": "CREDULOUS", "description": "easily fooled" },
-{ "index": 65, "word": "DEBACLE", "description": "a complete failure; fiasco" },
-{ "index": 66, "word": "DEPLETE", "description": "to diminish" },
-{ "index": 67, "word": "DESPONDENT", "description": "feeling depressed" },
-{ "index": 68, "word": "DEVIATION", "description": "departure from what is normal" },
-{ "index": 69, "word": "DEXTEROUS", "description": "physically skilled, especially with one's hands" },
-{ "index": 70, "word": "DISCERNIBLE", "description": "visible; detectable" },
-{ "index": 71, "word": "DISCORD", "description": "general disagreement" },
-{ "index": 72, "word": "DISPARATE", "description": "very different" },
-{ "index": 73, "word": "DISPERSE", "description": "to scatter" },
-{ "index": 74, "word": "DISPOSITION", "description": "inherent personality or character trait" },
-{ "index": 75, "word": "DIVERGE", "description": "to move apart" },
-{ "index": 76, "word": "DOMESTICATION", "description": "the process of taming an animal or cultivating a wild plant" },
-{ "index": 77, "word": "DRACONIAN", "description": "excessively harsh laws, rules, and punishments" },
-{ "index": 78, "word": "ECCENTRIC", "description": "highly odd or unconventional(person)" },
-{ "index": 79, "word": "ECLIPSE", "description": "to overshadow or block" },
-{ "index": 80, "word": "ELICIT", "description": "to draw out, usually a response" },
-{ "index": 81, "word": "ELUSIVE", "description": "difficult to find, catch, or achieve" },
-{ "index": 82, "word": "ENGENDER", "description": "to cause or give rise to" },
-{ "index": 83, "word": "ENGULF", "description": "to overwhelm; surround completely" },
-{ "index": 84, "word": "ENHANCE", "description": "to improve or intensify" },
-{ "index": 85, "word": "EPHEMERAL", "description": "very brief; short-lived" },
-{ "index": 86, "word": "EQUITABLE", "description": "fair" },
-{ "index": 87, "word": "ERRATIC", "description": "unpredictable; not regular" },
-{ "index": 88, "word": "EVADE", "description": "to escape or avoid" },
-{ "index": 89, "word": "EVINCE", "description": "to reveal or show one's feelings" },
-{ "index": 90, "word": "EXACERBATE", "description": "to make worse" },
-{ "index": 91, "word": "EXCAVATION", "description": "the process of digging up, usually a historic site" },
-{ "index": 92, "word": "EXORBITANT", "description": "extreme and excessive" },
-{ "index": 93, "word": "EXPLICIT", "description": "stated directly and with complete clarity" },
-{ "index": 94, "word": "EXPLOIT", "description": "to take advantage of" },
-{ "index": 95, "word": "EXPOSURE", "description": "contact with someone or something(noun form of \"expose\")" },
-{ "index": 96, "word": "FABRICATE", "description": "to invent or make up, typically with the intent to deceive" },
-{ "index": 97, "word": "FACADE", "description": "(false) exterior" },
-{ "index": 98, "word": "FOSTER", "description": "to encourage or promote something typically seen to be good" },
-{ "index": 99, "word": "FRUITFUL/FRUITLESS", "description": "productive/unproductive" },
-{ "index": 100, "word": "GALVANIZE", "description": "to energize, spur into action" },
-{ "index": 101, "word": "HAPHAZARD", "description": "random and disorganized" },
-{ "index": 102, "word": "HETEROGENEOUS", "description": "varied, diverse; synonym for \"multifaceted\"" },
-{ "index": 103, "word": "HINDER", "description": "to block, prevent; synonym for \"impede\"" },
-{ "index": 104, "word": "IDEALIZE", "description": "to imagine something as better than it is in reality" },
-{ "index": 105, "word": "IDIOSYNCRATIC", "description": "highly particular, unique to an individual" },
-{ "index": 106, "word": "ILLUSORY", "description": "not real; based on an illusion" },
-{ "index": 107, "word": "IMMINENT", "description": "about to happen" },
-{ "index": 108, "word": "IMPEDE", "description": "to delay or prevent" },
-{ "index": 109, "word": "IMPECCABLE", "description": "faultless, spotless" },
-{ "index": 110, "word": "IMPENETRABLE", "description": "impossible to pass through" },
-{ "index": 111, "word": "IMPERATIVE", "description": "of vital importance; crucial" },
-{ "index": 112, "word": "IMPERCEPTIBLE", "description": "cannot be seen or perceived" },
-{ "index": 113, "word": "IMPOSING", "description": "very large and impressive in appearance" },
-{ "index": 114, "word": "IMPOVERISHED", "description": "very poor" },
-{ "index": 115, "word": "INCONGRUOUS", "description": "out of place; something that contrasts with its surroundings" },
-{ "index": 116, "word": "INDECIPHERABLE", "description": "unable to be read or understood" },
-{ "index": 117, "word": "INDELIBLE", "description": "memorable; impossible to forget" },
-{ "index": 118, "word": "INDIFFERENT", "description": "without interest or concern; apathetic" },
-{ "index": 119, "word": "INDIGENOUS", "description": "native" },
-{ "index": 120, "word": "INDOCTRINATE", "description": "to teach a person/people to uncritically accept beliefs" },
-{ "index": 121, "word": "INDUCE", "description": "to persuade or influence someone to do something" },
-{ "index": 122, "word": "INDULGENT", "description": "overly generous; too lenient" },
-{ "index": 123, "word": "INELUCTABLE", "description": "inescapable; inevitable" },
-{ "index": 124, "word": "INFALLIBLE", "description": "incapable of making mistakes" },
-{ "index": 125, "word": "INFINITESIMAL", "description": "extremely small; approaching zero" },
-{ "index": 126, "word": "INGENIOUS", "description": "very clever and cunning" },
-{ "index": 127, "word": "INNOCUOUS", "description": "harmless; the synonym \"benign\" may also be used" },
-{ "index": 128, "word": "INNOVATIVE", "description": "featuring new materials and ideas" },
-{ "index": 129, "word": "INSIGHT", "description": "deep understanding" },
-{ "index": 130, "word": "INSTALLATION", "description": "art exhibit consisting of large objects placed in a public space" },
-{ "index": 131, "word": "INSUPERABLE", "description": "incapable of being overcome" },
-{ "index": 132, "word": "INSURMOUNTABLE", "description": "too great to overcome" },
-{ "index": 133, "word": "INTERMEDIATE", "description": "coming between two things" },
-{ "index": 134, "word": "INTRICATE", "description": "very complex" },
-{ "index": 135, "word": "INTRIGUING", "description": "arousing curiosity or interest" },
-{ "index": 136, "word": "INTUITION", "description": "the ability to understand from an instinctive feeling" },
-{ "index": 137, "word": "INVASIVE", "description": "spreading in a harmful manner(noun form of \"invade\")" },
-{ "index": 138, "word": "IRATE", "description": "angry" },
-{ "index": 139, "word": "IRREPROACHABLE", "description": "beyond criticism; faultless" },
-{ "index": 140, "word": "IRREVOCABLE", "description": "permanent" },
-{ "index": 141, "word": "JUXTAPOSITION", "description": "placement of two things next to each other for contrast" },
-{ "index": 142, "word": "LACONIC", "description": "using few words; brief and to-the-point" },
-{ "index": 143, "word": "LATENT", "description": "existing but in hidden or dormant form" },
-{ "index": 144, "word": "LEGACY", "description": "a long-lasting impact" },
-{ "index": 145, "word": "LINEAGE", "description": "descent from a common ancestor or predecessor" },
-{ "index": 146, "word": "LUCRATIVE", "description": "very profitable" },
-{ "index": 147, "word": "MANIFESTATION", "description": "visible appearance of an object, trend, or idea" },
-{ "index": 148, "word": "MERCURIAL", "description": "unpredictable; constantly shifting moods" },
-{ "index": 149, "word": "METICULOUS", "description": "very careful and precise; the synonym \"punctilious\" may also be used" },
-{ "index": 150, "word": "MIGRATION", "description": "the movement of a person or group from one area to another" },
-{ "index": 151, "word": "MISCONSTRUE", "description": "to misunderstand" },
-{ "index": 152, "word": "MITIGATE", "description": "to make a problem less severe" },
-{ "index": 153, "word": "MOBILIZE", "description": "to prepare a person or group for action" },
-{ "index": 154, "word": "MOMENTOUS", "description": "having great significance(a decision or event)" },
-{ "index": 155, "word": "MONETIZE", "description": "to make money from" },
-{ "index": 156, "word": "MORIBUND", "description": "approaching death; on the verge of becoming obsolete" },
-{ "index": 157, "word": "MULTIFACETED", "description": "having many aspects" },
-{ "index": 158, "word": "MUNDANE", "description": "dull; uninteresting" },
-{ "index": 159, "word": "MYRIAD", "description": "many" },
-{ "index": 160, "word": "NEBULOUS", "description": "vague; undefined; synonym for \"amorphous\"" },
-{ "index": 161, "word": "NEFARIOUS", "description": "wicked and evil" },
-{ "index": 162, "word": "NUANCE", "description": "a subtle shade of difference or meaning" },
-{ "index": 163, "word": "NURTURE", "description": "to care for and encourage growth and development" },
-{ "index": 164, "word": "OBSCURE", "description": "rare; understood by few people" },
-{ "index": 165, "word": "OFFHAND", "description": "done casually, without prior thought" },
-{ "index": 166, "word": "OMINOUS", "description": "threatening; giving the impression that something bad will happen" },
-{ "index": 167, "word": "ORIENTATION", "description": "a preference or liking for" },
-{ "index": 168, "word": "ORTHODOX", "description": "conforming to a standard theory or belief" },
-{ "index": 169, "word": "OVERLOAD", "description": "excessive burden or stress" },
-{ "index": 170, "word": "OVERSHADOW", "description": "to dominate; make someone or something seem unimportant" },
-{ "index": 171, "word": "OUTMODED", "description": "no longer fashionable; out of date" },
-{ "index": 172, "word": "OUTSIZED", "description": "disproportionately large" },
-{ "index": 173, "word": "PALPABLE", "description": "literally,touchable; often used to describe a very intense feeling" },
-{ "index": 174, "word": "PAUCITY", "description": "a small or limited amount" },
-{ "index": 175, "word": "PERIPHERAL", "description": "of secondary importance; not central" },
-{ "index": 176, "word": "PERVASIVE", "description": "widespread" },
-{ "index": 177, "word": "POLAR", "description": "very different; opposite" },
-{ "index": 178, "word": "PRAGMATIC", "description": "practical" },
-{ "index": 179, "word": "PRECIPITATE", "description": "to cause to happen especially suddenly and unexpectedly" },
-{ "index": 180, "word": "PRECLUDE", "description": "prevent or block; synonym for \"impede\"" },
-{ "index": 181, "word": "PRECURSOR", "description": "a person or thing that precedes; a forerunner" },
-{ "index": 182, "word": "PREDATORY", "description": "preying upon others" },
-{ "index": 183, "word": "PRESCIENT", "description": "showing great foresight" },
-{ "index": 184, "word": "PRESCRIBE", "description": "to lay down a rule; dictate" },
-{ "index": 185, "word": "PRETENTIOUS", "description": "affecting greater importance than one actually has" },
-{ "index": 186, "word": "PRETEXT", "description": "false excuse given to justify a course of action" },
-{ "index": 187, "word": "PREVAIL", "description": "to triumph over great odds" },
-{ "index": 188, "word": "PRIORITIZE", "description": "to list or rate in order of importance" },
-{ "index": 189, "word": "PRODIGIOUS", "description": "enormous; impressively large" },
-{ "index": 190, "word": "PROFOUND", "description": "intellectually deep; extremely insightful" },
-{ "index": 191, "word": "PROFUSION", "description": "large amount; synonym for \"myriad\"; antonym for \"paucity\"" },
-{ "index": 192, "word": "PROHIBITIVE", "description": "so high(a difficulty or price) that it prevents something from occurring" },
-{ "index": 193, "word": "PROLIFIC", "description": "very productive" },
-{ "index": 194, "word": "PROVOCATIVE", "description": "causing a reaction, often annoyance or anger" },
-{ "index": 195, "word": "RECANT", "description": "to take back; withdraw; renounce" },
-{ "index": 196, "word": "RECIPROCATE", "description": "to respond to an action by doing the same thing back to someone" },
-{ "index": 197, "word": "RECONCILE", "description": "to bring opposing people or things back together" },
-{ "index": 198, "word": "REGISTER", "description": "(n.) official list or record;(v.) to become aware of or record" },
-{ "index": 199, "word": "RELEVANT/IRRELEVANT", "description": "connected/unconnected to the topic at hand" },
-{ "index": 200, "word": "RENOUNCE", "description": "to give up" },
-{ "index": 201, "word": "REPLENISH", "description": "to refill; resupply" },
-{ "index": 202, "word": "REPLICATE", "description": "to copy" },
-{ "index": 203, "word": "RESILIENT", "description": "capable of quickly recovering from difficulty" },
-{ "index": 204, "word": "RESURGENCE", "description": "the act of rising again into life or activity" },
-{ "index": 205, "word": "RETROSPECT", "description": "hindsight; looking back" },
-{ "index": 206, "word": "REVELATION", "description": "something that is revealed and thus made known" },
-{ "index": 207, "word": "RUDIMENTARY", "description": "limited to basic principles; elementary" },
-{ "index": 208, "word": "SABOTAGE", "description": "to deliberately destroy or damage" },
-{ "index": 209, "word": "SATIATE", "description": "to fully satisfy" },
-{ "index": 210, "word": "SCHEME", "description": "a clever and often devious plan" },
-{ "index": 211, "word": "SCRUPULOUS", "description": "extremely attentive to details" },
-{ "index": 212, "word": "SCRUTINIZE(n. SCRUTINY)", "description": "to examine very closely and carefully" },
-{ "index": 213, "word": "SPECULATE", "description": "to form an explanation or theory; synonym for \"conjecture\"" },
-{ "index": 214, "word": "SPURIOUS", "description": "false or fake; the synonym \"specious\" may also be used" },
-{ "index": 215, "word": "STIPULATE", "description": "to demand or specify as part of an agreement" },
-{ "index": 216, "word": "STRENUOUS", "description": "requiring great physical exertion" },
-{ "index": 217, "word": "SUBJECTIVE", "description": "influenced by personal tastes, opinions, or feelings" },
-{ "index": 218, "word": "SUBSTANTIAL", "description": "of considerable importance, size, or worth" },
-{ "index": 219, "word": "SUPERFICIAL", "description": "shallow; lacking depth" },
-{ "index": 220, "word": "SUPERFLUOUS", "description": "more than enough; unnecessary" },
-{ "index": 221, "word": "SUPPLANT", "description": "to replace; supersede" },
-{ "index": 222, "word": "SUPPLEMENT", "description": "(n.) an addition or reinforcement;(v.) to add on" },
-{ "index": 223, "word": "SURPASS", "description": "to exceed; go beyond" },
-{ "index": 224, "word": "SWAY", "description": "to persuade to follow a course of action" },
-{ "index": 225, "word": "SYNCHRONIZE", "description": "to cause multiple events to occur at the same time" },
-{ "index": 226, "word": "SYNOPSIS", "description": "a brief summary" },
-{ "index": 227, "word": "TALLY", "description": "(n.) a recorded account; a total;(v.) to count" },
-{ "index": 228, "word": "THWART", "description": "to block or get in the way of something negative" },
-{ "index": 229, "word": "TRANSCEND", "description": "to rise above normal limitations" },
-{ "index": 230, "word": "TEDIOUS", "description": "boring; dull and tiresome" },
-{ "index": 231, "word": "TENUOUS", "description": "very weak; connected only slightly" },
-{ "index": 232, "word": "TRIVIAL", "description": "unimportant" },
-{ "index": 233, "word": "UBIQUITOUS", "description": "everywhere; synonym for \"universal\"" },
-{ "index": 234, "word": "UNATTAINABLE", "description": "cannot be reached or achieved" },
-{ "index": 235, "word": "UNCANNY", "description": "strange or slightly supernatural; beyond what is ordinary" },
-{ "index": 236, "word": "UNCLASSIFIABLE", "description": "unable to be assigned to a category" },
-{ "index": 237, "word": "UNCONVENTIONAL", "description": "not conforming to what is generally done or believed" },
-{ "index": 238, "word": "UNDERMINE", "description": "to weaken;erode" },
-{ "index": 239, "word": "UNDERSCORE", "description": "to emphasize by drawing attention to a fact, idea, or situation" },
-{ "index": 240, "word": "UNEQUIVOCAL", "description": "leaving no doubt; certain" },
-{ "index": 241, "word": "UNOBTRUSIVE", "description": "inconspicuous;not attracting attention" },
-{ "index": 242, "word": "UNRESOLVABLE", "description": "unable to be resolved or settled" },
-{ "index": 243, "word": "UNTENABLE", "description": "unable to be defended or supported" },
-{ "index": 244, "word": "VACILLATE", "description": "to go back and forth between two options; synonym for \"waver\"" },
-{ "index": 245, "word": "VALIDATE", "description": "to confirm the truth of a claim" },
-{ "index": 246, "word": "VERISIMILITUDE", "description": "the quality of seeming to be true" },
-{ "index": 247, "word": "VINDICATE", "description": "to free from blame; prove correct" },
-{ "index": 248, "word": "WAIVE", "description": "to voluntarily give up the right to do something" },
-{ "index": 249, "word": "WAVER", "description": "to go back and forth between two options; synonym for \"vacillate\"" },
-{ "index": 250, "word": "WATERSHED", "description": "a turning point" }
+  {
+    "index": 1,
+    "word": "ADVANCE",
+    "description": "to put forward a claim",
+    "level": 4,
+    "frequency": 70844401
+  },
+  {
+    "index": 2,
+    "word": "ASSERT",
+    "description": "to put forward an argument or state that something is true",
+    "level": 4,
+    "frequency": 15539234
+  },
+  {
+    "index": 3,
+    "word": "CONJECTURE",
+    "description": "n.,hypothesis; v.,hypothesize",
+    "level": 6,
+    "frequency": 4496970
+  },
+  {
+    "index": 4,
+    "word": "(PRE)SUPPOSITION",
+    "description": "an idea assumed beforehand about a subject",
+    "level": 6,
+    "frequency": 4138476
+  },
+  {
+    "index": 5,
+    "word": "SURMISE",
+    "description": "to assume; draw a conclusion without strong evidence",
+    "level": 6,
+    "frequency": 1131234
+  },
+  {
+    "index": 6,
+    "word": "BOLSTER",
+    "description": "to provide support for an argument",
+    "level": 6,
+    "frequency": 2569802
+  },
+  {
+    "index": 7,
+    "word": "BUTTRESS",
+    "description": "to provide support for an argument",
+    "level": 6,
+    "frequency": 847446
+  },
+  {
+    "index": 8,
+    "word": "SUBSTANTIATE",
+    "description": "to provide evidence to support or prove a claim",
+    "level": 6,
+    "frequency": 3109999
+  },
+  {
+    "index": 9,
+    "word": "CORROBORATE",
+    "description": "to confirm or support a claim",
+    "level": 6,
+    "frequency": 1570505
+  },
+  {
+    "index": 10,
+    "word": "VALIDATE",
+    "description": "to prove the accuracy of a claim",
+    "level": 4,
+    "frequency": 3936884
+  },
+  {
+    "index": 11,
+    "word": "CONCEDE",
+    "description": "to admit that an opposing claim is true or valid",
+    "level": 4,
+    "frequency": 4469560
+  },
+  {
+    "index": 12,
+    "word": "ACKNOWLEDGE",
+    "description": "to accept or admit the validity of a claim",
+    "level": 3,
+    "frequency": 21337644
+  },
+  {
+    "index": 13,
+    "word": "REBUT",
+    "description": "to offer an argument a against a claim believed to be false",
+    "level": 2,
+    "frequency": 1632469
+  },
+  {
+    "index": 14,
+    "word": "REFUTE",
+    "description": "to prove that a claim is false",
+    "level": 4,
+    "frequency": 2841930
+  },
+  {
+    "index": 15,
+    "word": "GRAPPLE WITH",
+    "description": "to try to deal with or understand a difficult problem",
+    "level": 6,
+    "frequency": 1507696
+  },
+  {
+    "index": 16,
+    "word": "RUMINATE ABOUT",
+    "description": "to think deeply about; turn something over in one's mind",
+    "level": 6,
+    "frequency": 195548
+  },
+  {
+    "index": 17,
+    "word": "INFER",
+    "description": "to deduce or conclude from evidence and reasoning",
+    "level": 4,
+    "frequency": 7077331
+  },
+  {
+    "index": 18,
+    "word": "PROPONENT",
+    "description": "person who supports a claim or course of action",
+    "level": 4,
+    "frequency": 2353643
+  },
+  {
+    "index": 19,
+    "word": "DETRACTOR",
+    "description": "person who criticizes a claim or course of action",
+    "level": 3.180062731824462,
+    "frequency": 72379
+  },
+  {
+    "index": 20,
+    "word": "SKEPTIC",
+    "description": "person who questions or doubts a claim",
+    "level": 6,
+    "frequency": 601647
+  },
+  {
+    "index": 21,
+    "word": "ABRUPT",
+    "description": "sudden or unexpected",
+    "level": 5.2832175733333395,
+    "frequency": 7762083
+  },
+  {
+    "index": 22,
+    "word": "ADAMANT",
+    "description": "extremely stubborn; fixed in one's viewpoint",
+    "level": 3.368908015869791,
+    "frequency": 1943169
+  },
+  {
+    "index": 23,
+    "word": "ABUNDANT",
+    "description": "plentiful",
+    "level": 3,
+    "frequency": 27285036
+  },
+  {
+    "index": 24,
+    "word": "ACCENTUATE",
+    "description": "to make more noticeable or prominent",
+    "level": 6,
+    "frequency": 1201808
+  },
+  {
+    "index": 25,
+    "word": "ACCLAIM",
+    "description": "enthusiastic and public praise",
+    "level": 6,
+    "frequency": 1621922
+  },
+  {
+    "index": 26,
+    "word": "ADAPTATION",
+    "description": "a change made to accommodate new circumstances",
+    "level": 3.7079420808959904,
+    "frequency": 22687786
+  },
+  {
+    "index": 27,
+    "word": "ADVANTAGEOUS",
+    "description": "creating favorable circumstances",
+    "level": 4.873531476444914,
+    "frequency": 10217730
+  },
+  {
+    "index": 28,
+    "word": "AESTHETIC",
+    "description": "related to the study or appreciation of beauty",
+    "level": 4.0088175056884205,
+    "frequency": 17939566
+  },
+  {
+    "index": 29,
+    "word": "AFFECTING",
+    "description": "touching the emotions; moving",
+    "level": 3,
+    "frequency": 42257019
+  },
+  {
+    "index": 30,
+    "word": "AFFINITY",
+    "description": "a strong attraction or liking",
+    "level": 4.731733428651663,
+    "frequency": 11211792
+  },
+  {
+    "index": 31,
+    "word": "AMBIGUOUS",
+    "description": "unclear; open to more than one interpretation",
+    "level": 4,
+    "frequency": 11071946
+  },
+  {
+    "index": 32,
+    "word": "AMBIVALENCE",
+    "description": "having mixed feelings",
+    "level": 6,
+    "frequency": 3329244
+  },
+  {
+    "index": 33,
+    "word": "AMELIORATE",
+    "description": "to make better; improve",
+    "level": 6,
+    "frequency": 1468539
+  },
+  {
+    "index": 34,
+    "word": "AMORPHOUS",
+    "description": "shapeless; synonym for \"nebulous\"",
+    "level": 5.531403637550575,
+    "frequency": 6577186
+  },
+  {
+    "index": 35,
+    "word": "ANALOGY",
+    "description": "a comparison intended to provide clarification",
+    "level": 4,
+    "frequency": 15217077
+  },
+  {
+    "index": 36,
+    "word": "ANIMOSITY",
+    "description": "strong feelings of dislike or hatred",
+    "level": 6,
+    "frequency": 2063701
+  },
+  {
+    "index": 37,
+    "word": "ANNOTATE",
+    "description": "to make notes to help explain or clarify",
+    "level": 6,
+    "frequency": 263336
+  },
+  {
+    "index": 38,
+    "word": "ANOMALY",
+    "description": "deviation from the norm; atypical",
+    "level": 5.470954420447325,
+    "frequency": 6854353
+  },
+  {
+    "index": 39,
+    "word": "ANTITHETICAL",
+    "description": "characterized by extreme contrast",
+    "level": 6,
+    "frequency": 1178408
+  },
+  {
+    "index": 40,
+    "word": "APPEASE",
+    "description": "to make peace by giving into demands",
+    "level": 6,
+    "frequency": 1518215
+  },
+  {
+    "index": 41,
+    "word": "APPRAISE",
+    "description": "to assess the value or quality of something",
+    "level": 6,
+    "frequency": 2053991
+  },
+  {
+    "index": 42,
+    "word": "APPROXIMATE",
+    "description": "close but not completely accurate",
+    "level": 4,
+    "frequency": 21717802
+  },
+  {
+    "index": 43,
+    "word": "AUGMENT",
+    "description": "to increase",
+    "level": 3.88057962154534,
+    "frequency": 3635213
+  },
+  {
+    "index": 44,
+    "word": "AUSTERE",
+    "description": "very plain, without decoration",
+    "level": 6,
+    "frequency": 2464441
+  },
+  {
+    "index": 45,
+    "word": "CATALYZE",
+    "description": "to cause or speed up a reaction",
+    "level": 6,
+    "frequency": 845764
+  },
+  {
+    "index": 46,
+    "word": "CATASTROPHIC",
+    "description": "utterly disastrous",
+    "level": 4,
+    "frequency": 4031258
+  },
+  {
+    "index": 47,
+    "word": "CEASE",
+    "description": "to stop, halt",
+    "level": 4,
+    "frequency": 18781473
+  },
+  {
+    "index": 48,
+    "word": "CIRCUMVENT",
+    "description": "to find a way around; avoid",
+    "level": 6,
+    "frequency": 2248633
+  },
+  {
+    "index": 49,
+    "word": "CITE",
+    "description": "to quote or reference from a work to support an argument",
+    "level": 4.614965172369203,
+    "frequency": 12074775
+  },
+  {
+    "index": 50,
+    "word": "COALESCE",
+    "description": "to come together to form a single mass",
+    "level": 6,
+    "frequency": 1027270
+  },
+  {
+    "index": 51,
+    "word": "COARSENESS",
+    "description": "roughness, harshness",
+    "level": 6,
+    "frequency": 724786
+  },
+  {
+    "index": 52,
+    "word": "COLLABORATION",
+    "description": "the act of working with another person or people",
+    "level": 3.6969334509803415,
+    "frequency": 22882179
+  },
+  {
+    "index": 53,
+    "word": "COMMONPLACE",
+    "description": "common, ordinary",
+    "level": 6,
+    "frequency": 4407336
+  },
+  {
+    "index": 54,
+    "word": "COMPRISE",
+    "description": "to include, contain",
+    "level": 4.5414973718876706,
+    "frequency": 12642998
+  },
+  {
+    "index": 55,
+    "word": "CONFINE",
+    "description": "to restrict within a limited area",
+    "level": 4,
+    "frequency": 6787596
+  },
+  {
+    "index": 56,
+    "word": "CONFOUND",
+    "description": "to utterly confuse, baffle",
+    "level": 6,
+    "frequency": 1414734
+  },
+  {
+    "index": 57,
+    "word": "CONSENSUS",
+    "description": "general agreement",
+    "level": 4,
+    "frequency": 21654212
+  },
+  {
+    "index": 58,
+    "word": "CONSPICUOUS",
+    "description": "clearly visible; noticeable",
+    "level": 4.26101722326133,
+    "frequency": 15071244
+  },
+  {
+    "index": 59,
+    "word": "CONSUMPTION",
+    "description": "the process of eating or using up",
+    "level": 3,
+    "frequency": 90824089
+  },
+  {
+    "index": 60,
+    "word": "CONTINGENT",
+    "description": "dependent upon; subject to",
+    "level": 4.299801188054029,
+    "frequency": 14703508
+  },
+  {
+    "index": 61,
+    "word": "CONTRIVE",
+    "description": "to think up",
+    "level": 5.27181185311462,
+    "frequency": 988436
+  },
+  {
+    "index": 62,
+    "word": "COPIOUS",
+    "description": "abundant; plentiful",
+    "level": 1,
+    "frequency": 2794292
+  },
+  {
+    "index": 63,
+    "word": "CREDIBLE",
+    "description": "believable",
+    "level": 5.443664551091066,
+    "frequency": 6981545
+  },
+  {
+    "index": 64,
+    "word": "CREDULOUS",
+    "description": "easily fooled",
+    "level": 6,
+    "frequency": 777552
+  },
+  {
+    "index": 65,
+    "word": "DEBACLE",
+    "description": "a complete failure; fiasco",
+    "level": 6,
+    "frequency": 1177527
+  },
+  {
+    "index": 66,
+    "word": "DEPLETE",
+    "description": "to diminish",
+    "level": 6,
+    "frequency": 823369
+  },
+  {
+    "index": 67,
+    "word": "DESPONDENT",
+    "description": "feeling depressed",
+    "level": 6,
+    "frequency": 775256
+  },
+  {
+    "index": 68,
+    "word": "DEVIATION",
+    "description": "departure from what is normal",
+    "level": 3.6576746028715195,
+    "frequency": 23589418
+  },
+  {
+    "index": 69,
+    "word": "DEXTEROUS",
+    "description": "physically skilled, especially with one's hands",
+    "level": 6,
+    "frequency": 403693
+  },
+  {
+    "index": 70,
+    "word": "DISCERNIBLE",
+    "description": "visible; detectable",
+    "level": 5.759139292022049,
+    "frequency": 4020158
+  },
+  {
+    "index": 71,
+    "word": "DISCORD",
+    "description": "general disagreement",
+    "level": 3.616964505121107,
+    "frequency": 3127891
+  },
+  {
+    "index": 72,
+    "word": "DISPARATE",
+    "description": "very different",
+    "level": 2.8871632309386794,
+    "frequency": 4248397
+  },
+  {
+    "index": 73,
+    "word": "DISPERSE",
+    "description": "to scatter",
+    "level": 6,
+    "frequency": 2693934
+  },
+  {
+    "index": 74,
+    "word": "DISPOSITION",
+    "description": "inherent personality or character trait",
+    "level": 4,
+    "frequency": 36355444
+  },
+  {
+    "index": 75,
+    "word": "DIVERGE",
+    "description": "to move apart",
+    "level": 6,
+    "frequency": 1843051
+  },
+  {
+    "index": 76,
+    "word": "DOMESTICATION",
+    "description": "the process of taming an animal or cultivating a wild plant",
+    "level": 6,
+    "frequency": 1436462
+  },
+  {
+    "index": 77,
+    "word": "DRACONIAN",
+    "description": "excessively harsh laws, rules, and punishments",
+    "level": 6,
+    "frequency": 597475
+  },
+  {
+    "index": 78,
+    "word": "ECCENTRIC",
+    "description": "highly odd or unconventional(person)",
+    "level": 5.700269637793284,
+    "frequency": 5829713
+  },
+  {
+    "index": 79,
+    "word": "ECLIPSE",
+    "description": "to overshadow or block",
+    "level": 5.939072535489868,
+    "frequency": 4817182
+  },
+  {
+    "index": 80,
+    "word": "ELICIT",
+    "description": "to draw out, usually a response",
+    "level": 5.891564275163535,
+    "frequency": 5015795
+  },
+  {
+    "index": 81,
+    "word": "ELUSIVE",
+    "description": "difficult to find, catch, or achieve",
+    "level": 5.885224484784993,
+    "frequency": 5042383
+  },
+  {
+    "index": 82,
+    "word": "ENGENDER",
+    "description": "to cause or give rise to",
+    "level": 6,
+    "frequency": 1300692
+  },
+  {
+    "index": 83,
+    "word": "ENGULF",
+    "description": "to overwhelm; surround completely",
+    "level": 4,
+    "frequency": 646625
+  },
+  {
+    "index": 84,
+    "word": "ENHANCE",
+    "description": "to improve or intensify",
+    "level": 4,
+    "frequency": 27487693
+  },
+  {
+    "index": 85,
+    "word": "EPHEMERAL",
+    "description": "very brief; short-lived",
+    "level": 6,
+    "frequency": 2545531
+  },
+  {
+    "index": 86,
+    "word": "EQUITABLE",
+    "description": "fair",
+    "level": 3.9048047513813215,
+    "frequency": 19469162
+  },
+  {
+    "index": 87,
+    "word": "ERRATIC",
+    "description": "unpredictable; not regular",
+    "level": 6,
+    "frequency": 3966105
+  },
+  {
+    "index": 88,
+    "word": "EVADE",
+    "description": "to escape or avoid",
+    "level": 6,
+    "frequency": 3837037
+  },
+  {
+    "index": 89,
+    "word": "EVINCE",
+    "description": "to reveal or show one's feelings",
+    "level": 6,
+    "frequency": 559420
+  },
+  {
+    "index": 90,
+    "word": "EXACERBATE",
+    "description": "to make worse",
+    "level": 6,
+    "frequency": 1564504
+  },
+  {
+    "index": 91,
+    "word": "EXCAVATION",
+    "description": "the process of digging up, usually a historic site",
+    "level": 4.692229987068557,
+    "frequency": 11498756
+  },
+  {
+    "index": 92,
+    "word": "EXORBITANT",
+    "description": "extreme and excessive",
+    "level": 6,
+    "frequency": 1911120
+  },
+  {
+    "index": 93,
+    "word": "EXPLICIT",
+    "description": "stated directly and with complete clarity",
+    "level": 3.539430281915847,
+    "frequency": 25863363
+  },
+  {
+    "index": 94,
+    "word": "EXPLOIT",
+    "description": "to take advantage of",
+    "level": 4,
+    "frequency": 9979345
+  },
+  {
+    "index": 95,
+    "word": "EXPOSURE",
+    "description": "contact with someone or something(noun form of \"expose\")",
+    "level": 2.1229426247959684,
+    "frequency": 72538385
+  },
+  {
+    "index": 96,
+    "word": "FABRICATE",
+    "description": "to invent or make up, typically with the intent to deceive",
+    "level": 4,
+    "frequency": 1288884
+  },
+  {
+    "index": 97,
+    "word": "FACADE",
+    "description": "(false) exterior",
+    "level": 6,
+    "frequency": 4399398
+  },
+  {
+    "index": 98,
+    "word": "FOSTER",
+    "description": "to encourage or promote something typically seen to be good",
+    "level": 3.918030635144527,
+    "frequency": 19268647
+  },
+  {
+    "index": 99,
+    "word": "FRUITFUL/FRUITLESS",
+    "description": "productive/unproductive",
+    "level": 1,
+    "frequency": 7616632
+  },
+  {
+    "index": 100,
+    "word": "GALVANIZE",
+    "description": "to energize, spur into action",
+    "level": 6,
+    "frequency": 230048
+  },
+  {
+    "index": 101,
+    "word": "HAPHAZARD",
+    "description": "random and disorganized",
+    "level": 6,
+    "frequency": 2077146
+  },
+  {
+    "index": 102,
+    "word": "HETEROGENEOUS",
+    "description": "varied, diverse; synonym for \"multifaceted\"",
+    "level": 5.162229465181176,
+    "frequency": 8401058
+  },
+  {
+    "index": 103,
+    "word": "HINDER",
+    "description": "to block, prevent; synonym for \"impede\"",
+    "level": 4.880895501614012,
+    "frequency": 6063261
+  },
+  {
+    "index": 104,
+    "word": "IDEALIZE",
+    "description": "to imagine something as better than it is in reality",
+    "level": 1,
+    "frequency": 330363
+  },
+  {
+    "index": 105,
+    "word": "IDIOSYNCRATIC",
+    "description": "highly particular, unique to an individual",
+    "level": 6,
+    "frequency": 2162959
+  },
+  {
+    "index": 106,
+    "word": "ILLUSORY",
+    "description": "not real; based on an illusion",
+    "level": 2,
+    "frequency": 2463100
+  },
+  {
+    "index": 107,
+    "word": "IMMINENT",
+    "description": "about to happen",
+    "level": 2.3964152517283037,
+    "frequency": 8089370
+  },
+  {
+    "index": 108,
+    "word": "IMPEDE",
+    "description": "to delay or prevent",
+    "level": 6,
+    "frequency": 3948019
+  },
+  {
+    "index": 109,
+    "word": "IMPECCABLE",
+    "description": "faultless, spotless",
+    "level": 6,
+    "frequency": 1373055
+  },
+  {
+    "index": 110,
+    "word": "IMPENETRABLE",
+    "description": "impossible to pass through",
+    "level": 6,
+    "frequency": 2084628
+  },
+  {
+    "index": 111,
+    "word": "IMPERATIVE",
+    "description": "of vital importance; crucial",
+    "level": 4,
+    "frequency": 8625982
+  },
+  {
+    "index": 112,
+    "word": "IMPERCEPTIBLE",
+    "description": "cannot be seen or perceived",
+    "level": 6,
+    "frequency": 1346965
+  },
+  {
+    "index": 113,
+    "word": "IMPOSING",
+    "description": "very large and impressive in appearance",
+    "level": 4,
+    "frequency": 14932764
+  },
+  {
+    "index": 114,
+    "word": "IMPOVERISHED",
+    "description": "very poor",
+    "level": 6,
+    "frequency": 2227471
+  },
+  {
+    "index": 115,
+    "word": "INCONGRUOUS",
+    "description": "out of place; something that contrasts with its surroundings",
+    "level": 6,
+    "frequency": 1574547
+  },
+  {
+    "index": 116,
+    "word": "INDECIPHERABLE",
+    "description": "unable to be read or understood",
+    "level": 6,
+    "frequency": 265840
+  },
+  {
+    "index": 117,
+    "word": "INDELIBLE",
+    "description": "memorable; impossible to forget",
+    "level": 6,
+    "frequency": 1226576
+  },
+  {
+    "index": 118,
+    "word": "INDIFFERENT",
+    "description": "without interest or concern; apathetic",
+    "level": 4,
+    "frequency": 10205353
+  },
+  {
+    "index": 119,
+    "word": "INDIGENOUS",
+    "description": "native",
+    "level": 3.8660497751125797,
+    "frequency": 20067268
+  },
+  {
+    "index": 120,
+    "word": "INDOCTRINATE",
+    "description": "to teach a person/people to uncritically accept beliefs",
+    "level": 6,
+    "frequency": 216348
+  },
+  {
+    "index": 121,
+    "word": "INDUCE",
+    "description": "to persuade or influence someone to do something",
+    "level": 3.951427216097106,
+    "frequency": 18770165
+  },
+  {
+    "index": 122,
+    "word": "INDULGENT",
+    "description": "overly generous; too lenient",
+    "level": 4,
+    "frequency": 1671197
+  },
+  {
+    "index": 123,
+    "word": "INELUCTABLE",
+    "description": "inescapable; inevitable",
+    "level": 6,
+    "frequency": 281345
+  },
+  {
+    "index": 124,
+    "word": "INFALLIBLE",
+    "description": "incapable of making mistakes",
+    "level": 2.5,
+    "frequency": 2172118
+  },
+  {
+    "index": 125,
+    "word": "INFINITESIMAL",
+    "description": "extremely small; approaching zero",
+    "level": 6,
+    "frequency": 2087936
+  },
+  {
+    "index": 126,
+    "word": "INGENIOUS",
+    "description": "very clever and cunning",
+    "level": 5.59285005422947,
+    "frequency": 6301113
+  },
+  {
+    "index": 127,
+    "word": "INNOCUOUS",
+    "description": "harmless; the synonym \"benign\" may also be used",
+    "level": 6,
+    "frequency": 1860856
+  },
+  {
+    "index": 128,
+    "word": "INNOVATIVE",
+    "description": "featuring new materials and ideas",
+    "level": 4,
+    "frequency": 16561147
+  },
+  {
+    "index": 129,
+    "word": "INSIGHT",
+    "description": "deep understanding",
+    "level": 3,
+    "frequency": 24340169
+  },
+  {
+    "index": 130,
+    "word": "INSTALLATION",
+    "description": "art exhibit consisting of large objects placed in a public space",
+    "level": 2.890566630555101,
+    "frequency": 43316853
+  },
+  {
+    "index": 131,
+    "word": "INSUPERABLE",
+    "description": "incapable of being overcome",
+    "level": 1,
+    "frequency": 1189535
+  },
+  {
+    "index": 132,
+    "word": "INSURMOUNTABLE",
+    "description": "too great to overcome",
+    "level": 6,
+    "frequency": 1999487
+  },
+  {
+    "index": 133,
+    "word": "INTERMEDIATE",
+    "description": "coming between two things",
+    "level": 3,
+    "frequency": 42265308
+  },
+  {
+    "index": 134,
+    "word": "INTRICATE",
+    "description": "very complex",
+    "level": 2.963674391348244,
+    "frequency": 6970782
+  },
+  {
+    "index": 135,
+    "word": "INTRIGUING",
+    "description": "arousing curiosity or interest",
+    "level": 5.847187536531136,
+    "frequency": 5202370
+  },
+  {
+    "index": 136,
+    "word": "INTUITION",
+    "description": "the ability to understand from an instinctive feeling",
+    "level": 5.27217095236139,
+    "frequency": 7818306
+  },
+  {
+    "index": 137,
+    "word": "INVASIVE",
+    "description": "spreading in a harmful manner(noun form of \"invade\")",
+    "level": 5.814933368179009,
+    "frequency": 5338721
+  },
+  {
+    "index": 138,
+    "word": "IRATE",
+    "description": "angry",
+    "level": 6,
+    "frequency": 769561
+  },
+  {
+    "index": 139,
+    "word": "IRREPROACHABLE",
+    "description": "beyond criticism; faultless",
+    "level": 6,
+    "frequency": 353429
+  },
+  {
+    "index": 140,
+    "word": "IRREVOCABLE",
+    "description": "permanent",
+    "level": 6,
+    "frequency": 2606787
+  },
+  {
+    "index": 141,
+    "word": "JUXTAPOSITION",
+    "description": "placement of two things next to each other for contrast",
+    "level": 6,
+    "frequency": 2500578
+  },
+  {
+    "index": 142,
+    "word": "LACONIC",
+    "description": "using few words; brief and to-the-point",
+    "level": 6,
+    "frequency": 598922
+  },
+  {
+    "index": 143,
+    "word": "LATENT",
+    "description": "existing but in hidden or dormant form",
+    "level": 1,
+    "frequency": 6860449
+  },
+  {
+    "index": 144,
+    "word": "LEGACY",
+    "description": "a long-lasting impact",
+    "level": 1,
+    "frequency": 14400532
+  },
+  {
+    "index": 145,
+    "word": "LINEAGE",
+    "description": "descent from a common ancestor or predecessor",
+    "level": 4.734191955819357,
+    "frequency": 5687287
+  },
+  {
+    "index": 146,
+    "word": "LUCRATIVE",
+    "description": "very profitable",
+    "level": 4,
+    "frequency": 3760115
+  },
+  {
+    "index": 147,
+    "word": "MANIFESTATION",
+    "description": "visible appearance of an object, trend, or idea",
+    "level": 3.8938372236389394,
+    "frequency": 10564164
+  },
+  {
+    "index": 148,
+    "word": "MERCURIAL",
+    "description": "unpredictable; constantly shifting moods",
+    "level": 6,
+    "frequency": 857926
+  },
+  {
+    "index": 149,
+    "word": "METICULOUS",
+    "description": "very careful and precise; the synonym \"punctilious\" may also be used",
+    "level": 6,
+    "frequency": 2675200
+  },
+  {
+    "index": 150,
+    "word": "MIGRATION",
+    "description": "the movement of a person or group from one area to another",
+    "level": 4,
+    "frequency": 37655001
+  },
+  {
+    "index": 151,
+    "word": "MISCONSTRUE",
+    "description": "to misunderstand",
+    "level": 6,
+    "frequency": 164095
+  },
+  {
+    "index": 152,
+    "word": "MITIGATE",
+    "description": "to make a problem less severe",
+    "level": 5.870726297723144,
+    "frequency": 5103267
+  },
+  {
+    "index": 153,
+    "word": "MOBILIZE",
+    "description": "to prepare a person or group for action",
+    "level": 6,
+    "frequency": 3523296
+  },
+  {
+    "index": 154,
+    "word": "MOMENTOUS",
+    "description": "having great significance(a decision or event)",
+    "level": 1,
+    "frequency": 2914341
+  },
+  {
+    "index": 155,
+    "word": "MONETIZE",
+    "description": "to make money from",
+    "level": 6,
+    "frequency": 83957
+  },
+  {
+    "index": 156,
+    "word": "MORIBUND",
+    "description": "approaching death; on the verge of becoming obsolete",
+    "level": 6,
+    "frequency": 739106
+  },
+  {
+    "index": 157,
+    "word": "MULTIFACETED",
+    "description": "having many aspects",
+    "level": 6,
+    "frequency": 1450981
+  },
+  {
+    "index": 158,
+    "word": "MUNDANE",
+    "description": "dull; uninteresting",
+    "level": 6,
+    "frequency": 3437898
+  },
+  {
+    "index": 159,
+    "word": "MYRIAD",
+    "description": "many",
+    "level": 6,
+    "frequency": 3070945
+  },
+  {
+    "index": 160,
+    "word": "NEBULOUS",
+    "description": "vague; undefined; synonym for \"amorphous\"",
+    "level": 6,
+    "frequency": 1161168
+  },
+  {
+    "index": 161,
+    "word": "NEFARIOUS",
+    "description": "wicked and evil",
+    "level": 6,
+    "frequency": 802417
+  },
+  {
+    "index": 162,
+    "word": "NUANCE",
+    "description": "a subtle shade of difference or meaning",
+    "level": 6,
+    "frequency": 960696
+  },
+  {
+    "index": 163,
+    "word": "NURTURE",
+    "description": "to care for and encourage growth and development",
+    "level": 6,
+    "frequency": 1686975
+  },
+  {
+    "index": 164,
+    "word": "OBSCURE",
+    "description": "rare; understood by few people",
+    "level": 4.598646902702844,
+    "frequency": 12199148
+  },
+  {
+    "index": 165,
+    "word": "OFFHAND",
+    "description": "done casually, without prior thought",
+    "level": 4,
+    "frequency": 264428
+  },
+  {
+    "index": 166,
+    "word": "OMINOUS",
+    "description": "threatening; giving the impression that something bad will happen",
+    "level": 6,
+    "frequency": 3698322
+  },
+  {
+    "index": 167,
+    "word": "ORIENTATION",
+    "description": "a preference or liking for",
+    "level": 3.051381569682407,
+    "frequency": 38255472
+  },
+  {
+    "index": 168,
+    "word": "ORTHODOX",
+    "description": "conforming to a standard theory or belief",
+    "level": 4.655253792091844,
+    "frequency": 11771864
+  },
+  {
+    "index": 169,
+    "word": "OVERLOAD",
+    "description": "excessive burden or stress",
+    "level": 3,
+    "frequency": 3860314
+  },
+  {
+    "index": 170,
+    "word": "OVERSHADOW",
+    "description": "to dominate; make someone or something seem unimportant",
+    "level": 4,
+    "frequency": 687639
+  },
+  {
+    "index": 171,
+    "word": "OUTMODED",
+    "description": "no longer fashionable; out of date",
+    "level": 5.600587984329706,
+    "frequency": 1289871
+  },
+  {
+    "index": 172,
+    "word": "OUTSIZED",
+    "description": "disproportionately large",
+    "level": 1,
+    "frequency": 177629
+  },
+  {
+    "index": 173,
+    "word": "PALPABLE",
+    "description": "literally,touchable; often used to describe a very intense feeling",
+    "level": 6,
+    "frequency": 3665332
+  },
+  {
+    "index": 174,
+    "word": "PAUCITY",
+    "description": "a small or limited amount",
+    "level": 6,
+    "frequency": 2290194
+  },
+  {
+    "index": 175,
+    "word": "PERIPHERAL",
+    "description": "of secondary importance; not central",
+    "level": 3.7865147725712274,
+    "frequency": 21347182
+  },
+  {
+    "index": 176,
+    "word": "PERVASIVE",
+    "description": "widespread",
+    "level": 5.558838604703688,
+    "frequency": 6453271
+  },
+  {
+    "index": 177,
+    "word": "POLAR",
+    "description": "very different; opposite",
+    "level": 4.350013978191501,
+    "frequency": 14245477
+  },
+  {
+    "index": 178,
+    "word": "PRAGMATIC",
+    "description": "practical",
+    "level": 5.261607136425513,
+    "frequency": 7872428
+  },
+  {
+    "index": 179,
+    "word": "PRECIPITATE",
+    "description": "to cause to happen especially suddenly and unexpectedly",
+    "level": 5.468267479958838,
+    "frequency": 6866816
+  },
+  {
+    "index": 180,
+    "word": "PRECLUDE",
+    "description": "prevent or block; synonym for \"impede\"",
+    "level": 4.818228859126729,
+    "frequency": 10599201
+  },
+  {
+    "index": 181,
+    "word": "PRECURSOR",
+    "description": "a person or thing that precedes; a forerunner",
+    "level": 5.533192167810519,
+    "frequency": 6569074
+  },
+  {
+    "index": 182,
+    "word": "PREDATORY",
+    "description": "preying upon others",
+    "level": 6,
+    "frequency": 2923132
+  },
+  {
+    "index": 183,
+    "word": "PRESCIENT",
+    "description": "showing great foresight",
+    "level": 6,
+    "frequency": 341490
+  },
+  {
+    "index": 184,
+    "word": "PRESCRIBE",
+    "description": "to lay down a rule; dictate",
+    "level": 4,
+    "frequency": 13852094
+  },
+  {
+    "index": 185,
+    "word": "PRETENTIOUS",
+    "description": "affecting greater importance than one actually has",
+    "level": 6,
+    "frequency": 1525969
+  },
+  {
+    "index": 186,
+    "word": "PRETEXT",
+    "description": "false excuse given to justify a course of action",
+    "level": 2,
+    "frequency": 4273418
+  },
+  {
+    "index": 187,
+    "word": "PREVAIL",
+    "description": "to triumph over great odds",
+    "level": 4,
+    "frequency": 12709461
+  },
+  {
+    "index": 188,
+    "word": "PRIORITIZE",
+    "description": "to list or rate in order of importance",
+    "level": 6,
+    "frequency": 1251110
+  },
+  {
+    "index": 189,
+    "word": "PRODIGIOUS",
+    "description": "enormous; impressively large",
+    "level": 6,
+    "frequency": 2518015
+  },
+  {
+    "index": 190,
+    "word": "PROFOUND",
+    "description": "intellectually deep; extremely insightful",
+    "level": 4,
+    "frequency": 23511805
+  },
+  {
+    "index": 191,
+    "word": "PROFUSION",
+    "description": "large amount; synonym for \"myriad\"; antonym for \"paucity\"",
+    "level": 6,
+    "frequency": 2174127
+  },
+  {
+    "index": 192,
+    "word": "PROHIBITIVE",
+    "description": "so high(a difficulty or price) that it prevents something from occurring",
+    "level": 4,
+    "frequency": 2718149
+  },
+  {
+    "index": 193,
+    "word": "PROLIFIC",
+    "description": "very productive",
+    "level": 6,
+    "frequency": 3666986
+  },
+  {
+    "index": 194,
+    "word": "PROVOCATIVE",
+    "description": "causing a reaction, often annoyance or anger",
+    "level": 6,
+    "frequency": 4191084
+  },
+  {
+    "index": 195,
+    "word": "RECANT",
+    "description": "to take back; withdraw; renounce",
+    "level": 4.943359988640109,
+    "frequency": 302552
+  },
+  {
+    "index": 196,
+    "word": "RECIPROCATE",
+    "description": "to respond to an action by doing the same thing back to someone",
+    "level": 6,
+    "frequency": 891936
+  },
+  {
+    "index": 197,
+    "word": "RECONCILE",
+    "description": "to bring opposing people or things back together",
+    "level": 5.4695928174354895,
+    "frequency": 6860667
+  },
+  {
+    "index": 198,
+    "word": "REGISTER",
+    "description": "(n.) official list or record;(v.) to become aware of or record",
+    "level": 3,
+    "frequency": 41982983
+  },
+  {
+    "index": 199,
+    "word": "RELEVANT/IRRELEVANT",
+    "description": "connected/unconnected to the topic at hand",
+    "level": 4,
+    "frequency": 89565043
+  },
+  {
+    "index": 200,
+    "word": "RENOUNCE",
+    "description": "to give up",
+    "level": 6,
+    "frequency": 2898213
+  },
+  {
+    "index": 201,
+    "word": "REPLENISH",
+    "description": "to refill; resupply",
+    "level": 6,
+    "frequency": 1499714
+  },
+  {
+    "index": 202,
+    "word": "REPLICATE",
+    "description": "to copy",
+    "level": 2.5,
+    "frequency": 2470947
+  },
+  {
+    "index": 203,
+    "word": "RESILIENT",
+    "description": "capable of quickly recovering from difficulty",
+    "level": 6,
+    "frequency": 3807647
+  },
+  {
+    "index": 204,
+    "word": "RESURGENCE",
+    "description": "the act of rising again into life or activity",
+    "level": 6,
+    "frequency": 2266386
+  },
+  {
+    "index": 205,
+    "word": "RETROSPECT",
+    "description": "hindsight; looking back",
+    "level": 3,
+    "frequency": 3990146
+  },
+  {
+    "index": 206,
+    "word": "REVELATION",
+    "description": "something that is revealed and thus made known",
+    "level": 4,
+    "frequency": 18705820
+  },
+  {
+    "index": 207,
+    "word": "RUDIMENTARY",
+    "description": "limited to basic principles; elementary",
+    "level": 6,
+    "frequency": 3658876
+  },
+  {
+    "index": 208,
+    "word": "SABOTAGE",
+    "description": "to deliberately destroy or damage",
+    "level": 6,
+    "frequency": 2804496
+  },
+  {
+    "index": 209,
+    "word": "SATIATE",
+    "description": "to fully satisfy",
+    "level": 6,
+    "frequency": 156594
+  },
+  {
+    "index": 210,
+    "word": "SCHEME",
+    "description": "a clever and often devious plan",
+    "level": 4,
+    "frequency": 93268584
+  },
+  {
+    "index": 211,
+    "word": "SCRUPULOUS",
+    "description": "extremely attentive to details",
+    "level": 6,
+    "frequency": 1870819
+  },
+  {
+    "index": 212,
+    "word": "SCRUTINIZE(n. SCRUTINY)",
+    "description": "to examine very closely and carefully",
+    "level": 6,
+    "frequency": 1256186
+  },
+  {
+    "index": 213,
+    "word": "SPECULATE",
+    "description": "to form an explanation or theory; synonym for \"conjecture\"",
+    "level": 5.273236378260215,
+    "frequency": 4626502
+  },
+  {
+    "index": 214,
+    "word": "SPURIOUS",
+    "description": "false or fake; the synonym \"specious\" may also be used",
+    "level": 6,
+    "frequency": 3608864
+  },
+  {
+    "index": 215,
+    "word": "STIPULATE",
+    "description": "to demand or specify as part of an agreement",
+    "level": 6,
+    "frequency": 1962473
+  },
+  {
+    "index": 216,
+    "word": "STRENUOUS",
+    "description": "requiring great physical exertion",
+    "level": 5.9678321460847625,
+    "frequency": 4697430
+  },
+  {
+    "index": 217,
+    "word": "SUBJECTIVE",
+    "description": "influenced by personal tastes, opinions, or feelings",
+    "level": 1,
+    "frequency": 20248243
+  },
+  {
+    "index": 218,
+    "word": "SUBSTANTIAL",
+    "description": "of considerable importance, size, or worth",
+    "level": 3,
+    "frequency": 94292538
+  },
+  {
+    "index": 219,
+    "word": "SUPERFICIAL",
+    "description": "shallow; lacking depth",
+    "level": 4.383470453965265,
+    "frequency": 13950278
+  },
+  {
+    "index": 220,
+    "word": "SUPERFLUOUS",
+    "description": "more than enough; unnecessary",
+    "level": 6,
+    "frequency": 4482441
+  },
+  {
+    "index": 221,
+    "word": "SUPPLANT",
+    "description": "to replace; supersede",
+    "level": 5.5764277381549245,
+    "frequency": 1551439
+  },
+  {
+    "index": 222,
+    "word": "SUPPLEMENT",
+    "description": "(n.) an addition or reinforcement;(v.) to add on",
+    "level": 4,
+    "frequency": 22683178
+  },
+  {
+    "index": 223,
+    "word": "SURPASS",
+    "description": "to exceed; go beyond",
+    "level": 6,
+    "frequency": 2279646
+  },
+  {
+    "index": 224,
+    "word": "SWAY",
+    "description": "to persuade to follow a course of action",
+    "level": 6,
+    "frequency": 3309103
+  },
+  {
+    "index": 225,
+    "word": "SYNCHRONIZE",
+    "description": "to cause multiple events to occur at the same time",
+    "level": 6,
+    "frequency": 868108
+  },
+  {
+    "index": 226,
+    "word": "SYNOPSIS",
+    "description": "a brief summary",
+    "level": 6,
+    "frequency": 3965879
+  },
+  {
+    "index": 227,
+    "word": "TALLY",
+    "description": "(n.) a recorded account; a total;(v.) to count",
+    "level": 6,
+    "frequency": 2941968
+  },
+  {
+    "index": 228,
+    "word": "THWART",
+    "description": "to block or get in the way of something negative",
+    "level": 6,
+    "frequency": 1826119
+  },
+  {
+    "index": 229,
+    "word": "TRANSCEND",
+    "description": "to rise above normal limitations",
+    "level": 6,
+    "frequency": 2736517
+  },
+  {
+    "index": 230,
+    "word": "TEDIOUS",
+    "description": "boring; dull and tiresome",
+    "level": 5.791909068995022,
+    "frequency": 5436482
+  },
+  {
+    "index": 231,
+    "word": "TENUOUS",
+    "description": "very weak; connected only slightly",
+    "level": 6,
+    "frequency": 2323450
+  },
+  {
+    "index": 232,
+    "word": "TRIVIAL",
+    "description": "unimportant",
+    "level": 4,
+    "frequency": 9797114
+  },
+  {
+    "index": 233,
+    "word": "UBIQUITOUS",
+    "description": "everywhere; synonym for \"universal\"",
+    "level": 6,
+    "frequency": 4060601
+  },
+  {
+    "index": 234,
+    "word": "UNATTAINABLE",
+    "description": "cannot be reached or achieved",
+    "level": 3,
+    "frequency": 1513941
+  },
+  {
+    "index": 235,
+    "word": "UNCANNY",
+    "description": "strange or slightly supernatural; beyond what is ordinary",
+    "level": 6,
+    "frequency": 2433210
+  },
+  {
+    "index": 236,
+    "word": "UNCLASSIFIABLE",
+    "description": "unable to be assigned to a category",
+    "level": 1,
+    "frequency": 345070
+  },
+  {
+    "index": 237,
+    "word": "UNCONVENTIONAL",
+    "description": "not conforming to what is generally done or believed",
+    "level": 5.561050432501398,
+    "frequency": 2761932
+  },
+  {
+    "index": 238,
+    "word": "UNDERMINE",
+    "description": "to weaken;erode",
+    "level": 5.299388510979429,
+    "frequency": 7680440
+  },
+  {
+    "index": 239,
+    "word": "UNDERSCORE",
+    "description": "to emphasize by drawing attention to a fact, idea, or situation",
+    "level": 6,
+    "frequency": 1982787
+  },
+  {
+    "index": 240,
+    "word": "UNEQUIVOCAL",
+    "description": "leaving no doubt; certain",
+    "level": 6,
+    "frequency": 2934469
+  },
+  {
+    "index": 241,
+    "word": "UNOBTRUSIVE",
+    "description": "inconspicuous;not attracting attention",
+    "level": 6,
+    "frequency": 1120185
+  },
+  {
+    "index": 242,
+    "word": "UNRESOLVABLE",
+    "description": "unable to be resolved or settled",
+    "level": 6,
+    "frequency": 161251
+  },
+  {
+    "index": 243,
+    "word": "UNTENABLE",
+    "description": "unable to be defended or supported",
+    "level": 1,
+    "frequency": 2653075
+  },
+  {
+    "index": 244,
+    "word": "VACILLATE",
+    "description": "to go back and forth between two options; synonym for \"waver\"",
+    "level": 6,
+    "frequency": 155419
+  },
+  {
+    "index": 245,
+    "word": "VALIDATE",
+    "description": "to confirm the truth of a claim",
+    "level": 4,
+    "frequency": 3936884
+  },
+  {
+    "index": 246,
+    "word": "VERISIMILITUDE",
+    "description": "the quality of seeming to be true",
+    "level": 6,
+    "frequency": 469266
+  },
+  {
+    "index": 247,
+    "word": "VINDICATE",
+    "description": "to free from blame; prove correct",
+    "level": 6,
+    "frequency": 1380570
+  },
+  {
+    "index": 248,
+    "word": "WAIVE",
+    "description": "to voluntarily give up the right to do something",
+    "level": 5.597241740157676,
+    "frequency": 6281577
+  },
+  {
+    "index": 249,
+    "word": "WAVER",
+    "description": "to go back and forth between two options; synonym for \"vacillate\"",
+    "level": 2.5,
+    "frequency": 567890
+  },
+  {
+    "index": 250,
+    "word": "WATERSHED",
+    "description": "a turning point",
+    "level": 4.932591992824964,
+    "frequency": 9818203
+  }
 ]

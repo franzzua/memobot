@@ -1,7 +1,8 @@
-import type { PrismaClient, Prisma, Message as PrismaMessage } from "../../prisma/client/client";
+import type { Prisma, Message as PrismaMessage } from "../../prisma/client/client";
+import { PrismaClient } from "../../prisma/client/client";
 import type { SchedulerStorage, Task, TimetableEntity } from "../scheduler/storage/schedulerStorage";
 import type { MessageTimetable } from "./messagesDatabase";
-import { singleton } from "@cmmn/core";
+import {resolve, singleton} from "@cmmn/core";
 import {prismaFactory} from "../../prisma/client";
 import type { Chat } from "../types";
 import { ChatState } from "../types";
@@ -15,7 +16,7 @@ type ChatEntity = Chat & Task & {
 
 @singleton()
 export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable> {
-    private prisma = prismaFactory();
+    private prisma = resolve(PrismaClient)
 
     @Logger.measure
     async addOrUpdateChat(chat: Omit<Chat, "state">) {

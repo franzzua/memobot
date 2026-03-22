@@ -3,8 +3,11 @@ import {TelegrafApi} from "../api/telegraf.api";
 import {baseFunction} from "./base";
 import {Messenger} from "../messengers/messenger";
 import {getMessenger} from "./getMessenger";
+import {prismaFactory} from "../../prisma/client";
+import { PrismaClient } from "../../prisma/client/client";
 
 let tgLoad: Promise<TelegrafApi>;
+di.factory(PrismaClient, prismaFactory)
 
 async function initTelegram() {
     const context = di.child();

@@ -15,6 +15,7 @@ import {next} from "./next";
 import {CallbackEvent, IncomingMessageEvent} from "../../messengers/messenger";
 import {spoiler} from "./spoiler";
 import {actions} from "./actions";
+import {word} from "./word";
 
 export const commands = {
     new: onNewCommand,
@@ -36,7 +37,7 @@ export const commands = {
     reversedQuiz: onQuizReversed,
     wipe: wipe,
     image, voice, next,
-    spoiler, actions
+    spoiler, actions, word
 } as Record<string, Command>;
 
 export const callbacks: Record<string, Callback> = {
