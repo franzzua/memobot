@@ -40,7 +40,9 @@ jobs:
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
             --set-env-vars=DATABASE_USER=postgres \
             --set-env-vars=DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            --set-env-vars=DATABASE_URL=postgresql://10.101.32.3:5432/memobot-dev \
+            --set-env-vars=DATABASE_HOST=10.101.32.3 \
+            --set-env-vars=DATABASE_PORT=5432 \
+            --set-env-vars=DATABASE_DB=memobot-dev \
             --set-env-vars=PUBLIC_URL=https://${{ env.function }}-5580233934.europe-west6.run.app
             --run-service-account=app-runner@${{ env.project }}.iam.gserviceaccount.com \
             --build-service-account=projects/${{ env.project}}/serviceAccounts/github@${{ env.project }}.iam.gserviceaccount.com
