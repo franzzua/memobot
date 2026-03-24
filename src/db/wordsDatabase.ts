@@ -1,5 +1,5 @@
 import {resolve, singleton} from "@cmmn/core";
-import {PrismaClient, type Word} from "../../prisma/client/client";
+import {PrismaClient, type Word} from "../../prisma/client";
 
 @singleton()
 export class WordsDatabase {

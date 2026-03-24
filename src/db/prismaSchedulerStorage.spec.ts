@@ -1,6 +1,5 @@
 import {describe, test, beforeEach, afterEach} from "node:test";
 import {expect} from "expect";
-import {PrismaClient} from "../../prisma/client/client";
 import {PrismaSchedulerStorage} from "./prismaSchedulerStorage";
 import {TimetablePolicyType} from "../scheduler/types";
 import {prismaFactory} from "../../prisma/client";

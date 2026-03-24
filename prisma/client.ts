@@ -13,3 +13,4 @@ export function prismaFactory(): PrismaClient {
     const adapter = new PrismaPg(pool)
     return new PrismaClient({adapter});
 }
+export { PrismaClient, type Word, type Chat, type Message, type Prisma } from "./client/client.js";

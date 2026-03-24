@@ -1,9 +1,8 @@
-import type { Prisma, Message as PrismaMessage } from "../../prisma/client/client";
-import { PrismaClient } from "../../prisma/client/client";
+import type { Prisma, Message as PrismaMessage } from "../../prisma/client";
+import { PrismaClient } from "../../prisma/client";
 import type { SchedulerStorage, Task, TimetableEntity } from "../scheduler/storage/schedulerStorage";
 import type { MessageTimetable } from "./messagesDatabase";
 import {resolve, singleton} from "@cmmn/core";
-import {prismaFactory} from "../../prisma/client";
 import type { Chat } from "../types";
 import { ChatState } from "../types";
 import {Logger} from "../logger/logger";
