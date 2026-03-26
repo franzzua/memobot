@@ -42,6 +42,6 @@ model Word {
   word        String
   description String?
   type        String?
-  level       Float?
+  level       String?
   frequency   Float?
 }

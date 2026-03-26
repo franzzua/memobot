@@ -41,7 +41,7 @@ CREATE TABLE "Word" (
     "word" TEXT NOT NULL,
     "description" TEXT,
     "type" TEXT,
-    "level" DOUBLE PRECISION,
+    "level" TEXT,
     "frequency" DOUBLE PRECISION,
 
     CONSTRAINT "Word_pkey" PRIMARY KEY ("id")
