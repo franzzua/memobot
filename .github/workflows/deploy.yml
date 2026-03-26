@@ -34,7 +34,7 @@ jobs:
           project: 'spixmemo'
         run: |
           gcloud functions deploy ${{ env.function }} \
-            --region=${{ env.region }} --runtime=nodejs20 --source=out \
+            --region=${{ env.region }} --runtime=nodejs22 --source=out \
             --entry-point=telegram --trigger-http --gen2 --allow-unauthenticated \
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
