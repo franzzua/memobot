@@ -39,3 +39,4 @@ Memobot is a Telegram and WhatsApp bot built on Google Cloud Platform, designed 
 
 - **Style**: Use concise, imperative messages (e.g., `fix imports`, `add word command`).
 - **Convention**: `upd` is commonly used for "update".
+- **New files**: Always `git add` every newly created file before committing. Untracked files are silently excluded from commits.

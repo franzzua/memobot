@@ -40,7 +40,7 @@ export class TelegramCallbackEvent extends TelegramChatEvent implements Callback
     public id = this.callback.id;
 
     constructor(private callback: CallbackQuery, messenger: TelegramMessenger) {
-        super(callback.chat_instance, callback.from, messenger);
+        super((callback as any).message?.chat?.id ?? callback.chat_instance, callback.from, messenger);
     }
 
     get data(){
