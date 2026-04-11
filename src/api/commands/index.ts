@@ -16,6 +16,7 @@ import {CallbackEvent, IncomingMessageEvent} from "../../messengers/messenger";
 import {spoiler} from "./spoiler";
 import {actions} from "./actions";
 import {word} from "./word";
+import {init, onInitLevel, onInitMonths} from "./init";
 
 export const commands = {
     new: onNewCommand,
@@ -37,11 +38,18 @@ export const commands = {
     reversedQuiz: onQuizReversed,
     wipe: wipe,
     image, voice, next,
-    spoiler, actions, word
+    spoiler, actions, word, init
 } as Record<string, Command>;
 
 export const callbacks: Record<string, Callback> = {
-    ...paymentCallbacks
+    ...paymentCallbacks,
+    'init:level:A2': onInitLevel,
+    'init:level:B1': onInitLevel,
+    'init:level:B2': onInitLevel,
+    'init:months:2': onInitMonths,
+    'init:months:3': onInitMonths,
+    'init:months:4': onInitMonths,
+    'init:months:5': onInitMonths,
 }
 
 export type Command = (this: TelegrafApi, ctx: IncomingMessageEvent) => Promise<any | void>;

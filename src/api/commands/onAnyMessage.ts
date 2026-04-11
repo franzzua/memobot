@@ -34,6 +34,15 @@ export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
             const reply = getRandomText('/new-success', e.user.id, number, number.toString());
             return e.reply(reply);
         }
-
+        case ChatState.initScore: {
+            const score = parseInt(message.text, 10);
+            if (!Number.isFinite(score) || score <= 0) {
+                return e.reply("Please enter a valid number for your target SAT score.");
+            }
+            const { level, months } = stateData as { level: string; months: number };
+            await this.chatDatabase.saveInitData(e.chat.toString(), level, months, score);
+            await this.chatDatabase.updateChatState(e.chat.toString(), ChatState.initial);
+            return e.reply(`Setup complete! Level: ${level}, Preparation: ${months} months, Target SAT score: ${score}.`);
+        }
     }
 }

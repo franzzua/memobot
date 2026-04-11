@@ -71,6 +71,14 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
         return this.updateChat({id: chatId, state, stateData});
     }
 
+    @Logger.measure
+    async saveInitData(chatId: string, englishLevel: string, preparationMonths: number, targetScore: number): Promise<void> {
+        await this.prisma.chat.update({
+            where: { id: chatId },
+            data: { englishLevel, preparationMonths, targetScore }
+        });
+    }
+
     public setIsPaused(chatId: string, isPaused: boolean) {
         return this.updateChat({id: chatId, isPaused})
     }

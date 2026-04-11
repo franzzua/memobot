@@ -8,17 +8,20 @@ datasource db {
 }
 
 model Chat {
-  id          String    @id
-  username    String
-  userId      String
-  state       Int
-  stateData   String?
-  isPaused    Boolean
-  scheduleId  String?
-  scheduledAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  messages    Message[]
+  id                 String    @id
+  username           String
+  userId             String
+  state              Int
+  stateData          String?
+  isPaused           Boolean
+  scheduleId         String?
+  scheduledAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  messages           Message[]
+  englishLevel       String?
+  preparationMonths  Int?
+  targetScore        Int?
 }
 
 model Message {
