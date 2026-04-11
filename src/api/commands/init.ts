@@ -1,8 +1,10 @@
 import { ChatState } from "../../types";
 import { TelegrafApi } from "../telegraf.api";
 import { CallbackEvent, IncomingMessageEvent } from "../../messengers/messenger";
+import {setChatFromContext} from "./start";
 
 export async function init(this: TelegrafApi, ctx: IncomingMessageEvent) {
+    await setChatFromContext.call(this, ctx);
     return ctx.reply("What is your current English level?", {
         reply_markup: {
             inline_keyboard: [[
