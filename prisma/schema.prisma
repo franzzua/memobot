@@ -50,8 +50,10 @@ model Word {
 }
 
 model Quiz {
-  id         String @id @default(uuid(7))
+  id         String  @id @default(uuid(7))
   question   String
+  table_md   String?
   attachment Bytes?
   answers    Json
+  correct    Int
 }

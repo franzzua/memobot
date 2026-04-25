@@ -14,7 +14,7 @@ export async function seedQuiz() {
         data: quizData.map(q => ({
             question: q.question,
             answers: q.options,
-            attachment: new Buffer(q.addition, 'base64')
+            table_md: q.addition,
         })),
         skipDuplicates: true, // Optional
     })
