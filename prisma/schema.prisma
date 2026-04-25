@@ -41,12 +41,13 @@ model Message {
 }
 
 model Word {
-  id          String  @id @default(uuid(7))
-  word        String
-  description String?
-  type        String?
-  level       String?
-  frequency   Float?
+  id           String  @id @default(uuid(7))
+  word         String
+  description  String?
+  type         String?
+  level        String?
+  frequency    Float?
+  satFrequency Int?
 }
 
 model Quiz {
