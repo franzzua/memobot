@@ -56,4 +56,5 @@ model Quiz {
   attachment Bytes?
   answers    Json
   correct    Int
+  index      Int
 }

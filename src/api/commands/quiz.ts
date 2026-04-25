@@ -57,25 +57,65 @@ export async function onQuizWriteAnswer(this: TelegrafApi, ctx: IncomingMessageE
 }
 
 export async function onDbQuiz(this: TelegrafApi, ctx: IncomingMessageEvent) {
-    const quiz = await this.chatDatabase.getRandomQuiz();
+    const msg = await ctx.text();
+    const indexArg = msg?.text?.match(/\/\w+\s+(\d+)/)?.[1];
+    const quiz = indexArg !== undefined
+        ? await this.chatDatabase.getQuizByIndex(parseInt(indexArg, 10))
+        : await this.chatDatabase.getRandomQuiz();
     if (!quiz) return ctx.reply('No quizzes available in the database');
 
-    const answers = quiz.answers as string[];
+    const { description, pollQuestion } = splitQuestion(quiz.question);
+
+    if (description) {
+        await ctx.reply({ type: 'text', text: formatQuestionHtml(description) });
+    }
+
+    if (quiz.attachment) {
+        await ctx.reply({ type: 'image', image: Buffer.from(quiz.attachment) });
+    } else if (quiz.table_md) {
+        await ctx.reply({ type: 'text', text: `<pre>${quiz.table_md}</pre>` });
+    }
+
     const labels = ['A', 'B', 'C', 'D'];
-    const optionsText = answers.map((a, i) => `${labels[i]}. ${a}`).join('\n');
-    const questionHtml = formatQuestionHtml(quiz.question);
+    const answers = quiz.answers as string[];
+    const longOptions = answers.some(a => a.length > 100);
+
+    if (longOptions) {
+        const optionsText = answers.map((a, i) => `<b>${labels[i]}.</b> ${a}`).join('\n\n');
+        await ctx.reply({ type: 'text', text: optionsText });
+    }
 
     return ctx.reply({
-        type: 'text',
-        text: `${questionHtml}\n\n${optionsText}`
+        type: 'quiz',
+        question: pollQuestion,
+        answers: longOptions ? labels : answers,
+        options: {
+            correct_option_id: quiz.correct,
+            allows_multiple_answers: false,
+            open_period: 10,
+        }
     });
+}
+
+function splitQuestion(text: string): { description: string; pollQuestion: string } {
+    const lastBreak = text.lastIndexOf('\n\n');
+    if (lastBreak !== -1) {
+        return {
+            description: text.slice(0, lastBreak).trim(),
+            pollQuestion: text.slice(lastBreak + 2).trim(),
+        };
+    }
+    const match = text.match(/^([\s\S]+[.!?])\s+([^.!?]+[?])$/);
+    if (match) {
+        return { description: match[1].trim(), pollQuestion: match[2].trim() };
+    }
+    return { description: '', pollQuestion: text.trim() };
 }
 
 function formatQuestionHtml(text: string): string {
     const lines = text.split('\n');
     const result: string[] = [];
     let blockquoteLines: string[] = [];
-
     for (const line of lines) {
         if (line.startsWith('> ')) {
             blockquoteLines.push(line.slice(2));
@@ -90,7 +130,6 @@ function formatQuestionHtml(text: string): string {
     if (blockquoteLines.length > 0) {
         result.push(`<blockquote>${blockquoteLines.join('\n')}</blockquote>`);
     }
-
     return result.join('\n').trim();
 }
 

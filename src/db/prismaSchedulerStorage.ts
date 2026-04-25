@@ -196,6 +196,11 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
         return quiz ?? null;
     }
 
+    async getQuizByIndex(index: number) {
+        const [quiz] = await this.prisma.quiz.findMany({ take: 1, skip: index });
+        return quiz ?? null;
+    }
+
     @Logger.measure
     async deleteMessage(chatId: string, number: number) {
         await this.prisma.message.updateMany({
