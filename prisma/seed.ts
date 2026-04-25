@@ -1,6 +1,25 @@
 import {PrismaClient, prismaFactory} from './client'
 import quizData from "../sat_tests.json" with {type: "json"};
+import nlp from 'compromise';
 const prisma = prismaFactory()
+
+function getInflectedForms(word: string): RegExp {
+    const forms = new Set([word.toLowerCase()])
+    const doc = nlp(word)
+
+    const conjugated = doc.verbs().conjugate()[0]
+    if (conjugated) {
+        Object.values(conjugated).forEach(f => f && forms.add((f as string).toLowerCase()))
+    }
+
+    const plural = doc.nouns().toPlural().text()
+    if (plural) forms.add(plural.toLowerCase())
+
+    const pattern = [...forms]
+        .map(f => f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('|')
+    return new RegExp(`\\b(${pattern})\\b`, 'i')
+}
 
 export async function seedData() {
     await seedQuiz();
@@ -15,7 +34,7 @@ export async function seedSatFrequency() {
     const quizzes = await prisma.quiz.findMany();
 
     await Promise.all(words.map(async (w) => {
-        const re = new RegExp(`\\b${w.word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        const re = getInflectedForms(w.word);
         let score = 0;
 
         for (const quiz of quizzes) {
