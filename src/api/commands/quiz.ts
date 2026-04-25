@@ -14,6 +14,9 @@ export async function onQuiz(this: TelegrafApi, ctx: IncomingMessageEvent){
                     {text: '/directQuiz'},
                     {text: '/reversedQuiz'},
                     {text: '/writeQuiz'},
+                ],
+                [
+                    {text: '/satQuiz'},
                 ]
             ],
             resize_keyboard: true,
@@ -51,6 +54,44 @@ export async function onQuizWriteAnswer(this: TelegrafApi, ctx: IncomingMessageE
     } else {
         return ctx.reply(`You are wrong, right answer is \`${data.answer}\``);
     }
+}
+
+export async function onDbQuiz(this: TelegrafApi, ctx: IncomingMessageEvent) {
+    const quiz = await this.chatDatabase.getRandomQuiz();
+    if (!quiz) return ctx.reply('No quizzes available in the database');
+
+    const answers = quiz.answers as string[];
+    const labels = ['A', 'B', 'C', 'D'];
+    const optionsText = answers.map((a, i) => `${labels[i]}. ${a}`).join('\n');
+    const questionHtml = formatQuestionHtml(quiz.question);
+
+    return ctx.reply({
+        type: 'text',
+        text: `${questionHtml}\n\n${optionsText}`
+    });
+}
+
+function formatQuestionHtml(text: string): string {
+    const lines = text.split('\n');
+    const result: string[] = [];
+    let blockquoteLines: string[] = [];
+
+    for (const line of lines) {
+        if (line.startsWith('> ')) {
+            blockquoteLines.push(line.slice(2));
+        } else {
+            if (blockquoteLines.length > 0) {
+                result.push(`<blockquote>${blockquoteLines.join('\n')}</blockquote>`);
+                blockquoteLines = [];
+            }
+            result.push(line);
+        }
+    }
+    if (blockquoteLines.length > 0) {
+        result.push(`<blockquote>${blockquoteLines.join('\n')}</blockquote>`);
+    }
+
+    return result.join('\n').trim();
 }
 
 async function getRandomMessages(this: TelegrafApi, ctx: IncomingMessageEvent, count: number){

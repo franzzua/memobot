@@ -3,6 +3,7 @@ import {Logger} from "./logger/logger";
 import {GCSLogger} from "./logger/gcs.logger";
 import {execSync} from "node:child_process";
 import path from "node:path";
+import {seedData} from "../prisma/seed";
 
 di.override(Logger, GCSLogger);
 const logger = di.resolve(Logger);
@@ -11,7 +12,8 @@ logger.measure(() => execSync(`npx prisma migrate deploy`, {
     stdio: 'inherit',
     cwd: path.dirname(import.meta.dirname),
     env: process.env,
-}), 'prisma migrate')
+}), 'prisma migrate');
+logger.measure(() => seedData(), 'prisma seed');
 
 
 const { telegram, init } = await import("./functions/telegram");

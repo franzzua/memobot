@@ -188,6 +188,14 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
         return messages.map(x => this.mapToEntity(x));
     }
 
+    async getRandomQuiz() {
+        const count = await this.prisma.quiz.count();
+        if (count === 0) return null;
+        const skip = Math.floor(Math.random() * count);
+        const [quiz] = await this.prisma.quiz.findMany({ take: 1, skip });
+        return quiz ?? null;
+    }
+
     @Logger.measure
     async deleteMessage(chatId: string, number: number) {
         await this.prisma.message.updateMany({

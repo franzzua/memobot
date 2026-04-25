@@ -8,7 +8,7 @@ import {list, onListComplete, onListCurrent} from "./list";
 import {practice} from "./practice";
 import {donate, paymentCallbacks} from "./donate";
 import {ai} from "./ai";
-import {onQuiz, onQuizDirect, onQuizReversed, onQuizWrite} from "./quiz";
+import {onQuiz, onQuizDirect, onQuizReversed, onQuizWrite, onDbQuiz} from "./quiz";
 import {wipe} from "./wipe";
 import {voice} from "./voice";
 import {next} from "./next";
@@ -36,6 +36,7 @@ export const commands = {
     writeQuiz: onQuizWrite,
     directQuiz: onQuizDirect,
     reversedQuiz: onQuizReversed,
+    satQuiz: onDbQuiz,
     wipe: wipe,
     image, voice, next,
     spoiler, actions, word, init
