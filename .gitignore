@@ -2,6 +2,7 @@
 dist
 node_modules
 configs/.env
+configs/*.json
 out
 .yarn
 /generated/prisma

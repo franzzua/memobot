@@ -38,6 +38,7 @@ jobs:
             --entry-point=telegram --trigger-http --gen2 --allow-unauthenticated \
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
+            --set-env-vars=PLAN_SHEET_ID=${{ secrets.PLAN_SHEET_ID }} \
             --set-env-vars=DATABASE_USER=postgres \
             --set-env-vars=DATABASE_PASSWORD=${{ secrets.DB_PASSWORD }} \
             --set-env-vars=DATABASE_HOST=10.101.32.3 \
