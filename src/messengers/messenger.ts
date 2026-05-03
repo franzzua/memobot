@@ -73,11 +73,20 @@ export type QuizMessage = {
     options: any;
 }
 
+export type DocumentMessage = {
+    type: 'document';
+    filename: string;
+    content: Buffer;
+    mimeType?: string;
+    caption?: string;
+}
+
 
 export type Message =
     | QuizMessage
     | ImageMessage
     | AudioMessage
     | TextMessage
+    | DocumentMessage
 ;
 

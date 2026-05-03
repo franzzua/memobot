@@ -3,6 +3,8 @@ import { TelegrafApi } from "../telegraf.api";
 import { onQuizWriteAnswer } from "./quiz";
 import {IncomingMessageEvent} from "../../messengers/messenger";
 import {getAllText, getRandomText, getText} from "../../helpers/getRandomText";
+import {resolve} from "@cmmn/core";
+import {SrsPlanner} from "../../services/srs-planner";
 
 export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
     const message = await e.text();
@@ -41,8 +43,9 @@ export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
             }
             const { level, months } = stateData as { level: string; months: number };
             await this.chatDatabase.saveInitData(e.chat.toString(), level, months, score);
+            const { wordCount, quizCount } = await resolve(SrsPlanner).planForChat(e.chat.toString(), level, months);
             await this.chatDatabase.updateChatState(e.chat.toString(), ChatState.initial);
-            return e.reply(`Setup complete! Level: ${level}, Preparation: ${months} months, Target SAT score: ${score}.`);
+            return e.reply(`Setup complete! Level: ${level}, Preparation: ${months} months, Target SAT score: ${score}.\nScheduled ${wordCount} words and ${quizCount} quizzes across your prep.`);
         }
     }
 }

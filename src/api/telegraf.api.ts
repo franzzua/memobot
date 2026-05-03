@@ -9,6 +9,7 @@ import {TaskHandle} from "../scheduler/scheduler";
 import {TaskSendHandlers} from "../services/send-handlers/index";
 import {Logger} from "../logger/logger";
 import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
+import {renderQuiz} from "../services/quiz-render";
 
 
 if (!process.env.BOT_TOKEN)
@@ -71,12 +72,34 @@ export class TelegrafApi {
             for (let i = 0; i < dates.length; i++) {
                 let date = dates[i];
                 const skipNotification = date !== dates.at(-1);
-                const content = await this.logger.measure(
-                    () => TaskSendHandlers[message.invokeCounter + i](message),
-                    'Generator.'+TaskSendHandlers[message.invokeCounter + i].name
-                ) ?? `Failed generate content`;
-                await this.messenger.send(chatId, content, {disable_notification: skipNotification});
+                const kind = message.kind ?? 'memo';
+                if (kind === 'memo') {
+                    const handler = TaskSendHandlers[message.invokeCounter + i];
+                    const content = handler
+                        ? await this.logger.measure(() => handler(message), 'Generator.' + handler.name)
+                        : null;
+                    await this.messenger.send(chatId, content ?? `Failed generate content`, {disable_notification: skipNotification});
+                } else if (kind === 'word') {
+                    const text = `<b>${message.content}</b>\n${message.details}`;
+                    await this.messenger.send(chatId, text, {disable_notification: skipNotification});
+                } else if (kind === 'quiz') {
+                    await this.sendNextQuiz(chatId, skipNotification);
+                }
             }
+        }
+    }
+
+    private async sendNextQuiz(chatId: string, skipNotification: boolean): Promise<void> {
+        const quiz = await this.chatDatabase.getNextUnseenQuiz(chatId)
+            ?? await this.chatDatabase.getRandomQuiz();
+        if (!quiz) return;
+        await this.chatDatabase.appendSeenQuiz(chatId, quiz.id);
+        const payloads = renderQuiz(quiz);
+        for (let j = 0; j < payloads.length; j++) {
+            const isLast = j === payloads.length - 1;
+            await this.messenger.send(chatId, payloads[j] as any, {
+                disable_notification: skipNotification || !isLast,
+            });
         }
     }
 }

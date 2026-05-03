@@ -22,6 +22,7 @@ model Chat {
   englishLevel      String?
   preparationMonths Int?
   targetScore       Int?
+  seenQuizIds       String[]  @default([])
 }
 
 model Message {
@@ -38,6 +39,10 @@ model Message {
   last          DateTime
   next          DateTime?
   invokeCounter Int
+  kind          String    @default("memo")
+  refId         String?
+
+  @@index([chatId, kind])
 }
 
 model Word {

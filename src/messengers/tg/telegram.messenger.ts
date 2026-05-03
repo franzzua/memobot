@@ -103,6 +103,15 @@ export class TelegramMessenger extends Messenger {
                     ...tgOptions,
                 });
                 break;
+            case "document":
+                await this.tg.telegram.sendDocument(to, {
+                    source: message.content,
+                    filename: message.filename,
+                }, {
+                    ...tgOptions,
+                    caption: message.caption,
+                });
+                break;
         }
     }
 

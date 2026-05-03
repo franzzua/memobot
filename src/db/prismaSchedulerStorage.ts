@@ -108,8 +108,45 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
                 last: timetable.last,
                 next: timetable.next,
                 invokeCounter: timetable.invokeCounter,
+                kind: timetable.kind ?? 'memo',
+                refId: timetable.refId ?? null,
             }
         });
+    }
+
+    @Logger.measure
+    async removeTimetablesByKind(chatId: string, kinds: string[]): Promise<void> {
+        await this.prisma.message.deleteMany({
+            where: { chatId, kind: { in: kinds } }
+        });
+    }
+
+    @Logger.measure
+    async getSeenQuizIds(chatId: string): Promise<string[]> {
+        const chat = await this.prisma.chat.findUnique({
+            where: { id: chatId },
+            select: { seenQuizIds: true }
+        });
+        return chat?.seenQuizIds ?? [];
+    }
+
+    @Logger.measure
+    async appendSeenQuiz(chatId: string, quizId: string): Promise<void> {
+        await this.prisma.chat.update({
+            where: { id: chatId },
+            data: { seenQuizIds: { push: quizId } }
+        });
+    }
+
+    @Logger.measure
+    async getNextUnseenQuiz(chatId: string) {
+        const seen = await this.getSeenQuizIds(chatId);
+        const [quiz] = await this.prisma.quiz.findMany({
+            where: seen.length > 0 ? { id: { notIn: seen } } : {},
+            orderBy: { index: 'asc' },
+            take: 1,
+        });
+        return quiz ?? null;
     }
 
     async getTimetablesBefore(taskId: string, before: Date): Promise<TimetableEntity<MessageTimetable>[]> {
@@ -188,6 +225,14 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
         return messages.map(x => this.mapToEntity(x));
     }
 
+    @Logger.measure
+    async getMessagesByKind(chatId: string, kinds: string[]) {
+        const messages = await this.prisma.message.findMany({
+            where: { chatId, kind: { in: kinds } }
+        });
+        return messages.map(x => this.mapToEntity(x));
+    }
+
     async getRandomQuiz() {
         const count = await this.prisma.quiz.count();
         if (count === 0) return null;
@@ -210,10 +255,12 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
     }
 
     private mapToEntity(msg: PrismaMessage): TimetableEntity<MessageTimetable> {
-        const { dates, ...rest } = msg;
+        const { dates, kind, refId, ...rest } = msg;
         return {
             ...rest,
+            kind: kind as MessageTimetable['kind'],
+            refId,
             dates: JSON.parse(dates).map(x => new Date(x)),
-        } as unknown as TimetableEntity<MessageTimetable>; 
+        } as unknown as TimetableEntity<MessageTimetable>;
     }
 }

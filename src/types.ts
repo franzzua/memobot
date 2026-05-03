@@ -5,6 +5,8 @@ export type Chat = {
     state: ChatState;
 } ;
 
+export type MessageKind = 'memo' | 'word' | 'quiz';
+
 export type Message = {
     id: string | null;
     content: string;
@@ -13,6 +15,8 @@ export type Message = {
     // sentCount: number;
     number: number;
     deleted: boolean;
+    kind?: MessageKind;
+    refId?: string | null;
 }
 
 export type Task = Pick<Message, "content" | "details" > & {

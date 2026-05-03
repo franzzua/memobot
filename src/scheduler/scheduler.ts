@@ -89,6 +89,17 @@ export class Scheduler<
         const next = await this.storage.getNextTimetableTime(taskId);
         await this.updateTask(entity, next);
     }
+
+    /**
+     * Recompute task.scheduledAt and the queue handle from current timetables.
+     * Use after deleting timetables out-of-band so the queue stays in sync.
+     */
+    async recomputeTask(taskId: TaskId): Promise<void> {
+        const task = await this.storage.getTask(taskId);
+        if (!task) return;
+        const next = await this.storage.getNextTimetableTime(taskId);
+        await this.updateTask(task, next);
+    }
     private async updateTask(entity: Task<TaskId, ScheduleId>, date: Date | null): Promise<void> {
         if (entity.scheduleId) {
             await this.queue.unschedule(entity.scheduleId);

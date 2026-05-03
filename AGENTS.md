@@ -1,42 +1,44 @@
 # Repository Guidelines
 
-Memobot is a Telegram and WhatsApp bot built on Google Cloud Platform, designed for information retention using a Spaced Repetition System (SRS) and AI integrations (Gemini 2.0 Flash).
+Memobot is a Telegram and WhatsApp bot built on Google Cloud Platform that uses a Spaced Repetition System (SRS) for information retention, with AI features powered by Vertex AI (Gemini 2.0 Flash).
 
 ## Project Structure & Module Organization
 
-- **src/scheduler/**: Core SRS engine. Decouples timing logic from execution.
-- **src/bot/**: Bot logic and timetable definitions for SRS.
-- **src/db/**: Database abstractions for Firestore and Prisma (SQL).
-- **src/messengers/**: Platform-specific implementations for Telegram (`telegraf`) and WhatsApp.
-- **src/services/**: Core business services including AI-driven mnemonic generation, image rendering, and Text-to-Speech.
-- **src/functions/**: GCP Cloud Function entry points for webhooks and task execution.
-- **src/api/**: Fastify-based webhook handlers and API commands.
+- **src/scheduler/**: Custom SRS engine. `scheduler.ts` decouples timing from execution; `storage/` and `queue/` are pluggable backends — Google Cloud Tasks is the default queue.
+- **src/bot/**: Bot logic and SRS timetables (`timetable.ts` differs per environment).
+- **src/db/**: Persistence layer mixing Firestore (chats, messages) and Prisma/PostgreSQL (words, quizzes, scheduler storage).
+- **src/messengers/**: Platform adapters — `tg/` (Telegraf) and `whatsAppMessenger.ts`.
+- **src/services/**: AI mnemonic generation (`ai-model.ts`), image rendering, text-to-speech.
+- **src/functions/**: GCP Cloud Function entry points (`telegram.ts`, `whatsapp.ts`).
+- **src/api/commands/**: Bot command handlers (`init`, `quiz`, `word`, `practice`, etc.).
+- **prisma/**: Schema, migrations, and generated client (`client/`).
+- **configs/**: `esbuild.mjs` bundle config; runtime `.env` is read from here.
 
 ## Build, Test, and Development Commands
 
-- **yarn run**: Start the development server with watch mode: `node --watch --env-file=configs/.env --import @cmmn/tools/import ./src/start.ts`
-- **yarn compile**: Build the project using the `cmmn` toolset.
-- **yarn test**: Run the test suite on compiled files: `DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js`
-- **yarn gcp-build**: Generate the Prisma client.
-- **yarn import**: Run word import scripts.
-- **yarn ngrok**: Expose the local server for webhook testing.
+- `yarn compile`: Build via `cmmn compile` (TypeScript → `dist/esm`, then esbuild bundle to `dist/index.cjs`).
+- `yarn run`: Start dev server with `node --watch` against `configs/.env`.
+- `yarn test`: Node's native test runner over compiled `dist/esm/**/*.spec.js` — run `yarn compile` first.
+- `yarn gcp-build`: Generate the Prisma client (invoked during deploy).
+- `yarn import`: Run `scripts/import-texts.js` against `scripts/.env`.
+- `yarn ngrok`: Expose `localhost:5800` for webhook testing.
+- `docker compose up postgres`: Local Postgres on `:5432` (compose also defines a MySQL service).
+
+Run a single test by pointing `--test` at the compiled file, e.g. `node --test dist/esm/scheduler/specs/scheduler.spec.js`.
 
 ## Coding Style & Naming Conventions
 
-- **TypeScript**: Strict mode is enforced via `@cmmn/tools/tsconfig.json`.
-- **ESM**: The project uses native ES modules (`type: "module"`).
-- **Dependency Injection**: Core logic utilizes `@cmmn/core` for DI and service management.
-- **Prisma**: Used for relational database operations.
-- **GCP Native**: Extensive use of Google Cloud SDKs (Firestore, Tasks, Vertex AI).
+- TypeScript strict mode via `@cmmn/tools/tsconfig.json`; ESM only (`"type": "module"`).
+- SWC compiles with stage-3 decorators (`decoratorVersion: "2022-03"`); `@cmmn/core` provides DI (`@singleton()`).
+- Filenames are camelCase (`prismaSchedulerStorage.ts`) or kebab-case for compounds (`text-to-speech.ts`); spec files end in `.spec.ts`.
 
 ## Testing Guidelines
 
-- **Framework**: Uses Node.js native test runner.
-- **Execution**: Tests run against the `./dist/esm` build. Ensure `yarn compile` is run before `yarn test`.
-- **Specs**: Test files are named `*.spec.ts` and located alongside implementation or in `src/specs/`.
+- Framework: Node `node:test` with `expect` for assertions.
+- Specs sit next to implementation (`src/db/prismaSchedulerStorage.spec.ts`) or under `src/specs/` and `src/scheduler/specs/`. Tests run on compiled output, so a green `yarn compile` is a prerequisite.
 
 ## Commit & Pull Request Guidelines
 
-- **Style**: Use concise, imperative messages (e.g., `fix imports`, `add word command`).
-- **Convention**: `upd` is commonly used for "update".
-- **New files**: Always `git add` every newly created file before committing. Untracked files are silently excluded from commits.
+- Concise, imperative subjects (`add word command`, `fix imports`, `quiz migration`); `upd` is the project shorthand for "update".
+- Always `git add` newly created files before committing — untracked files are silently excluded.
+- `.github/workflows/deploy.yml` deploys merges to `main` to the `telegram` Cloud Function (production); other branches deploy to `telegram-stage`.

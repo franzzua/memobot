@@ -17,4 +17,17 @@ export class WordsDatabase {
         console.log(res);
         return res;
     }
+
+    public async pickTopForLevel(level: string, n: number): Promise<Word[]> {
+        if (n <= 0) return [];
+        return this.prisma.$queryRaw<Word[]>`
+            SELECT *
+            FROM "Word"
+            ORDER BY
+                "satFrequency" DESC NULLS LAST,
+                "frequency"    DESC NULLS LAST,
+                CASE WHEN "level" = ${level} THEN 0 ELSE 1 END
+            LIMIT ${n}
+        `;
+    }
 }

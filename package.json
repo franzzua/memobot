@@ -19,7 +19,6 @@
     "@types/node": "^20.11.20",
     "@types/uuid": "^9",
     "expect": "^29.7.0",
-    "google-spreadsheet": "^4.1.4",
     "tsx": "^4.7.2",
     "typescript": "5.9.3",
     "uuid": "^9.0.1"
@@ -39,10 +38,10 @@
     "canvas": "3.2.2",
     "compromise": "^14.15.0",
     "fastify": "^4.27.0",
+    "google-spreadsheet": "^4.1.4",
     "prisma": "^7.3.0",
     "telegraf": "^4.16.3",
-    "telegram": "2.26.22",
-    "whatsapp": "0.0.5-Alpha"
+    "telegram": "2.26.22"
   },
   "packageManager": "yarn@4.3.1"
 }

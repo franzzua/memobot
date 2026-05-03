@@ -17,6 +17,7 @@ import {spoiler} from "./spoiler";
 import {actions} from "./actions";
 import {word} from "./word";
 import {init, onInitLevel, onInitMonths} from "./init";
+import {plan} from "./plan";
 
 export const commands = {
     new: onNewCommand,
@@ -39,7 +40,7 @@ export const commands = {
     satQuiz: onDbQuiz,
     wipe: wipe,
     image, voice, next,
-    spoiler, actions, word, init
+    spoiler, actions, word, init, plan
 } as Record<string, Command>;
 
 export const callbacks: Record<string, Callback> = {
