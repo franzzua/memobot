@@ -23,6 +23,9 @@ model Chat {
   preparationMonths Int?
   targetScore       Int?
   seenQuizIds       String[]  @default([])
+  planStart         DateTime?
+  planDurationDays  Int?
+  wordOrder         String[]  @default([])
 }
 
 model Message {

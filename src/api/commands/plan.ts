@@ -3,6 +3,8 @@ import {IncomingMessageEvent} from "../../messengers/messenger";
 import {GoogleAuth} from "google-auth-library";
 import {GoogleSpreadsheet, GoogleSpreadsheetWorksheet} from "google-spreadsheet";
 import {gcsConfig} from "../../db/gcs.config";
+import {resolve} from "@cmmn/core";
+import {SrsPlanner} from "../../services/srs-planner";
 
 const sheetsAuth = new GoogleAuth({
     projectId: gcsConfig.projectId,
@@ -17,28 +19,13 @@ export async function plan(this: TelegrafApi, ctx: IncomingMessageEvent) {
     }
 
     const chatId = ctx.chat.toString();
-    const messages = await this.chatDatabase.getMessagesByKind(chatId, ['word', 'quiz']);
-    const wordMessages = messages.filter(x => x.kind === 'word' && !x.deleted);
-    const quizMessages = messages.filter(x => x.kind === 'quiz' && !x.deleted);
+    const {words, quizzes} = await resolve(SrsPlanner).projectPlan(chatId);
 
-    const wordRows = wordMessages
-        .map(m => ({
-            word: m.content,
-            description: m.details,
-            dates: [...m.dates].sort((a, b) => +a - +b),
-        }))
-        .sort((a, b) => (+a.dates[0] || 0) - (+b.dates[0] || 0));
-    const maxDates = wordRows.reduce((m, r) => Math.max(m, r.dates.length), 0);
-
-    const quizDates: Date[] = [];
-    for (const m of quizMessages) {
-        for (const date of m.dates) quizDates.push(date);
-    }
-    quizDates.sort((a, b) => +a - +b);
-
-    if (wordRows.length === 0 && quizDates.length === 0) {
+    if (words.length === 0 && quizzes.length === 0) {
         return ctx.reply('No plan yet. Run /init to build one.');
     }
+
+    const maxDates = words.reduce((m, r) => Math.max(m, r.dates.length), 0);
 
     const authClient = await sheetsAuth.getClient();
     const doc = new GoogleSpreadsheet(sheetId, {
@@ -46,11 +33,15 @@ export async function plan(this: TelegrafApi, ctx: IncomingMessageEvent) {
     });
     await doc.loadInfo();
 
-    const wordsHeader = ['word', 'description', ...Array.from({length: maxDates}, (_, i) => `scheduledAt_${i + 1}`)];
+    const wordsHeader = ['word', 'description', 'status', ...Array.from({length: maxDates}, (_, i) => `scheduledAt_${i + 1}`)];
     const wordsSheet = await ensureSheet(doc, `words ${chatId}`, wordsHeader);
-    if (wordRows.length > 0) {
-        await wordsSheet.addRows(wordRows.map(r => {
-            const row: Record<string, string> = {word: r.word, description: r.description};
+    if (words.length > 0) {
+        await wordsSheet.addRows(words.map(r => {
+            const row: Record<string, string> = {
+                word: r.word,
+                description: r.description,
+                status: r.scheduled ? 'scheduled' : 'projected',
+            };
             for (let i = 0; i < maxDates; i++) {
                 row[`scheduledAt_${i + 1}`] = r.dates[i]?.toISOString() ?? '';
             }
@@ -58,17 +49,18 @@ export async function plan(this: TelegrafApi, ctx: IncomingMessageEvent) {
         }));
     }
 
-    const quizSheet = await ensureSheet(doc, `quizzes ${chatId}`, ['index', 'scheduledAt']);
-    if (quizDates.length > 0) {
-        await quizSheet.addRows(quizDates.map((d, i) => ({
+    const quizSheet = await ensureSheet(doc, `quizzes ${chatId}`, ['index', 'scheduledAt', 'status']);
+    if (quizzes.length > 0) {
+        await quizSheet.addRows(quizzes.map((q, i) => ({
             index: String(i + 1),
-            scheduledAt: d.toISOString(),
+            scheduledAt: q.date.toISOString(),
+            status: q.scheduled ? 'scheduled' : 'projected',
         })));
     }
 
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/edit#gid=${wordsSheet.sheetId}`;
     return ctx.reply(
-        `📊 Plan ready: ${url}\nWords: ${wordRows.length}, quizzes: ${quizDates.length}`,
+        `📊 Plan ready: ${url}\nWords: ${words.length}, quizzes: ${quizzes.length}`,
     );
 }
 

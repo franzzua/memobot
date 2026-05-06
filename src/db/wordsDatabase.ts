@@ -30,4 +30,10 @@ export class WordsDatabase {
             LIMIT ${n}
         `;
     }
+
+    public async getByIds(ids: string[]): Promise<Map<string, Word>> {
+        if (ids.length === 0) return new Map();
+        const rows = await this.prisma.word.findMany({where: {id: {in: ids}}});
+        return new Map(rows.map(w => [w.id, w]));
+    }
 }

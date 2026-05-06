@@ -79,6 +79,43 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
         });
     }
 
+    @Logger.measure
+    async savePlanState(chatId: string, planStart: Date, planDurationDays: number, wordOrder: string[]): Promise<void> {
+        await this.prisma.chat.update({
+            where: { id: chatId },
+            data: { planStart, planDurationDays, wordOrder }
+        });
+    }
+
+    @Logger.measure
+    async getPlanState(chatId: string): Promise<{ planStart: Date; planDurationDays: number; wordOrder: string[] } | null> {
+        const chat = await this.prisma.chat.findUnique({
+            where: { id: chatId },
+            select: { planStart: true, planDurationDays: true, wordOrder: true }
+        });
+        if (!chat?.planStart || chat.planDurationDays == null) return null;
+        return {
+            planStart: chat.planStart,
+            planDurationDays: chat.planDurationDays,
+            wordOrder: chat.wordOrder ?? []
+        };
+    }
+
+    @Logger.measure
+    async countMessagesByKind(chatId: string, kind: string): Promise<number> {
+        return this.prisma.message.count({
+            where: { chatId, kind }
+        });
+    }
+
+    @Logger.measure
+    async deactivateTicks(chatId: string): Promise<void> {
+        await this.prisma.message.updateMany({
+            where: { chatId, kind: 'tick' },
+            data: { next: null }
+        });
+    }
+
     public setIsPaused(chatId: string, isPaused: boolean) {
         return this.updateChat({id: chatId, isPaused})
     }
@@ -211,6 +248,17 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
     async removeAllMessages(chatId: string) {
         await this.prisma.message.deleteMany({
             where: {chatId}
+        });
+        await this.prisma.chat.update({
+            where: {id: chatId},
+            data: {
+                planStart: null,
+                planDurationDays: null,
+                wordOrder: [],
+                seenQuizIds: [],
+                scheduleId: null,
+                scheduledAt: null,
+            }
         });
     }
 

@@ -10,6 +10,8 @@ import {TaskSendHandlers} from "../services/send-handlers/index";
 import {Logger} from "../logger/logger";
 import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
 import {renderQuiz} from "../services/quiz-render";
+import {resolve} from "@cmmn/core";
+import {SrsPlanner} from "../services/srs-planner";
 
 
 if (!process.env.BOT_TOKEN)
@@ -68,11 +70,16 @@ export class TelegrafApi {
     }
 
     async sendTasks(chatId: string, taskState: TaskHandle<Message>) {
+        let tickFired = false;
         for (let {data: message, dates} of taskState.unprocessed) {
+            const kind = message.kind ?? 'memo';
+            if (kind === 'tick') {
+                tickFired = true;
+                continue;
+            }
             for (let i = 0; i < dates.length; i++) {
                 let date = dates[i];
                 const skipNotification = date !== dates.at(-1);
-                const kind = message.kind ?? 'memo';
                 if (kind === 'memo') {
                     const handler = TaskSendHandlers[message.invokeCounter + i];
                     const content = handler
@@ -86,6 +93,9 @@ export class TelegrafApi {
                     await this.sendNextQuiz(chatId, skipNotification);
                 }
             }
+        }
+        if (tickFired) {
+            await resolve(SrsPlanner).advance(chatId);
         }
     }
 

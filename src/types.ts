@@ -5,7 +5,7 @@ export type Chat = {
     state: ChatState;
 } ;
 
-export type MessageKind = 'memo' | 'word' | 'quiz';
+export type MessageKind = 'memo' | 'word' | 'quiz' | 'tick';
 
 export type Message = {
     id: string | null;
