@@ -37,6 +37,7 @@ export async function onInitLevel(this: TelegrafApi, ctx: CallbackEvent) {
 export async function onInitMonths(this: TelegrafApi, ctx: CallbackEvent) {
     const months = parseInt((ctx.data as string).replace("init:months:", ""), 10);
     const chatId = ctx.chat.toString();
+    await ctx.reply("⏳ Preparing your personal plan...");
     const { stateData } = await this.chatDatabase.getChatState(chatId);
     const level = (stateData as any)?.level;
     await this.chatDatabase.saveInitData(chatId, level, months);
