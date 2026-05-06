@@ -5,6 +5,7 @@ import {GoogleSpreadsheet, GoogleSpreadsheetWorksheet} from "google-spreadsheet"
 import {gcsConfig} from "../../db/gcs.config";
 import {resolve} from "@cmmn/core";
 import {SrsPlanner} from "../../services/srs-planner";
+import {renderPlanHistogram} from "../../services/histogram-render";
 
 const sheetsAuth = new GoogleAuth({
     projectId: gcsConfig.projectId,
@@ -59,9 +60,11 @@ export async function plan(this: TelegrafApi, ctx: IncomingMessageEvent) {
     }
 
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/edit#gid=${wordsSheet.sheetId}`;
-    return ctx.reply(
-        `📊 Plan ready: ${url}\nWords: ${words.length}, quizzes: ${quizzes.length}`,
-    );
+    return ctx.reply({
+        type: 'image',
+        image: renderPlanHistogram(words, quizzes),
+        caption: `📊 <a href="${url}">Plan ready</a>\nWords: ${words.length}, quizzes: ${quizzes.length}`,
+    });
 }
 
 async function ensureSheet(

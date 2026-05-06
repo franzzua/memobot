@@ -82,6 +82,10 @@ export class TelegramMessenger extends Messenger {
             case "image":
                 await this.tg.telegram.sendPhoto(to, {
                     source: message.image
+                }, {
+                    ...tgOptions,
+                    caption: message.caption,
+                    parse_mode: message.caption ? 'HTML' : undefined,
                 });
                 break;
             case "text":

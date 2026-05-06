@@ -3,9 +3,6 @@ import { TelegrafApi } from "../telegraf.api";
 import { onQuizWriteAnswer } from "./quiz";
 import {IncomingMessageEvent} from "../../messengers/messenger";
 import {getAllText, getRandomText, getText} from "../../helpers/getRandomText";
-import {resolve} from "@cmmn/core";
-import {SrsPlanner} from "../../services/srs-planner";
-import {renderPlanHistogram} from "../../services/histogram-render";
 
 export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
     const message = await e.text();
@@ -36,20 +33,6 @@ export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
             await this.chatDatabase.updateChatState(e.chat.toString(), ChatState.initial);
             const reply = getRandomText('/new-success', e.user.id, number, number.toString());
             return e.reply(reply);
-        }
-        case ChatState.initScore: {
-            const score = parseInt(message.text, 10);
-            if (!Number.isFinite(score) || score <= 0) {
-                return e.reply("Please enter a valid number for your target SAT score.");
-            }
-            const { level, months } = stateData as { level: string; months: number };
-            await this.chatDatabase.saveInitData(e.chat.toString(), level, months, score);
-            const planner = resolve(SrsPlanner);
-            const { wordCount, quizCount } = await planner.planForChat(e.chat.toString(), level, months);
-            await this.chatDatabase.updateChatState(e.chat.toString(), ChatState.initial);
-            await e.reply(`Setup complete! Level: ${level}, Preparation: ${months} months, Target SAT score: ${score}.\nScheduled ${wordCount} words and ${quizCount} quizzes across your prep.`);
-            const {words, quizzes} = await planner.projectPlan(e.chat.toString());
-            return e.reply({type: 'image', image: renderPlanHistogram(words, quizzes)});
         }
     }
 }

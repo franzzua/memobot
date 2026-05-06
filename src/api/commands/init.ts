@@ -2,6 +2,9 @@ import { ChatState } from "../../types";
 import { TelegrafApi } from "../telegraf.api";
 import { CallbackEvent, IncomingMessageEvent } from "../../messengers/messenger";
 import {setChatFromContext} from "./start";
+import {resolve} from "@cmmn/core";
+import {SrsPlanner} from "../../services/srs-planner";
+import {renderPlanHistogram} from "../../services/histogram-render";
 
 export async function init(this: TelegrafApi, ctx: IncomingMessageEvent) {
     await setChatFromContext.call(this, ctx);
@@ -33,8 +36,15 @@ export async function onInitLevel(this: TelegrafApi, ctx: CallbackEvent) {
 
 export async function onInitMonths(this: TelegrafApi, ctx: CallbackEvent) {
     const months = parseInt((ctx.data as string).replace("init:months:", ""), 10);
-    const { stateData } = await this.chatDatabase.getChatState(ctx.chat.toString());
+    const chatId = ctx.chat.toString();
+    const { stateData } = await this.chatDatabase.getChatState(chatId);
     const level = (stateData as any)?.level;
-    await this.chatDatabase.updateChatState(ctx.chat.toString(), ChatState.initScore, { level, months });
-    return ctx.reply("What is your target SAT score? (enter a number)");
+    await this.chatDatabase.saveInitData(chatId, level, months);
+    const { wordCount, quizCount, words, quizzes } = await resolve(SrsPlanner).planForChat(chatId, level, months);
+    await this.chatDatabase.updateChatState(chatId, ChatState.initial);
+    return ctx.reply({
+        type: 'image',
+        image: renderPlanHistogram(words, quizzes),
+        caption: `Setup complete! Level: ${level}, Preparation: ${months} months.\nScheduled ${wordCount} words and ${quizCount} quizzes across your prep.`,
+    });
 }

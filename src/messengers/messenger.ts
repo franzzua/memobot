@@ -58,6 +58,7 @@ export type TextMessage = {
 export type ImageMessage = {
     type: 'image';
     image: Buffer;
+    caption?: string;
 }
 
 export type AudioMessage = {

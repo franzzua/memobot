@@ -72,10 +72,10 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
     }
 
     @Logger.measure
-    async saveInitData(chatId: string, englishLevel: string, preparationMonths: number, targetScore: number): Promise<void> {
+    async saveInitData(chatId: string, englishLevel: string, preparationMonths: number): Promise<void> {
         await this.prisma.chat.update({
             where: { id: chatId },
-            data: { englishLevel, preparationMonths, targetScore }
+            data: { englishLevel, preparationMonths }
         });
     }
 

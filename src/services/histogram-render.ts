@@ -80,7 +80,10 @@ export class HistogramRender {
     private padBottom = 48;
 
     constructor(private buckets: HistogramBucket[], private title: string) {
+        this.smoothed = smoothBuckets(buckets, 7);
     }
+
+    private smoothed: HistogramBucket[];
 
     render(): Buffer {
         const canvas: Canvas = createCanvas(this.width, this.height);
@@ -92,7 +95,7 @@ export class HistogramRender {
         const plotW = this.width - this.padLeft - this.padRight;
         const plotH = this.height - this.padTop - this.padBottom;
 
-        const maxTotal = Math.max(1, ...this.buckets.map(b => b.newWords + b.repetitions + b.quizzes));
+        const maxTotal = Math.max(1, ...this.smoothed.map(b => b.newWords + b.repetitions + b.quizzes));
         const yTicks = niceTicks(maxTotal, 5);
         const yMax = yTicks[yTicks.length - 1];
 
@@ -124,26 +127,35 @@ export class HistogramRender {
         ctx.lineTo(this.padLeft + plotW, this.padTop + plotH);
         ctx.stroke();
 
-        const n = this.buckets.length;
+        const n = this.smoothed.length;
         const slot = plotW / Math.max(1, n);
-        const barW = Math.max(1, Math.floor(slot * 0.85));
+        const baselineY = this.padTop + plotH;
+        const xs = this.smoothed.map((_, i) => this.padLeft + (i + 0.5) * slot);
+        const toY = (v: number) => baselineY - (v / yMax) * plotH;
 
-        for (let i = 0; i < n; i++) {
-            const b = this.buckets[i];
-            const x = this.padLeft + Math.floor(i * slot + (slot - barW) / 2);
-            let yBottom = this.padTop + plotH;
-            const segments: Array<{value: number; color: string}> = [
-                {value: b.newWords, color: COLOR_NEW},
-                {value: b.repetitions, color: COLOR_REP},
-                {value: b.quizzes, color: COLOR_QUIZ},
-            ];
-            for (const seg of segments) {
-                if (seg.value <= 0) continue;
-                const h = (seg.value / yMax) * plotH;
-                ctx.fillStyle = seg.color;
-                ctx.fillRect(x, yBottom - h, barW, h);
-                yBottom -= h;
+        const cumNew = this.smoothed.map(b => b.newWords);
+        const cumRep = this.smoothed.map(b => b.newWords + b.repetitions);
+        const cumQuiz = this.smoothed.map(b => b.newWords + b.repetitions + b.quizzes);
+
+        const layers: Array<{top: number[]; bottom: number[] | null; color: string}> = [
+            {top: cumNew, bottom: null, color: COLOR_NEW},
+            {top: cumRep, bottom: cumNew, color: COLOR_REP},
+            {top: cumQuiz, bottom: cumRep, color: COLOR_QUIZ},
+        ];
+        for (const layer of layers) {
+            ctx.beginPath();
+            const upper = xs.map((x, i) => ({x, y: toY(layer.top[i])}));
+            tracePath(ctx, upper, false);
+            if (layer.bottom) {
+                const lower = xs.map((x, i) => ({x, y: toY(layer.bottom![i])})).reverse();
+                tracePath(ctx, lower, true);
+            } else {
+                ctx.lineTo(xs[xs.length - 1], baselineY);
+                ctx.lineTo(xs[0], baselineY);
             }
+            ctx.closePath();
+            ctx.fillStyle = layer.color;
+            ctx.fill();
         }
 
         ctx.fillStyle = COLOR_AXIS;
@@ -153,7 +165,7 @@ export class HistogramRender {
         const labelStep = Math.max(1, Math.ceil(n / 10));
         for (let i = 0; i < n; i += labelStep) {
             const x = this.padLeft + i * slot + slot / 2;
-            const d = this.buckets[i].day;
+            const d = this.smoothed[i].day;
             const label = `${d.getMonth() + 1}/${d.getDate()}`;
             ctx.fillText(label, x, this.padTop + plotH + 6);
         }
@@ -178,6 +190,44 @@ export class HistogramRender {
 
         return canvas.toBuffer();
     }
+}
+
+function tracePath(ctx: CanvasRenderingContext2D, points: Array<{x: number; y: number}>, continuePath: boolean): void {
+    if (points.length === 0) return;
+    if (continuePath) ctx.lineTo(points[0].x, points[0].y);
+    else ctx.moveTo(points[0].x, points[0].y);
+    if (points.length < 3) {
+        for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+        return;
+    }
+    for (let i = 1; i < points.length - 1; i++) {
+        const xc = (points[i].x + points[i + 1].x) / 2;
+        const yc = (points[i].y + points[i + 1].y) / 2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+    }
+    const last = points[points.length - 1];
+    ctx.lineTo(last.x, last.y);
+}
+
+function smoothBuckets(buckets: HistogramBucket[], window: number): HistogramBucket[] {
+    if (buckets.length === 0) return buckets;
+    const half = Math.floor(window / 2);
+    return buckets.map((_, i) => {
+        let nw = 0, rp = 0, qz = 0, count = 0;
+        for (let j = i - half; j <= i + half; j++) {
+            if (j < 0 || j >= buckets.length) continue;
+            nw += buckets[j].newWords;
+            rp += buckets[j].repetitions;
+            qz += buckets[j].quizzes;
+            count++;
+        }
+        return {
+            day: buckets[i].day,
+            newWords: nw / count,
+            repetitions: rp / count,
+            quizzes: qz / count,
+        };
+    });
 }
 
 function niceTicks(max: number, count: number): number[] {

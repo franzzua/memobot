@@ -39,7 +39,12 @@ export class SrsPlanner {
     @inject(TaskScheduler)
     private accessor scheduler!: Scheduler<Message>;
 
-    async planForChat(chatId: string, level: string, months: number): Promise<{ wordCount: number; quizCount: number }> {
+    async planForChat(chatId: string, level: string, months: number): Promise<{
+        wordCount: number;
+        quizCount: number;
+        words: ProjectedWord[];
+        quizzes: ProjectedQuiz[];
+    }> {
         await this.wipeSrs(chatId);
 
         const T0 = new Date();
@@ -49,11 +54,32 @@ export class SrsPlanner {
 
         const picked = await this.words.pickTopForLevel(level, N);
         const wordOrder = picked.map(p => p.id);
+        const wordCount = wordOrder.length;
         await this.db.savePlanState(chatId, T0, planDurationDays, wordOrder);
 
-        await this.advance(chatId);
+        // Schedule word[0] directly so we can reuse `picked` and skip a DB round-trip.
+        if (wordCount > 0) {
+            await this.scheduleWord(chatId, picked[0], T0, T_ms);
+        }
+        const allQuizDates = buildQuizDates(T0, T_ms, wordCount);
+        const nextTick = nextEventTime(T0, planDurationDays, wordCount, Math.min(1, wordCount), 0, allQuizDates);
+        if (nextTick) {
+            await this.armTick(chatId, +nextTick > +T0 ? nextTick : new Date(+T0 + 1000));
+        }
 
-        return { wordCount: wordOrder.length, quizCount: buildQuizDates(T0, T_ms, wordOrder.length).length };
+        const tickStart = tickStartIntervalMs(planDurationDays, wordCount);
+        const words: ProjectedWord[] = picked.map((w, i) => {
+            const pickDate = i === 0 ? T0 : new Date(+T0 + introOffsetMs(wordCount, tickStart, i));
+            return {
+                word: w.word,
+                description: w.description ?? '',
+                dates: WORD_DELAYS.map(f => new Date(+pickDate + f * T_ms)),
+                scheduled: i === 0,
+            };
+        });
+        const quizzes: ProjectedQuiz[] = allQuizDates.map(d => ({date: d, scheduled: false}));
+
+        return { wordCount, quizCount: allQuizDates.length, words, quizzes };
     }
 
     /**
