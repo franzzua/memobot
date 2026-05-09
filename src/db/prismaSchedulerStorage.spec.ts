@@ -56,7 +56,7 @@ describe("PrismaSchedulerStorage", () => {
             invokeCounter: 0
         } as any);
 
-        const msg = await prisma.message.findUnique({where: {id: 'msg1'}});
+        const msg = await prisma.message.findUnique({where: {chatId_id: {chatId: 'test-chat', id: 'msg1'}}});
         expect(msg).toBeDefined();
         expect(JSON.parse(msg!.dates)).toHaveLength(1);
     });

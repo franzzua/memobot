@@ -29,7 +29,7 @@ model Chat {
 }
 
 model Message {
-  id            String    @id @default(uuid())
+  id            String    @default(uuid())
   chat          Chat      @relation(fields: [chatId], references: [id])
   chatId        String
   content       String
@@ -45,6 +45,7 @@ model Message {
   kind          String    @default("memo")
   refId         String?
 
+  @@id([chatId, id])
   @@index([chatId, kind])
 }
 

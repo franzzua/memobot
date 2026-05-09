@@ -232,7 +232,7 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
             data.dates = JSON.stringify(dates);
         }
         await this.prisma.message.update({
-            where: { id: id },
+            where: { chatId_id: { chatId: taskId, id } },
             data: data,
         });
     }
