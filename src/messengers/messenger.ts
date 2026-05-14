@@ -48,6 +48,12 @@ export type IncomingMessageEvent = ChatEvent & {
     timestamp: number;
     audio(): Promise<AudioMessage | undefined>;
     text(): Promise<TextMessage | undefined>;
+    replyTo?: ReplyToInfo;
+}
+
+export type ReplyToInfo = {
+    text: string;
+    isBot: boolean;
 }
 
 export type TextMessage = {

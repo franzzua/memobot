@@ -36,4 +36,12 @@ export class WordsDatabase {
         const rows = await this.prisma.word.findMany({where: {id: {in: ids}}});
         return new Map(rows.map(w => [w.id, w]));
     }
+
+    public async setVoice(id: string, voice: Buffer): Promise<void> {
+        await this.prisma.word.update({where: {id}, data: {voice}});
+    }
+
+    public async setTranscription(id: string, transcription: string): Promise<void> {
+        await this.prisma.word.update({where: {id}, data: {transcription}});
+    }
 }

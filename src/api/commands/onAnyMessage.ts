@@ -3,10 +3,12 @@ import { TelegrafApi } from "../telegraf.api";
 import { onQuizWriteAnswer } from "./quiz";
 import {IncomingMessageEvent} from "../../messengers/messenger";
 import {getAllText, getRandomText, getText} from "../../helpers/getRandomText";
+import {tryHandleWordReply} from "./wordReply";
 
 export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
     const message = await e.text();
     if (!message) return;
+    if (await tryHandleWordReply.call(this, e)) return;
     const { state, stateData } = await this.chatDatabase.getChatState(e.chat.toString());
     switch (state) {
         case ChatState.writeQuiz:

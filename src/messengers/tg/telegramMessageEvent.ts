@@ -1,4 +1,4 @@
-import {AudioMessage, CallbackEvent, IncomingMessageEvent, TextMessage} from "../messenger";
+import {AudioMessage, CallbackEvent, IncomingMessageEvent, ReplyToInfo, TextMessage} from "../messenger";
 import type * as tg from "@telegraf/types";
 import {TelegramMessenger} from "./telegram.messenger";
 import {TelegramChatEvent} from "./telegramChatEvent";
@@ -7,9 +7,21 @@ import {CallbackQuery} from "@telegraf/types/markup";
 export class TelegramMessageEvent extends TelegramChatEvent implements IncomingMessageEvent {
     public timestamp = this.message.date;
     public id = this.message.message_id;
+    public replyTo?: ReplyToInfo;
 
     constructor(private message: tg.Message, messenger: TelegramMessenger) {
         super(message.chat.id, message.from, messenger)
+        const replyTo = (message as tg.Message & { reply_to_message?: tg.Message }).reply_to_message;
+        if (replyTo) {
+            const text = (replyTo as tg.Message.TextMessage).text
+                ?? (replyTo as tg.Message.CaptionableMessage).caption;
+            if (text) {
+                this.replyTo = {
+                    text,
+                    isBot: replyTo.from?.is_bot === true,
+                };
+            }
+        }
     }
 
     async audio(): Promise<AudioMessage | undefined> {

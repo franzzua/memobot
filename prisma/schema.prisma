@@ -50,13 +50,15 @@ model Message {
 }
 
 model Word {
-  id           String  @id @default(uuid(7))
-  word         String
-  description  String?
-  type         String?
-  level        String?
-  frequency    Float?
-  satFrequency Int?
+  id            String  @id @default(uuid(7))
+  word          String
+  description   String?
+  type          String?
+  level         String?
+  frequency     Float?
+  satFrequency  Int?
+  voice         Bytes?
+  transcription String?
 }
 
 model Quiz {
