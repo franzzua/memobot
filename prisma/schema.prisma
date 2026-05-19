@@ -59,6 +59,8 @@ model Word {
   satFrequency  Int?
   voice         Bytes?
   transcription String?
+  example       String?
+  image         Bytes?
 }
 
 model Quiz {

@@ -44,4 +44,12 @@ export class WordsDatabase {
     public async setTranscription(id: string, transcription: string): Promise<void> {
         await this.prisma.word.update({where: {id}, data: {transcription}});
     }
+
+    public async setExample(id: string, example: string): Promise<void> {
+        await this.prisma.word.update({where: {id}, data: {example}});
+    }
+
+    public async setImage(id: string, image: Buffer): Promise<void> {
+        await this.prisma.word.update({where: {id}, data: {image}});
+    }
 }
