@@ -17,20 +17,25 @@ type PredictResponse = {
 @singleton()
 export class Imagen {
     async generate(prompt: string): Promise<Buffer | undefined> {
-        const client = await auth.getClient();
-        const location = pickLocation();
-        const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${gcsConfig.projectId}/locations/${location}/publishers/google/models/${MODEL}:predict`;
-        const res = await client.request<PredictResponse>({
-            url,
-            method: 'POST',
-            data: {
-                instances: [{prompt}],
-                parameters: {sampleCount: 1, aspectRatio: '1:1'},
-            },
-            timeout: 120000,
-        });
-        const b64 = res.data?.predictions?.[0]?.bytesBase64Encoded;
-        if (!b64) return undefined;
-        return Buffer.from(b64, 'base64');
+        try {
+            const client = await auth.getClient();
+            const location = pickLocation();
+            const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${gcsConfig.projectId}/locations/${location}/publishers/google/models/${MODEL}:predict`;
+            const res = await client.request<PredictResponse>({
+                url,
+                method: 'POST',
+                data: {
+                    instances: [{prompt}],
+                    parameters: {sampleCount: 1, aspectRatio: '1:1'},
+                },
+                timeout: 120000,
+            });
+            const b64 = res.data?.predictions?.[0]?.bytesBase64Encoded;
+            if (!b64) return undefined;
+            return Buffer.from(b64, 'base64');
+        } catch (e) {
+            console.error('Imagen generate error:', e);
+            return undefined;
+        }
     }
 }
