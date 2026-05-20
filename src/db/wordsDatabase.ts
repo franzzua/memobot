@@ -14,7 +14,6 @@ export class WordsDatabase {
                 }
             }
         });
-        console.log(res);
         return res;
     }
 
