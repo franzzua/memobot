@@ -2,7 +2,7 @@ import {singleton} from "@cmmn/core";
 import {auth} from "google-auth-library";
 import {gcsConfig} from "../db/gcs.config";
 
-const MODEL = 'imagen-4.0-generate-001';
+const MODEL = 'imagen-4.0-fast-generate-001';
 const DEFAULT_LOCATIONS = [
     'us-central1', 'us-east4', 'us-west1',
     'europe-west1', 'europe-west4',
