@@ -2,12 +2,8 @@ import {singleton} from "@cmmn/core";
 import {auth} from "google-auth-library";
 import {gcsConfig} from "../db/gcs.config";
 
-const MODEL = 'imagen-4.0-fast-generate-001';
-const DEFAULT_LOCATIONS = [
-    'us-central1', 'us-east4', 'us-west1',
-    'europe-west1', 'europe-west4',
-];
-const LOCATIONS = (process.env.IMAGEN_LOCATIONS?.split(',').map(s => s.trim()).filter(Boolean)) ?? DEFAULT_LOCATIONS;
+const MODEL = 'imagen-4.0-generate-001';
+const LOCATIONS = (process.env.IMAGEN_LOCATIONS?.split(',').map(s => s.trim()).filter(Boolean)) ?? ['us-central1'];
 const pickLocation = () => LOCATIONS[Math.floor(Math.random() * LOCATIONS.length)];
 
 type PredictResponse = {
@@ -26,7 +22,11 @@ export class Imagen {
                 method: 'POST',
                 data: {
                     instances: [{prompt}],
-                    parameters: {sampleCount: 1, aspectRatio: '1:1'},
+                    parameters: {
+                        sampleCount: 1,
+                        aspectRatio: '1:1',
+                        outputOptions: {mimeType: 'image/jpeg', compressionQuality: 75},
+                    },
                 },
                 timeout: 120000,
             });
