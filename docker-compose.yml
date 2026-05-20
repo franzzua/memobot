@@ -11,19 +11,39 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  mysql:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: memobot
-    ports:
-      - "3306:3306"
+  app:
+    image: node:22-slim
+    working_dir: /app
+    command: npm run run
+    restart: unless-stopped
     volumes:
-      - mysql_data:/var/lib/mysql
+      - .:/app
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/gcloud/adc.json:ro
+    ports:
+      - "5800:5800"
+    env_file:
+      - configs/.env
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres:5432/memobot
+      DATABASE_HOST: postgres
+      DATABASE_PORT: "5432"
+      DATABASE_USER: user
+      DATABASE_PASSWORD: password
+      DATABASE_DB: memobot
+      GOOGLE_APPLICATION_CREDENTIALS: /gcloud/adc.json
+      GOOGLE_CLOUD_QUOTA_PROJECT: spixmemo
+      GOOGLE_CLOUD_PROJECT: spixmemo
+    depends_on:
+      - postgres
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command: http app:5800 --domain rabbit-becoming-currently.ngrok-free.app
+    volumes:
+      - ${HOME}/.config/ngrok/ngrok.yml:/var/lib/ngrok/ngrok.yml:ro
+    depends_on:
+      - app
 
 volumes:
   postgres_data:
-  mysql_data:

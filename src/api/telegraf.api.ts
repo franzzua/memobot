@@ -13,6 +13,11 @@ import {renderQuiz} from "../services/quiz-render";
 import {resolve} from "@cmmn/core";
 import {SrsPlanner} from "../services/srs-planner";
 
+const WORD_REPLY_KEYBOARD = {
+    keyboard: [[{text: 'voice'}, {text: 'example'}, {text: 'skip'}]],
+    resize_keyboard: true,
+    is_persistent: true,
+};
 
 if (!process.env.BOT_TOKEN)
     throw new Error(`BOT_TOKEN is not defined`);
@@ -88,7 +93,10 @@ export class TelegrafApi {
                     await this.messenger.send(chatId, content ?? `Failed generate content`, {disable_notification: skipNotification});
                 } else if (kind === 'word') {
                     const text = `<b>${message.content}</b>\n${message.details}`;
-                    await this.messenger.send(chatId, text, {disable_notification: skipNotification});
+                    await this.messenger.send(chatId, text, {
+                        disable_notification: skipNotification,
+                        reply_markup: WORD_REPLY_KEYBOARD,
+                    });
                 } else if (kind === 'quiz') {
                     await this.sendNextQuiz(chatId, skipNotification);
                 }

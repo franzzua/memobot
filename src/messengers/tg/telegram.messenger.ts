@@ -105,6 +105,8 @@ export class TelegramMessenger extends Messenger {
                     source: message.audio,
                 }, {
                     ...tgOptions,
+                    caption: message.caption,
+                    parse_mode: message.caption ? 'HTML' : undefined,
                 });
                 break;
             case "document":

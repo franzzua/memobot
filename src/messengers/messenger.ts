@@ -71,6 +71,7 @@ export type AudioMessage = {
     type: 'audio';
     audio: Buffer;
     audioType: 'mp3' | 'ogg';
+    caption?: string;
 }
 
 export type QuizMessage = {

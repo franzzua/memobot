@@ -9,7 +9,9 @@ export async function onAnyMessage(this: TelegrafApi, e: IncomingMessageEvent) {
     const message = await e.text();
     if (!message) return;
     if (await tryHandleWordReply.call(this, e)) return;
-    const { state, stateData } = await this.chatDatabase.getChatState(e.chat.toString());
+    const chatState = await this.chatDatabase.getChatState(e.chat.toString());
+    if (!chatState) return;
+    const { state, stateData } = chatState;
     switch (state) {
         case ChatState.writeQuiz:
             return onQuizWriteAnswer.call(this, e, stateData);

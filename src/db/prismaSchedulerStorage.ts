@@ -274,6 +274,16 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
     }
 
     @Logger.measure
+    async getLastSentWordRefId(chatId: string): Promise<string | null> {
+        const msg = await this.prisma.message.findFirst({
+            where: { chatId, kind: 'word', invokeCounter: { gt: 0 } },
+            orderBy: { last: 'desc' },
+            select: { refId: true }
+        });
+        return msg?.refId ?? null;
+    }
+
+    @Logger.measure
     async getMessagesByKind(chatId: string, kinds: string[]) {
         const messages = await this.prisma.message.findMany({
             where: { chatId, kind: { in: kinds } }

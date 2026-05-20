@@ -4,11 +4,11 @@ import {PrismaPg} from '@prisma/adapter-pg'
 
 export function prismaFactory(): PrismaClient {
     const pool = new Pool({
-        user: process.env.DATABASE_USER,
-        password: process.env.DATABASE_PASSWORD,
+        user: process.env.DATABASE_USER ?? 'user',
+        password: process.env.DATABASE_PASSWORD ?? 'password',
         host: process.env.DATABASE_HOST,
         port: process.env.DATABASE_PORT,
-        database: process.env.DATABASE_DB,
+        database: process.env.DATABASE_DB ?? 'memobot',
     })
     const adapter = new PrismaPg(pool)
     return new PrismaClient({adapter});

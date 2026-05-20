@@ -1,9 +1,10 @@
 import textToSpeech from "@google-cloud/text-to-speech";
 import {singleton} from "@cmmn/core";
+import {gcsConfig} from "../db/gcs.config";
 
 @singleton()
 export class TextToSpeech{
-    private client = new textToSpeech.TextToSpeechClient();
+    private client = new textToSpeech.TextToSpeechClient({projectId: gcsConfig.projectId});
     async getStream(text: string, type: 'mp3' | 'ogg_opus'){
 
         const [response] = await this.client.synthesizeSpeech({

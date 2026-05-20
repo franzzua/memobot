@@ -1,14 +1,13 @@
 import {singleton} from "@cmmn/core";
-import {auth} from "google-auth-library";
 import {GenerativeModel, VertexAI} from "@google-cloud/vertexai";
+import {gcsConfig} from "../db/gcs.config";
 
 @singleton()
 export class AiModel {
     private model: GenerativeModel | undefined;
     private async getModel(){
-        const projectId = await auth.getProjectId();
         const vertexAI = new VertexAI({
-            project: projectId!
+            project: gcsConfig.projectId,
         });
         return vertexAI.getGenerativeModel({
             model: 'gemini-2.0-flash',

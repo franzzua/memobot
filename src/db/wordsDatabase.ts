@@ -31,6 +31,10 @@ export class WordsDatabase {
         `;
     }
 
+    public async getById(id: string): Promise<Word | null> {
+        return this.prisma.word.findUnique({where: {id}});
+    }
+
     public async getByIds(ids: string[]): Promise<Map<string, Word>> {
         if (ids.length === 0) return new Map();
         const rows = await this.prisma.word.findMany({where: {id: {in: ids}}});
