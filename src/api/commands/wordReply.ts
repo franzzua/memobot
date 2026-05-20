@@ -1,14 +1,15 @@
 import {TelegrafApi} from "../telegraf.api";
-import {AudioMessage, IncomingMessageEvent} from "../../messengers/messenger";
+import {AudioMessage, ImageMessage, IncomingMessageEvent} from "../../messengers/messenger";
 import {resolve} from "@cmmn/core";
 import {WordsDatabase} from "../../db/wordsDatabase";
 import {TextToSpeech} from "../../services/text-to-speech";
 import {AiModel} from "../../services/ai-model";
+import {Imagen} from "../../services/imagen";
 import {PrismaSchedulerStorage} from "../../db/prismaSchedulerStorage";
 import {TaskScheduler} from "../../db/task.scheduler";
 import type {Word} from "../../../prisma/client";
 
-const KEYWORDS = ['voice', 'example', 'skip'] as const;
+const KEYWORDS = ['voice', 'example', 'image', 'skip'] as const;
 type Keyword = typeof KEYWORDS[number];
 
 function isKeyword(value: string): value is Keyword {
@@ -47,6 +48,26 @@ async function ensureTranscription(word: Word): Promise<string> {
     return transcription;
 }
 
+async function ensureExample(word: Word): Promise<string> {
+    const existing = word.example?.trim();
+    if (existing) return existing;
+    const sentence = await resolve(AiModel).prompt(
+        `Write one short, natural example sentence using the English word "${word.word}". Return only the sentence.`
+    );
+    const example = (sentence ?? '').trim();
+    if (example) await resolve(WordsDatabase).setExample(word.id, example);
+    return example;
+}
+
+async function ensureImage(word: Word): Promise<Buffer | undefined> {
+    if (word.image) return Buffer.from(word.image);
+    const example = await ensureExample(word);
+    const prompt = `Image in rubberhouse style but orange-violet desaturated gamma, like pastel or Anderson films, ${example}`;
+    const image = await resolve(Imagen).generate(prompt);
+    if (image) await resolve(WordsDatabase).setImage(word.id, image);
+    return image;
+}
+
 async function ensureVoice(word: Word): Promise<Buffer> {
     if (word.voice) return Buffer.from(word.voice);
     const audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus');
@@ -76,10 +97,17 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
             return true;
         }
         case 'example': {
-            const sentence = await resolve(AiModel).prompt(
-                `Write one short, natural example sentence using the English word "${word.word}". Return only the sentence.`
-            );
-            await e.reply((sentence ?? '').trim() || `Cannot create example for ${word.word}`, {replyTo: e.id});
+            const sentence = await ensureExample(word);
+            await e.reply(sentence || `Cannot create example for ${word.word}`, {replyTo: e.id});
+            return true;
+        }
+        case 'image': {
+            const image = await ensureImage(word);
+            if (!image) {
+                await e.reply(`Cannot generate image for ${word.word}`, {replyTo: e.id});
+                return true;
+            }
+            await e.reply({type: 'image', image, caption: `<b>${word.word}</b>`} as ImageMessage, {replyTo: e.id});
             return true;
         }
         case 'skip': {
