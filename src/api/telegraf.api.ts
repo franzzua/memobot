@@ -7,11 +7,13 @@ import {onAnyMessage} from "./commands/onAnyMessage";
 import {Message} from "../types";
 import {TaskHandle} from "../scheduler/scheduler";
 import {TaskSendHandlers} from "../services/send-handlers/index";
+import {WordSendHandlers} from "../services/word-send-handlers";
 import {Logger} from "../logger/logger";
 import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
 import {renderQuiz} from "../services/quiz-render";
 import {resolve} from "@cmmn/core";
 import {SrsPlanner} from "../services/srs-planner";
+import {WordsDatabase} from "../db/wordsDatabase";
 
 const WORD_REPLY_KEYBOARD = {
     keyboard: [[{text: 'voice'}, {text: 'example'}, {text: 'skip'}]],
@@ -92,11 +94,26 @@ export class TelegrafApi {
                         : null;
                     await this.messenger.send(chatId, content ?? `Failed generate content`, {disable_notification: skipNotification});
                 } else if (kind === 'word') {
-                    const text = `<b>${message.content}</b>\n${message.details}`;
-                    await this.messenger.send(chatId, text, {
-                        disable_notification: skipNotification,
-                        reply_markup: WORD_REPLY_KEYBOARD,
-                    });
+                    const dateIndex = message.invokeCounter + i;
+                    if (dateIndex === 0 || !message.refId) {
+                        const text = `<b>${message.content}</b>\n${message.details}`;
+                        await this.messenger.send(chatId, text, {
+                            disable_notification: skipNotification,
+                            reply_markup: WORD_REPLY_KEYBOARD,
+                        });
+                    } else {
+                        const handler = WordSendHandlers[dateIndex - 1];
+                        if (!handler) continue;
+                        const word = (await resolve(WordsDatabase).getByIds([message.refId])).get(message.refId);
+                        if (!word) continue;
+                        const content = await this.logger.measure(
+                            () => handler({chatId, message, word}),
+                            'WordHandler.' + handler.name
+                        );
+                        if (content) {
+                            await this.messenger.send(chatId, content, {disable_notification: skipNotification});
+                        }
+                    }
                 } else if (kind === 'quiz') {
                     await this.sendNextQuiz(chatId, skipNotification);
                 }
