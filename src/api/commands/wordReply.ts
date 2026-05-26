@@ -52,7 +52,7 @@ async function ensureExample(word: Word): Promise<string> {
     const existing = word.example?.trim();
     if (existing) return existing;
     const sentence = await resolve(AiModel).prompt(
-        `Write one short, natural example sentence using the English word "${word.word}". Return only the sentence.`
+        `Write one short, natural example sentence using the English word "${word.word}". Avoid military or depressive themes. Return only the sentence.`
     );
     const example = (sentence ?? '').trim();
     if (example) await resolve(WordsDatabase).setExample(word.id, example);
@@ -62,7 +62,7 @@ async function ensureExample(word: Word): Promise<string> {
 async function ensureImage(word: Word): Promise<Buffer | undefined> {
     if (word.image) return Buffer.from(word.image);
     const example = await ensureExample(word);
-    const prompt = `Image in rubberhouse style but orange-violet desaturated gamma, like pastel or Anderson films, ${example}`;
+    const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
     const image = await resolve(Imagen).generate(prompt);
     if (image) await resolve(WordsDatabase).setImage(word.id, image);
     return image;
@@ -98,16 +98,17 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
         }
         case 'example': {
             const sentence = await ensureExample(word);
-            await e.reply(sentence || `Cannot create example for ${word.word}`, {replyTo: e.id});
+            await e.reply(sentence ? `<i>${sentence}</i>` : `Cannot create example for ${word.word}`, {replyTo: e.id});
             return true;
         }
         case 'image': {
-            const image = await ensureImage(word);
+            const [image, example] = await Promise.all([ensureImage(word), ensureExample(word)]);
             if (!image) {
                 await e.reply(`Cannot generate image for ${word.word}`, {replyTo: e.id});
                 return true;
             }
-            await e.reply({type: 'image', image, caption: `<b>${word.word}</b>`} as ImageMessage, {replyTo: e.id});
+            const caption = `<b>${word.word}</b>${example ? `\n<span class="tg-spoiler"><i>${example}</i></span>` : ''}`;
+            await e.reply({type: 'image', image, caption} as ImageMessage, {replyTo: e.id});
             return true;
         }
         case 'skip': {

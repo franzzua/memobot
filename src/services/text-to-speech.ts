@@ -10,7 +10,7 @@ export class TextToSpeech{
         const [response] = await this.client.synthesizeSpeech({
             input: { text },
             voice: {languageCode: 'en-US', ssmlGender: 'FEMALE', name: 'en-US-Journey-F'},
-            audioConfig: {audioEncoding: type.toLocaleUpperCase() as any },
+            audioConfig: {audioEncoding: type.toLocaleUpperCase() as any, speakingRate: 0.85 },
         });
         if (response.audioContent instanceof Uint8Array) {
             return Buffer.from(response.audioContent);

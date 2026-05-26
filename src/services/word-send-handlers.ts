@@ -49,29 +49,29 @@ const voiceTransHandler: WordSendHandler = async function voiceTransHandler({wor
         transcription = (ipa ?? '').trim();
         if (transcription) await wordsDb.setTranscription(word.id, transcription);
     }
-    return {type: 'audio', audio, audioType: 'ogg'} as AudioMessage;
+    return {type: 'audio', audio, audioType: 'ogg', caption: transcription || undefined} as AudioMessage;
 };
 
 const exampleHandler: WordSendHandler = async function exampleHandler({word}) {
     const example = await ensureExample(word);
-    return `${wordHeader(word)}\n${boldWord(example, word.word)}`;
+    return `${wordHeader(word)}\n<i>${boldWord(example, word.word)}</i>`;
 };
 
 const imagenHandler: WordSendHandler = async function imagenHandler({word}) {
     const example = await ensureExample(word);
     let image: Buffer | undefined = word.image ? Buffer.from(word.image) : undefined;
     if (!image) {
-        const prompt = `Image in rubberhouse style but orange-violet desaturated gamma, like pastel or Anderson films, ${example}`;
+        const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
         image = await resolve(Imagen).generate(prompt);
         if (image) await resolve(WordsDatabase).setImage(word.id, image);
     }
     if (!image) {
-        return `${wordHeader(word)}\n${boldWord(example, word.word)}`;
+        return `${wordHeader(word)}\n<i>${boldWord(example, word.word)}</i>`;
     }
     return {
         type: 'image',
         image,
-        caption: `${wordHeader(word)}\n${boldWord(example, word.word)}`,
+        caption: `${wordHeader(word)}\n<i>${boldWord(example, word.word)}</i>`,
     } as ImageMessage;
 };
 
@@ -91,7 +91,7 @@ export const WordSendHandlers: WordSendHandler[] = [
 async function ensureExample(word: Word): Promise<string> {
     if (word.example?.trim()) return word.example.trim();
     const sentence = await resolve(AiModel).prompt(
-        `Write one short, natural example sentence using the English word "${word.word}". Return only the sentence.`
+        `Write one short, natural example sentence using the English word "${word.word}". Avoid military or depressive themes. Return only the sentence.`
     );
     const example = (sentence ?? '').trim();
     if (example) await resolve(WordsDatabase).setExample(word.id, example);
