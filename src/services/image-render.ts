@@ -33,20 +33,20 @@ export class ImageRender {
     private headerStyle: Style = {
         bg: '#209dba',
         color: '#ffffff',
-        fontSize: 16,
-        margin: 8,
+        fontSize: 80,
+        margin: 16,
         font: 'Lexend',
         bold: true,
     };
     private style: Style = {
         bg: '#e8f5f8',
         color: '#041013',
-        fontSize: 14,
-        margin: 8,
+        fontSize: 48,
+        margin: 16,
         font: 'Nunito',
         bold: false,
     };
-    private margin = 16;
+    private margin = 32;
 
     constructor(private title: string,
                 private text: string) {
@@ -54,7 +54,7 @@ export class ImageRender {
 
     public render() {
         const header = new TextBlock(this.title, this.headerStyle, this.width - this.margin * 2, false, 3);
-        const content = new TextBlock(this.text, this.style, this.width - this.margin * 2, true);
+        const content = new TextBlock(this.text, this.style, this.width - this.margin * 2, false);
 
         const height = header.height + content.height;
         const canvas = new Context(this.width, height);
