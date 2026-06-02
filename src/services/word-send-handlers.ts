@@ -90,8 +90,11 @@ export const WordSendHandlers: WordSendHandler[] = [
 
 async function ensureExample(word: Word): Promise<string> {
     if (word.example?.trim()) return word.example.trim();
+    const meaningClause = word.description?.trim()
+        ? ` in the sense of "${word.description.trim()}"`
+        : '';
     const sentence = await resolve(AiModel).prompt(
-        `Write one short, natural example sentence using the English word "${word.word}". Avoid military or depressive themes. Return only the sentence.`
+        `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
     );
     const example = (sentence ?? '').trim();
     if (example) await resolve(WordsDatabase).setExample(word.id, example);
