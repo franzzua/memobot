@@ -115,7 +115,7 @@ function shuffleInPlace<T>(arr: T[]): void {
     }
 }
 
-async function pickDistractorWords(chatId: string, currentWordId: string, n: number): Promise<Word[]> {
+export async function pickDistractorWords(chatId: string, currentWordId: string, n: number): Promise<Word[]> {
     const db = resolve(PrismaSchedulerStorage);
     const plan = await db.getPlanState(chatId);
     if (!plan) return [];

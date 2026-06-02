@@ -2,6 +2,9 @@ import { TelegrafApi } from "../telegraf.api";
 import { ChatState } from "../../types";
 import {IncomingMessageEvent} from "../../messengers/messenger";
 import { renderQuiz } from "../../services/quiz-render";
+import { generateSatQuiz } from "../../services/sat-quiz-generator";
+import { resolveWord } from "./wordReply";
+import { pickDistractorWords } from "../../services/word-send-handlers";
 
 
 export async function onQuiz(this: TelegrafApi, ctx: IncomingMessageEvent){
@@ -58,13 +61,32 @@ export async function onQuizWriteAnswer(this: TelegrafApi, ctx: IncomingMessageE
 }
 
 export async function onDbQuiz(this: TelegrafApi, ctx: IncomingMessageEvent) {
-    const msg = await ctx.text();
-    const indexArg = msg?.text?.match(/\/\w+\s+(\d+)/)?.[1];
-    const quiz = indexArg !== undefined
-        ? await this.chatDatabase.getQuizByIndex(parseInt(indexArg, 10))
-        : await this.chatDatabase.getRandomQuiz();
-    if (!quiz) return ctx.reply('No quizzes available in the database');
+    const chatId = ctx.chat.toString();
+    const target = await resolveWord(ctx);
 
+    if (target) {
+        const distractors = await pickDistractorWords(chatId, target.id, 3);
+        if (distractors.length >= 3) {
+            const generated = await generateSatQuiz(target, distractors);
+            if (generated) {
+                for (const payload of renderQuiz({
+                    id: '',
+                    index: 0,
+                    question: generated.question,
+                    answers: generated.answers,
+                    correct: generated.correct,
+                    table_md: null,
+                    attachment: null,
+                } as any)) {
+                    await ctx.reply(payload as any);
+                }
+                return;
+            }
+        }
+    }
+
+    const quiz = await this.chatDatabase.getRandomQuiz();
+    if (!quiz) return ctx.reply('No quizzes available');
     for (const payload of renderQuiz(quiz)) {
         await ctx.reply(payload as any);
     }

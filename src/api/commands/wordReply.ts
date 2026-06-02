@@ -23,7 +23,7 @@ function extractWord(botText: string): string | undefined {
     return stripped || undefined;
 }
 
-async function resolveWord(e: IncomingMessageEvent): Promise<Word | null> {
+export async function resolveWord(e: IncomingMessageEvent): Promise<Word | null> {
     const wordsDb = resolve(WordsDatabase);
     if (e.replyTo?.isBot && e.replyTo.text) {
         const candidate = extractWord(e.replyTo.text);
