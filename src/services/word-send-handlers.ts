@@ -36,11 +36,6 @@ const quizHandler: WordSendHandler = async function quizHandler({chatId, word}) 
 
 const voiceTransHandler: WordSendHandler = async function voiceTransHandler({word}) {
     const wordsDb = resolve(WordsDatabase);
-    let audio: Buffer | undefined = word.voice ? Buffer.from(word.voice) : undefined;
-    if (!audio) {
-        audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus');
-        await wordsDb.setVoice(word.id, audio);
-    }
     let transcription = word.transcription?.trim();
     if (!transcription) {
         const ipa = await resolve(AiModel).prompt(
@@ -48,6 +43,11 @@ const voiceTransHandler: WordSendHandler = async function voiceTransHandler({wor
         );
         transcription = (ipa ?? '').trim();
         if (transcription) await wordsDb.setTranscription(word.id, transcription);
+    }
+    let audio: Buffer | undefined = word.voice ? Buffer.from(word.voice) : undefined;
+    if (!audio) {
+        audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus', transcription || undefined);
+        await wordsDb.setVoice(word.id, audio);
     }
     return {type: 'audio', audio, audioType: 'ogg', caption: transcription || undefined} as AudioMessage;
 };

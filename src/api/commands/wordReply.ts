@@ -16,6 +16,12 @@ function isKeyword(value: string): value is Keyword {
     return (KEYWORDS as readonly string[]).includes(value);
 }
 
+function parseKeyword(text: string): {keyword: Keyword; force: boolean} | null {
+    const [kw, modifier] = text.trim().toLowerCase().split(/\s+/);
+    if (!isKeyword(kw)) return null;
+    return {keyword: kw, force: modifier === 'force'};
+}
+
 function extractWord(botText: string): string | undefined {
     const firstLine = botText.split('\n')[0]?.trim();
     if (!firstLine) return undefined;
@@ -37,9 +43,9 @@ export async function resolveWord(e: IncomingMessageEvent): Promise<Word | null>
     return wordsDb.getById(lastId);
 }
 
-async function ensureTranscription(word: Word): Promise<string> {
+async function ensureTranscription(word: Word, force = false): Promise<string> {
     const existing = word.transcription?.trim();
-    if (existing) return existing;
+    if (existing && !force) return existing;
     const ipa = await resolve(AiModel).prompt(
         `Return only the IPA phonetic transcription (in the standard /…/ form, no extra words) for the English word: "${word.word}".`
     );
@@ -48,29 +54,32 @@ async function ensureTranscription(word: Word): Promise<string> {
     return transcription;
 }
 
-async function ensureExample(word: Word): Promise<string> {
+async function ensureExample(word: Word, force = false): Promise<string> {
     const existing = word.example?.trim();
-    if (existing) return existing;
+    if (existing && !force) return existing;
+    const meaningClause = word.description?.trim()
+        ? ` in the sense of "${word.description.trim()}"`
+        : '';
     const sentence = await resolve(AiModel).prompt(
-        `Write one short, natural example sentence using the English word "${word.word}". Avoid military or depressive themes. Return only the sentence.`
+        `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
     );
     const example = (sentence ?? '').trim();
     if (example) await resolve(WordsDatabase).setExample(word.id, example);
     return example;
 }
 
-async function ensureImage(word: Word): Promise<Buffer | undefined> {
-    if (word.image) return Buffer.from(word.image);
-    const example = await ensureExample(word);
+async function ensureImage(word: Word, force = false): Promise<Buffer | undefined> {
+    if (word.image && !force) return Buffer.from(word.image);
+    const example = await ensureExample(word, force);
     const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
     const image = await resolve(Imagen).generate(prompt);
     if (image) await resolve(WordsDatabase).setImage(word.id, image);
     return image;
 }
 
-async function ensureVoice(word: Word): Promise<Buffer> {
-    if (word.voice) return Buffer.from(word.voice);
-    const audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus');
+async function ensureVoice(word: Word, ipa?: string, force = false): Promise<Buffer> {
+    if (word.voice && !force) return Buffer.from(word.voice);
+    const audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus', ipa || undefined);
     await resolve(WordsDatabase).setVoice(word.id, audio);
     return audio;
 }
@@ -78,16 +87,15 @@ async function ensureVoice(word: Word): Promise<Buffer> {
 export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEvent): Promise<boolean> {
     const text = (await e.text())?.text;
     if (!text) return false;
-    const keyword = text.trim().toLowerCase();
-    if (!isKeyword(keyword)) return false;
+    const parsed = parseKeyword(text);
+    if (!parsed) return false;
+    const {keyword, force} = parsed;
     const word = await resolveWord(e);
     if (!word) return false;
     switch (keyword) {
         case 'voice': {
-            const [audio, transcription] = await Promise.all([
-                ensureVoice(word),
-                ensureTranscription(word),
-            ]);
+            const transcription = await ensureTranscription(word, force);
+            const audio = await ensureVoice(word, transcription, force);
             await e.reply({
                 type: 'audio',
                 audio,
@@ -97,12 +105,13 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
             return true;
         }
         case 'example': {
-            const sentence = await ensureExample(word);
+            const sentence = await ensureExample(word, force);
             await e.reply(sentence ? `<i>${sentence}</i>` : `Cannot create example for ${word.word}`, {replyTo: e.id});
             return true;
         }
         case 'image': {
-            const [image, example] = await Promise.all([ensureImage(word), ensureExample(word)]);
+            const image = await ensureImage(word, force);
+            const example = word.example?.trim() || '';
             if (!image) {
                 await e.reply(`Cannot generate image for ${word.word}`, {replyTo: e.id});
                 return true;
