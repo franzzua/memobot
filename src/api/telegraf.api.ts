@@ -71,8 +71,8 @@ export class TelegrafApi {
     async invokeTask(chatId: string): Promise<boolean> {
         const state = await this.bot.getTaskState(chatId, new Date());
         if (!state.unprocessed) return true;
-        await this.sendTasks(chatId, state);
         await state.markProcessed();
+        await this.sendTasks(chatId, state);
         return true;
     }
 

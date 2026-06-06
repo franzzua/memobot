@@ -36,7 +36,7 @@ jobs:
           gcloud functions deploy ${{ env.function }} \
             --region=${{ env.region }} --runtime=nodejs22 --source=out \
             --entry-point=telegram --trigger-http --gen2 --allow-unauthenticated \
-            --timeout=300 \
+            --timeout=1800 \
             --set-env-vars=BOT_TOKEN=${{ env.token}} \
             --set-env-vars=ENVIRONMENT=${{ env.env }} \
             --set-env-vars=PLAN_SHEET_ID=${{ secrets.PLAN_SHEET_ID }} \

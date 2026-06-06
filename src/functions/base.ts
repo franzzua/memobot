@@ -17,7 +17,8 @@ export function baseFunction(name: string, handle: (
         }, `function.${name}`).catch((err) => {
             logger.send({
                 error: err.message ?? err
-            })
+            });
+            res.sendStatus(500);
         });
     }
 }
