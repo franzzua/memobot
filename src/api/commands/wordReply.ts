@@ -68,13 +68,13 @@ async function ensureExample(word: Word, force = false): Promise<string> {
     return example;
 }
 
-async function ensureImage(word: Word, force = false): Promise<Buffer | undefined> {
-    if (word.image && !force) return Buffer.from(word.image);
+async function ensureImage(word: Word, force = false): Promise<{image: Buffer | undefined, example: string}> {
+    if (word.image && !force) return {image: Buffer.from(word.image), example: word.example?.trim() ?? ''};
     const example = await ensureExample(word, force);
     const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
     const image = await resolve(Imagen).generate(prompt);
     if (image) await resolve(WordsDatabase).setImage(word.id, image);
-    return image;
+    return {image, example};
 }
 
 async function ensureVoice(word: Word, ipa?: string, force = false): Promise<Buffer> {
@@ -110,8 +110,7 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
             return true;
         }
         case 'image': {
-            const image = await ensureImage(word, force);
-            const example = word.example?.trim() || '';
+            const {image, example} = await ensureImage(word, force);
             if (!image) {
                 await e.reply(`Cannot generate image for ${word.word}`, {replyTo: e.id});
                 return true;
