@@ -53,12 +53,13 @@ export class TelegramMessenger extends Messenger {
         // this.tg.command('actions', ctx => {
         //
         // });
-        this.tg.hears(/.*/, ((ctx: Context) => {
+        this.tg.hears(/.*/, (async (ctx: Context) => {
             switch (ctx.updateType) {
                 case "message": {
                     const update = ctx.update as tg.Update.MessageUpdate;
                     const msg = new TelegramMessageEvent(update.message, this);
-                    this.emit('message', msg);
+                    const handlers = (this as any).listeners?.get('message') ?? [];
+                    await Promise.all(handlers.map((h: any) => h.listener(msg)));
                 }
             }
         }) as any);

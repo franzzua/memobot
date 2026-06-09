@@ -48,6 +48,7 @@ export class MemoBot {
     }
 
     async deleteAllMessages(chatId: string) {
+        await this.scheduler.recomputeTask(chatId);
         await this.db.removeAllMessages(chatId);
     }
 
