@@ -13,7 +13,7 @@ import {generateSatQuiz} from "../../services/sat-quiz-generator";
 import {renderQuiz} from "../../services/quiz-render";
 import {ImageRender} from "../../services/image-render";
 
-const KEYWORDS = ['voice', 'example', 'image', 'skip', 'wordQuiz', 'satQuiz', 'card'] as const;
+const KEYWORDS = ['voice', 'example', 'image', 'skip', 'wordquiz', 'satquiz', 'card'] as const;
 type Keyword = typeof KEYWORDS[number];
 
 function isKeyword(value: string): value is Keyword {
@@ -128,7 +128,7 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
             await e.reply(`Skipped ${word.word}`, {replyTo: e.id});
             return true;
         }
-        case 'wordQuiz': {
+        case 'wordquiz': {
             const chatId = e.chat.toString();
             const distractors = await pickDistractorWords(chatId, word.id, 3);
             if (distractors.length < 3) {
@@ -149,7 +149,7 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
             } as QuizMessage, {replyTo: e.id});
             return true;
         }
-        case 'satQuiz': {
+        case 'satquiz': {
             const chatId = e.chat.toString();
             const distractors = await pickDistractorWords(chatId, word.id, 3);
             if (distractors.length < 3) {
