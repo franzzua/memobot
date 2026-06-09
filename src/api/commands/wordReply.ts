@@ -1,5 +1,5 @@
 import {TelegrafApi} from "../telegraf.api";
-import {AudioMessage, ImageMessage, IncomingMessageEvent} from "../../messengers/messenger";
+import {AudioMessage, ImageMessage, IncomingMessageEvent, QuizMessage} from "../../messengers/messenger";
 import {resolve} from "@cmmn/core";
 import {WordsDatabase} from "../../db/wordsDatabase";
 import {TextToSpeech} from "../../services/text-to-speech";
@@ -8,8 +8,12 @@ import {Imagen} from "../../services/imagen";
 import {PrismaSchedulerStorage} from "../../db/prismaSchedulerStorage";
 import {TaskScheduler} from "../../db/task.scheduler";
 import type {Word} from "../../../prisma/client";
+import {pickDistractorWords} from "../../services/word-send-handlers";
+import {generateSatQuiz} from "../../services/sat-quiz-generator";
+import {renderQuiz} from "../../services/quiz-render";
+import {ImageRender} from "../../services/image-render";
 
-const KEYWORDS = ['voice', 'example', 'image', 'skip'] as const;
+const KEYWORDS = ['voice', 'example', 'image', 'skip', 'wordQuiz', 'satQuiz', 'card'] as const;
 type Keyword = typeof KEYWORDS[number];
 
 function isKeyword(value: string): value is Keyword {
@@ -122,6 +126,54 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
         case 'skip': {
             await resolve(TaskScheduler).unschedule(e.chat.toString(), `word.${word.id}`);
             await e.reply(`Skipped ${word.word}`, {replyTo: e.id});
+            return true;
+        }
+        case 'wordQuiz': {
+            const chatId = e.chat.toString();
+            const distractors = await pickDistractorWords(chatId, word.id, 3);
+            if (distractors.length < 3) {
+                await e.reply(`<b>${word.word}</b>\n${word.description ?? ''}`, {replyTo: e.id});
+                return true;
+            }
+            const pool = [word, ...distractors];
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            const correct = pool.findIndex(w => w.id === word.id);
+            await e.reply({
+                type: 'quiz',
+                question: word.description ?? word.word,
+                answers: pool.map(w => w.word),
+                options: {correct_option_id: correct, allows_multiple_answers: false},
+            } as QuizMessage, {replyTo: e.id});
+            return true;
+        }
+        case 'satQuiz': {
+            const chatId = e.chat.toString();
+            const distractors = await pickDistractorWords(chatId, word.id, 3);
+            if (distractors.length < 3) {
+                await e.reply(`Not enough words for SAT quiz yet`, {replyTo: e.id});
+                return true;
+            }
+            const generated = await generateSatQuiz(word, distractors);
+            if (!generated) {
+                await e.reply(`Could not generate SAT quiz for ${word.word}`, {replyTo: e.id});
+                return true;
+            }
+            for (const payload of renderQuiz({
+                id: '', index: 0, table_md: null, attachment: null,
+                question: generated.question,
+                answers: generated.answers,
+                correct: generated.correct,
+            } as any)) {
+                await e.reply(payload as any);
+            }
+            return true;
+        }
+        case 'card': {
+            const render = new ImageRender(word.word, word.description ?? '');
+            await e.reply({type: 'image', image: render.render()} as ImageMessage, {replyTo: e.id});
             return true;
         }
     }

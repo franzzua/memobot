@@ -16,7 +16,10 @@ import {SrsPlanner} from "../services/srs-planner";
 import {WordsDatabase} from "../db/wordsDatabase";
 
 const WORD_REPLY_KEYBOARD = {
-    keyboard: [[{text: 'voice'}, {text: 'example'}, {text: 'image'}, {text: 'skip'}]],
+    keyboard: [
+        [{text: 'voice'}, {text: 'example'}, {text: 'image'}, {text: 'skip'}],
+        [{text: 'wordQuiz'}, {text: 'satQuiz'}, {text: 'card'}],
+    ],
     resize_keyboard: true,
     is_persistent: true,
 };
