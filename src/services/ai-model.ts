@@ -10,7 +10,7 @@ export class AiModel {
             project: gcsConfig.projectId,
         });
         return vertexAI.getGenerativeModel({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
         });
     }
 
