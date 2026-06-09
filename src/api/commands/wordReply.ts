@@ -92,9 +92,11 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
     const text = (await e.text())?.text;
     if (!text) return false;
     const parsed = parseKeyword(text);
+    console.log('[wordReply] text:', JSON.stringify(text), 'parsed:', JSON.stringify(parsed));
     if (!parsed) return false;
     const {keyword, force} = parsed;
     const word = await resolveWord(e);
+    console.log('[wordReply] keyword:', keyword, 'word:', word?.word ?? null);
     if (!word) return false;
     switch (keyword) {
         case 'voice': {
@@ -131,6 +133,7 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
         case 'wordquiz': {
             const chatId = e.chat.toString();
             const distractors = await pickDistractorWords(chatId, word.id, 3);
+            console.log('[wordReply] wordquiz distractors:', distractors.length);
             if (distractors.length < 3) {
                 await e.reply(`<b>${word.word}</b>\n${word.description ?? ''}`, {replyTo: e.id});
                 return true;
