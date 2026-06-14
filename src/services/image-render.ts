@@ -79,6 +79,7 @@ class Context {
                      left: number,
                      top: number) {
         this.context.textBaseline = 'middle';
+        this.context.textAlign = 'center';
         this.context.font = `${block.style.bold ? 'bold ' : ''}${block.style.fontSize}px "${block.style.font}"`;
         let y = top;
         this.context.fillStyle = block.style.bg;
@@ -88,7 +89,7 @@ class Context {
         }
         this.context.fillStyle = block.style.color;
         for (let line of block.lines) {
-            this.context.fillText(line, left, y + block.lineHeight / 2);
+            this.context.fillText(line, this.width / 2, y + block.lineHeight / 2);
             y += block.lineHeight;
             if (block.divider) {
                 this.drawDivider(left / 2, y + block.lineHeight / 8, block.style.color);
@@ -138,7 +139,10 @@ class TextBlock {
         const minFontSize = 10;
         while (fontSize > minFontSize) {
             const lines = this.getLines(this.text, fontSize, style.font, style.bold);
-            if (lines.length <= maxLines) break;
+            const maxLineWidth = Math.max(...lines.map(line =>
+                Helper.Instance.getWidth(line, fontSize, style.font, style.bold)
+            ));
+            if (lines.length <= maxLines && maxLineWidth <= this.width) break;
             fontSize--;
         }
         return { ...style, fontSize };
@@ -152,14 +156,12 @@ class TextBlock {
         let position = 0;
         for (const word of words) {
             const width = Helper.Instance.getWidth(word, fontSize, font, bold);
-            if (position + width > maxWidth) {
+            if (position > 0 && position + width > maxWidth) {
                 lines.push([]);
-                lines.at(-1)!.push(word);
-                position = width + spaceWidth;
-            } else {
-                position += width + spaceWidth;
-                lines.at(-1)!.push(word);
+                position = 0;
             }
+            lines.at(-1)!.push(word);
+            position += width + spaceWidth;
         }
         return lines.map(x => x.join(' '));
     }
