@@ -7,17 +7,17 @@ export class TextToSpeech{
     private client = new textToSpeech.TextToSpeechClient({projectId: gcsConfig.projectId});
     async getStream(text: string, type: 'mp3' | 'ogg_opus', ipa?: string){
         const input = ipa
-            ? { ssml: `<speak><phoneme alphabet="ipa" ph="${this.escapeXml(ipa.replace(/^\/|\/$/g, ''))}">${this.escapeXml(text)}</phoneme></speak>` }
+            ? { ssml: `<speak><phoneme alphabet="ipa" ph="${ipa.replace(/^\/|\/$/g, '')}">${this.escapeXml(text)}</phoneme></speak>` }
             : { text };
         const [response] = await this.client.synthesizeSpeech({
             input,
-            voice: {languageCode: 'en-US', ssmlGender: 'FEMALE', name: 'en-US-Journey-F'},
-            audioConfig: {audioEncoding: type.toLocaleUpperCase() as any, speakingRate: 0.85 },
+            voice: {languageCode: 'en-GB', name: 'en-GB-Chirp3-HD-Fenrir'},
+            audioConfig: {audioEncoding: type.toLocaleUpperCase() as any, speakingRate: 0.9 },
         }).catch(async () => {
             const [fallback] = await this.client.synthesizeSpeech({
                 input: {text},
-                voice: {languageCode: 'en-US', ssmlGender: 'FEMALE', name: 'en-US-Journey-F'},
-                audioConfig: {audioEncoding: type.toLocaleUpperCase() as any, speakingRate: 0.85 },
+                voice: {languageCode: 'en-GB', name: 'en-GB-Chirp3-HD-Fenrir'},
+                audioConfig: {audioEncoding: type.toLocaleUpperCase() as any, speakingRate: 0.9 },
             });
             return [fallback];
         });
