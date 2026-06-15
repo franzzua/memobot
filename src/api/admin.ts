@@ -76,8 +76,12 @@ export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
         res.end(JSON.stringify({error: 'not found'}));
     } catch (err: any) {
         console.error('Admin error:', err);
-        res.writeHead(500, {'Content-Type': 'application/json'});
-        res.end(JSON.stringify({error: err.message ?? 'internal error'}));
+        if (!res.headersSent) {
+            res.writeHead(500, {'Content-Type': 'application/json'});
+        }
+        if (!res.writableEnded) {
+            res.end(JSON.stringify({error: err.message ?? 'internal error'}));
+        }
     }
 }
 
@@ -143,8 +147,13 @@ async function getWordFlashcard(res: Res, id: string) {
     }
     const render = new ImageRender(word.word, word.description ?? '');
     const stream = render.render();
-    res.writeHead(200, {'Content-Type': 'image/png'});
-    stream.pipe(res);
+    const chunks: Buffer[] = [];
+    await new Promise<void>((resolve, reject) => {
+        stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+        stream.on('end', () => resolve());
+        stream.on('error', reject);
+    });
+    sendBuffer(res, Buffer.concat(chunks), 'image/png');
 }
 
 async function getWordVoice(res: Res, id: string) {
@@ -435,12 +444,12 @@ function createCard(w) {
       '<div class="card-images">' +
         '<div>' +
           '<div class="img-label">Flashcard</div>' +
-          '<img src="' + API + '/words/' + w.id + '/flashcard" alt="flashcard" />' +
+          '<img data-src="' + API + '/words/' + w.id + '/flashcard" alt="flashcard" />' +
         '</div>' +
         '<div id="imagen-' + w.id + '">' +
           '<div class="img-label">AI Image</div>' +
           (w.hasImage
-            ? '<img src="' + API + '/words/' + w.id + '/image" alt="ai image" />'
+            ? '<img data-src="' + API + '/words/' + w.id + '/image" alt="ai image" />'
             : '<div style="color:#555;font-size:0.85em">Not generated</div>') +
         '</div>' +
       '</div>' +
@@ -477,7 +486,14 @@ function createCard(w) {
 }
 
 function toggleCard(header) {
-  header.parentElement.classList.toggle('expanded');
+  const card = header.parentElement;
+  card.classList.toggle('expanded');
+  if (card.classList.contains('expanded')) {
+    card.querySelectorAll('img[data-src]').forEach(img => {
+      img.src = img.dataset.src;
+      img.removeAttribute('data-src');
+    });
+  }
 }
 
 async function regenVoice(e) {
