@@ -11,12 +11,12 @@ export class TextToSpeech{
             : { text };
         const [response] = await this.client.synthesizeSpeech({
             input,
-            voice: {languageCode: 'en-GB', name: 'en-GB-Chirp3-HD-Fenrir'},
+            voice: {languageCode: 'en-US', name: 'en-US-Chirp3-HD-Fenrir'},
             audioConfig: {audioEncoding: type.toLocaleUpperCase() as any, speakingRate: 0.9 },
         }).catch(async () => {
             const [fallback] = await this.client.synthesizeSpeech({
                 input: {text},
-                voice: {languageCode: 'en-GB', name: 'en-GB-Chirp3-HD-Fenrir'},
+                voice: {languageCode: 'en-US', name: 'en-US-Chirp3-HD-Fenrir'},
                 audioConfig: {audioEncoding: type.toLocaleUpperCase() as any, speakingRate: 0.9 },
             });
             return [fallback];
