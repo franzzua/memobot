@@ -5,12 +5,14 @@ import {ConsoleLogger} from "./logger/console.logger";
 import process from "node:process";
 import {init, telegram} from "./functions/telegram";
 import {seedData} from "../prisma/seed";
+import {registerAdminRoutes} from "./api/admin";
 
 di.override(Logger, ConsoleLogger);
 await seedData();
 init();
 async function initApp() {
     const app = fastify({});
+    registerAdminRoutes(app);
     app.all('/*', (req, res) => {
         return telegram({
             body: req.body,
