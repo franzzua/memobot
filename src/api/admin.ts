@@ -1,4 +1,3 @@
-import {FastifyInstance} from "fastify";
 import {resolve} from "@cmmn/core";
 import {PrismaClient} from "../../prisma/client";
 import {WordsDatabase} from "../db/wordsDatabase";
@@ -6,141 +5,238 @@ import {ImageRender} from "../services/image-render";
 import {TextToSpeech} from "../services/text-to-speech";
 import {AiModel} from "../services/ai-model";
 import {Imagen} from "../services/imagen";
+import type {ServerResponse} from "node:http";
 
-const ADMIN_PATH = 'very-strong-and-secure-html-page-bh-90210';
+export const ADMIN_PATH = '/very-strong-and-secure-html-page-bh-90210';
 
-export function registerAdminRoutes(app: FastifyInstance) {
+type Req = { path: string; method: string; query?: any; body?: any };
+type Res = ServerResponse & { sendStatus?(code: number): void };
 
-    app.get(`/${ADMIN_PATH}`, async (req, res) => {
-        res.type('text/html');
-        return adminHTML;
-    });
+export function isAdminRequest(path: string): boolean {
+    return path === ADMIN_PATH || path.startsWith(ADMIN_PATH + '/');
+}
 
-    app.get(`/${ADMIN_PATH}/api/words`, async (req) => {
-        const {search, page} = req.query as { search?: string; page?: string };
-        const prisma = resolve(PrismaClient);
-        const take = 50;
-        const skip = ((+(page ?? 1)) - 1) * take;
-        const where = search ? {word: {contains: search, mode: 'insensitive' as const}} : {};
-        const [words, total] = await Promise.all([
-            prisma.word.findMany({
-                where, orderBy: {word: 'asc'}, take, skip,
-                select: {id: true, word: true, description: true, type: true, level: true, frequency: true, transcription: true, example: true, voice: false, image: false}
-            }),
-            prisma.word.count({where})
-        ]);
-        const hasCache = await prisma.word.findMany({
-            where: {id: {in: words.map(w => w.id)}},
-            select: {
-                id: true,
-                voice: false,
-                image: false,
-            }
-        });
-        const voiceCheck = await prisma.$queryRaw<{id: string; hv: boolean; hi: boolean}[]>`
-            SELECT id, voice IS NOT NULL as hv, image IS NOT NULL as hi FROM "Word" WHERE id = ANY(${words.map(w => w.id)})
-        `;
-        const cacheMap = new Map(voiceCheck.map(r => [r.id, {hasVoice: r.hv, hasImage: r.hi}]));
-        return {
-            words: words.map(w => ({...w, hasVoice: cacheMap.get(w.id)?.hasVoice ?? false, hasImage: cacheMap.get(w.id)?.hasImage ?? false})),
-            total,
-            pages: Math.ceil(total / take)
-        };
-    });
+export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
+    const path = req.path;
+    const method = (req.method ?? 'GET').toUpperCase();
 
-    app.get(`/${ADMIN_PATH}/api/words/:id/image`, async (req, res) => {
-        const {id} = req.params as { id: string };
-        const prisma = resolve(PrismaClient);
-        const word = await prisma.word.findUnique({where: {id}, select: {image: true}});
-        if (word?.image) {
-            res.type('image/png');
-            return Buffer.from(word.image);
+    try {
+        if (path === ADMIN_PATH || path === ADMIN_PATH + '/') {
+            return sendHtml(res, adminHTML);
         }
-        res.status(404);
-        return {error: 'no image'};
-    });
 
-    app.get(`/${ADMIN_PATH}/api/words/:id/flashcard`, async (req, res) => {
-        const {id} = req.params as { id: string };
-        const prisma = resolve(PrismaClient);
-        const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true}});
-        if (!word) { res.status(404); return {error: 'not found'}; }
-        const render = new ImageRender(word.word, word.description ?? '');
-        res.type('image/png');
-        return render.render();
-    });
+        const apiPrefix = ADMIN_PATH + '/api';
+        const apiPath = path.slice(apiPrefix.length);
 
-    app.get(`/${ADMIN_PATH}/api/words/:id/voice`, async (req, res) => {
-        const {id} = req.params as { id: string };
-        const prisma = resolve(PrismaClient);
-        const word = await prisma.word.findUnique({where: {id}, select: {voice: true}});
-        if (word?.voice) {
-            res.type('audio/ogg');
-            return Buffer.from(word.voice);
+        // GET /api/words
+        if (method === 'GET' && apiPath === '/words') {
+            const query = typeof req.query === 'string'
+                ? Object.fromEntries(new URLSearchParams(req.query).entries())
+                : (req.query ?? {});
+            return sendJson(res, await getWords(query));
         }
-        res.status(404);
-        return {error: 'no voice'};
-    });
 
-    app.post(`/${ADMIN_PATH}/api/words/:id/regenerate/voice`, async (req) => {
-        const {id} = req.params as { id: string };
-        const wordsDb = resolve(WordsDatabase);
-        const prisma = resolve(PrismaClient);
-        const word = await prisma.word.findUnique({where: {id}, select: {word: true, transcription: true}});
-        if (!word) return {error: 'not found'};
-        const tts = resolve(TextToSpeech);
-        const ai = resolve(AiModel);
-        let transcription = word.transcription?.trim();
-        if (!transcription) {
-            const ipa = await ai.prompt(`Return only the IPA phonetic transcription (in the standard /…/ form, no extra words) for the English word: "${word.word}".`);
-            transcription = (ipa ?? '').trim();
-            if (transcription) await wordsDb.setTranscription(id, transcription);
+        // GET /api/words/:id/image
+        const imageMatch = apiPath.match(/^\/words\/([^/]+)\/image$/);
+        if (method === 'GET' && imageMatch) {
+            return await getWordImage(res, imageMatch[1]);
         }
-        const audio = await tts.getStream(word.word, 'ogg_opus', transcription || undefined);
-        await wordsDb.setVoice(id, audio);
-        return {ok: true, transcription};
-    });
 
-    app.post(`/${ADMIN_PATH}/api/words/:id/regenerate/example`, async (req) => {
-        const {id} = req.params as { id: string };
-        const wordsDb = resolve(WordsDatabase);
-        const prisma = resolve(PrismaClient);
-        const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true}});
-        if (!word) return {error: 'not found'};
-        const ai = resolve(AiModel);
+        // GET /api/words/:id/flashcard
+        const flashcardMatch = apiPath.match(/^\/words\/([^/]+)\/flashcard$/);
+        if (method === 'GET' && flashcardMatch) {
+            return await getWordFlashcard(res, flashcardMatch[1]);
+        }
+
+        // GET /api/words/:id/voice
+        const voiceMatch = apiPath.match(/^\/words\/([^/]+)\/voice$/);
+        if (method === 'GET' && voiceMatch) {
+            return await getWordVoice(res, voiceMatch[1]);
+        }
+
+        // POST /api/words/:id/regenerate/voice
+        const regenVoiceMatch = apiPath.match(/^\/words\/([^/]+)\/regenerate\/voice$/);
+        if (method === 'POST' && regenVoiceMatch) {
+            return sendJson(res, await regenerateVoice(regenVoiceMatch[1]));
+        }
+
+        // POST /api/words/:id/regenerate/example
+        const regenExampleMatch = apiPath.match(/^\/words\/([^/]+)\/regenerate\/example$/);
+        if (method === 'POST' && regenExampleMatch) {
+            return sendJson(res, await regenerateExample(regenExampleMatch[1]));
+        }
+
+        // POST /api/words/:id/regenerate/image
+        const regenImageMatch = apiPath.match(/^\/words\/([^/]+)\/regenerate\/image$/);
+        if (method === 'POST' && regenImageMatch) {
+            return sendJson(res, await regenerateImage(regenImageMatch[1]));
+        }
+
+        res.writeHead(404, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({error: 'not found'}));
+    } catch (err: any) {
+        console.error('Admin error:', err);
+        res.writeHead(500, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({error: err.message ?? 'internal error'}));
+    }
+}
+
+function sendJson(res: Res, data: any) {
+    const body = JSON.stringify(data);
+    res.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body)});
+    res.end(body);
+}
+
+function sendHtml(res: Res, html: string) {
+    res.writeHead(200, {'Content-Type': 'text/html', 'Content-Length': Buffer.byteLength(html)});
+    res.end(html);
+}
+
+function sendBuffer(res: Res, buf: Buffer, contentType: string) {
+    res.writeHead(200, {'Content-Type': contentType, 'Content-Length': buf.length});
+    res.end(buf);
+}
+
+// ---- handlers ----
+
+async function getWords(query: Record<string, string>) {
+    const prisma = resolve(PrismaClient);
+    const take = 50;
+    const skip = ((+(query.page ?? 1)) - 1) * take;
+    const search = query.search;
+    const where = search ? {word: {contains: search, mode: 'insensitive' as const}} : {};
+    const [words, total] = await Promise.all([
+        prisma.word.findMany({
+            where, orderBy: {word: 'asc'}, take, skip,
+            select: {id: true, word: true, description: true, type: true, level: true, frequency: true, transcription: true, example: true, voice: false, image: false}
+        }),
+        prisma.word.count({where})
+    ]);
+    const voiceCheck = await prisma.$queryRaw<{id: string; hv: boolean; hi: boolean}[]>`
+        SELECT id, voice IS NOT NULL as hv, image IS NOT NULL as hi FROM "Word" WHERE id = ANY(${words.map(w => w.id)})
+    `;
+    const cacheMap = new Map(voiceCheck.map(r => [r.id, {hasVoice: r.hv, hasImage: r.hi}]));
+    return {
+        words: words.map(w => ({...w, hasVoice: cacheMap.get(w.id)?.hasVoice ?? false, hasImage: cacheMap.get(w.id)?.hasImage ?? false})),
+        total,
+        pages: Math.ceil(total / take)
+    };
+}
+
+async function getWordImage(res: Res, id: string) {
+    const prisma = resolve(PrismaClient);
+    const word = await prisma.word.findUnique({where: {id}, select: {image: true}});
+    if (word?.image) {
+        return sendBuffer(res, Buffer.from(word.image), 'image/png');
+    }
+    res.writeHead(404, {'Content-Type': 'application/json'});
+    res.end(JSON.stringify({error: 'no image'}));
+}
+
+async function getWordFlashcard(res: Res, id: string) {
+    const prisma = resolve(PrismaClient);
+    const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true}});
+    if (!word) {
+        res.writeHead(404, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({error: 'not found'}));
+        return;
+    }
+    const render = new ImageRender(word.word, word.description ?? '');
+    const stream = render.render();
+    res.writeHead(200, {'Content-Type': 'image/png'});
+    stream.pipe(res);
+}
+
+async function getWordVoice(res: Res, id: string) {
+    const prisma = resolve(PrismaClient);
+    const word = await prisma.word.findUnique({where: {id}, select: {voice: true}});
+    if (word?.voice) {
+        return sendBuffer(res, Buffer.from(word.voice), 'audio/ogg');
+    }
+    res.writeHead(404, {'Content-Type': 'application/json'});
+    res.end(JSON.stringify({error: 'no voice'}));
+}
+
+async function regenerateVoice(id: string) {
+    const wordsDb = resolve(WordsDatabase);
+    const prisma = resolve(PrismaClient);
+    const word = await prisma.word.findUnique({where: {id}, select: {word: true, transcription: true}});
+    if (!word) return {error: 'not found'};
+    const tts = resolve(TextToSpeech);
+    const ai = resolve(AiModel);
+    let transcription = word.transcription?.trim();
+    if (!transcription) {
+        const ipa = await ai.prompt(`Return only the IPA phonetic transcription (in the standard /…/ form, no extra words) for the English word: "${word.word}".`);
+        transcription = (ipa ?? '').trim();
+        if (transcription) await wordsDb.setTranscription(id, transcription);
+    }
+    const audio = await tts.getStream(word.word, 'ogg_opus', transcription || undefined);
+    await wordsDb.setVoice(id, audio);
+    return {ok: true, transcription};
+}
+
+async function regenerateExample(id: string) {
+    const wordsDb = resolve(WordsDatabase);
+    const prisma = resolve(PrismaClient);
+    const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true}});
+    if (!word) return {error: 'not found'};
+    const ai = resolve(AiModel);
+    const meaningClause = word.description?.trim() ? ` in the sense of "${word.description.trim()}"` : '';
+    const sentence = await ai.prompt(
+        `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
+    );
+    const example = (sentence ?? '').trim();
+    if (example) await wordsDb.setExample(id, example);
+    return {ok: true, example};
+}
+
+async function regenerateImage(id: string) {
+    const wordsDb = resolve(WordsDatabase);
+    const prisma = resolve(PrismaClient);
+    const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true, example: true}});
+    if (!word) return {error: 'not found'};
+    const ai = resolve(AiModel);
+    let example = word.example?.trim();
+    if (!example) {
         const meaningClause = word.description?.trim() ? ` in the sense of "${word.description.trim()}"` : '';
         const sentence = await ai.prompt(
             `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
         );
-        const example = (sentence ?? '').trim();
+        example = (sentence ?? '').trim();
         if (example) await wordsDb.setExample(id, example);
-        return {ok: true, example};
-    });
+    }
+    const imagen = resolve(Imagen);
+    const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
+    const image = await imagen.generate(prompt);
+    if (image) {
+        await wordsDb.setImage(id, image);
+        return {ok: true};
+    }
+    return {error: 'image generation failed'};
+}
 
-    app.post(`/${ADMIN_PATH}/api/words/:id/regenerate/image`, async (req) => {
-        const {id} = req.params as { id: string };
-        const wordsDb = resolve(WordsDatabase);
-        const prisma = resolve(PrismaClient);
-        const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true, example: true}});
-        if (!word) return {error: 'not found'};
-        const ai = resolve(AiModel);
-        let example = word.example?.trim();
-        if (!example) {
-            const meaningClause = word.description?.trim() ? ` in the sense of "${word.description.trim()}"` : '';
-            const sentence = await ai.prompt(
-                `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
+// ---- Fastify adapter (for start.ts / local dev) ----
+
+export function registerAdminRoutes(app: any) {
+    app.route({
+        method: ['GET', 'POST'],
+        url: ADMIN_PATH,
+        handler: async (req: any, res: any) => {
+            await handleAdminRequest(
+                {path: req.url.split('?')[0], method: req.method, query: req.query, body: req.body},
+                res.raw
             );
-            example = (sentence ?? '').trim();
-            if (example) await wordsDb.setExample(id, example);
         }
-        const imagen = resolve(Imagen);
-        const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
-        const image = await imagen.generate(prompt);
-        if (image) {
-            await wordsDb.setImage(id, image);
-            return {ok: true};
+    });
+    app.route({
+        method: ['GET', 'POST'],
+        url: ADMIN_PATH + '/*',
+        handler: async (req: any, res: any) => {
+            await handleAdminRequest(
+                {path: req.url.split('?')[0], method: req.method, query: req.query, body: req.body},
+                res.raw
+            );
         }
-        return {error: 'image generation failed'};
     });
 }
 
@@ -193,7 +289,7 @@ const adminHTML = `<!DOCTYPE html>
   .card-header:hover .word-title { color: #fff; }
   .word-title { font-size: 1.2em; font-weight: 700; color: #ddd; transition: color 0.15s; }
   .word-desc { color: #888; font-size: 0.9em; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .word-meta { display: flex; gap: 8px; }
+  .word-meta { display: flex; gap: 8px; flex-wrap: wrap; }
   .badge {
     padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600;
   }
@@ -326,8 +422,8 @@ function createCard(w) {
   const badges =
     (w.level ? '<span class="badge badge-level">' + esc(w.level) + '</span>' : '') +
     (w.type ? '<span class="badge badge-type">' + esc(w.type) + '</span>' : '') +
-    '<span class="badge badge-cache ' + (w.hasVoice ? 'yes' : '') + '">voice: ' + (w.hasVoice ? 'yes' : 'no') + '</span>' +
-    '<span class="badge badge-cache ' + (w.hasImage ? 'yes' : '') + '">image: ' + (w.hasImage ? 'yes' : 'no') + '</span>';
+    '<span class="badge badge-cache ' + (w.hasVoice ? 'yes' : '') + '" data-cache="voice">voice: ' + (w.hasVoice ? 'yes' : 'no') + '</span>' +
+    '<span class="badge badge-cache ' + (w.hasImage ? 'yes' : '') + '" data-cache="image">image: ' + (w.hasImage ? 'yes' : 'no') + '</span>';
 
   card.innerHTML =
     '<div class="card-header" onclick="toggleCard(this)">' +
@@ -356,7 +452,7 @@ function createCard(w) {
             (w.hasVoice ? '<audio controls preload="none" src="' + API + '/words/' + w.id + '/voice"></audio>' : '<span style="color:#555">Not generated</span>') +
           '</div>' +
           '<div class="actions">' +
-            '<button class="btn" onclick="regenVoice(event,&quot;'+w.id+'&quot;)"><span class="spinner"></span>Regenerate Voice</button>' +
+            '<button class="btn" data-id="' + w.id + '" onclick="regenVoice(event)"><span class="spinner"></span>Regenerate Voice</button>' +
           '</div>' +
         '</div>' +
         '<div class="asset-section">' +
@@ -365,13 +461,13 @@ function createCard(w) {
             (w.example ? '<p>' + esc(w.example) + '</p>' : '<span style="color:#555">Not generated</span>') +
           '</div>' +
           '<div class="actions">' +
-            '<button class="btn" onclick="regenExample(event,&quot;'+w.id+'&quot;)"><span class="spinner"></span>Regenerate Example</button>' +
+            '<button class="btn" data-id="' + w.id + '" onclick="regenExample(event)"><span class="spinner"></span>Regenerate Example</button>' +
           '</div>' +
         '</div>' +
         '<div class="asset-section">' +
           '<h3>AI Image</h3>' +
           '<div class="actions">' +
-            '<button class="btn" onclick="regenImage(event,&quot;'+w.id+'&quot;)"><span class="spinner"></span>Regenerate Image</button>' +
+            '<button class="btn" data-id="' + w.id + '" onclick="regenImage(event)"><span class="spinner"></span>Regenerate Image</button>' +
           '</div>' +
           '<div id="imagen-status-' + w.id + '"></div>' +
         '</div>' +
@@ -384,13 +480,14 @@ function toggleCard(header) {
   header.parentElement.classList.toggle('expanded');
 }
 
-async function regenVoice(e, id) {
+async function regenVoice(e) {
   e.stopPropagation();
   const btn = e.currentTarget;
+  const id = btn.dataset.id;
   setLoading(btn, true);
   const el = document.getElementById('voice-' + id);
   try {
-    const data = await api('/words/' + id + '/regenerate/voice', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'});
+    const data = await api('/words/' + id + '/regenerate/voice', {method: 'POST'});
     el.innerHTML =
       (data.transcription ? '<div style="color:#999;margin-bottom:4px">' + esc(data.transcription) + '</div>' : '') +
       '<audio controls src="' + API + '/words/' + id + '/voice?' + Date.now() + '"></audio>';
@@ -401,13 +498,14 @@ async function regenVoice(e, id) {
   setLoading(btn, false);
 }
 
-async function regenExample(e, id) {
+async function regenExample(e) {
   e.stopPropagation();
   const btn = e.currentTarget;
+  const id = btn.dataset.id;
   setLoading(btn, true);
   const el = document.getElementById('example-' + id);
   try {
-    const data = await api('/words/' + id + '/regenerate/example', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'});
+    const data = await api('/words/' + id + '/regenerate/example', {method: 'POST'});
     el.innerHTML = '<p>' + esc(data.example || 'No example generated') + '</p>';
   } catch (err) {
     el.innerHTML += '<div class="error">Failed: ' + esc(err.message) + '</div>';
@@ -415,13 +513,14 @@ async function regenExample(e, id) {
   setLoading(btn, false);
 }
 
-async function regenImage(e, id) {
+async function regenImage(e) {
   e.stopPropagation();
   const btn = e.currentTarget;
+  const id = btn.dataset.id;
   setLoading(btn, true);
   const status = document.getElementById('imagen-status-' + id);
   try {
-    const data = await api('/words/' + id + '/regenerate/image', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'});
+    const data = await api('/words/' + id + '/regenerate/image', {method: 'POST'});
     if (data.ok) {
       const imgEl = document.getElementById('imagen-' + id);
       imgEl.innerHTML = '<div class="img-label">AI Image</div><img src="' + API + '/words/' + id + '/image?' + Date.now() + '" alt="ai image" />';
@@ -439,13 +538,11 @@ async function regenImage(e, id) {
 function updateBadge(id, type, hasIt) {
   const card = document.getElementById('card-' + id);
   if (!card) return;
-  const badges = card.querySelectorAll('.badge-cache');
-  badges.forEach(b => {
-    if (b.textContent.startsWith(type + ':')) {
-      b.textContent = type + ': ' + (hasIt ? 'yes' : 'no');
-      b.classList.toggle('yes', hasIt);
-    }
-  });
+  const badge = card.querySelector('[data-cache="' + type + '"]');
+  if (badge) {
+    badge.textContent = type + ': ' + (hasIt ? 'yes' : 'no');
+    badge.classList.toggle('yes', hasIt);
+  }
 }
 
 function setLoading(btn, loading) {

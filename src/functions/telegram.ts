@@ -5,6 +5,7 @@ import {Messenger} from "../messengers/messenger";
 import {getMessenger} from "./getMessenger";
 import {prismaFactory} from "../../prisma/client";
 import { PrismaClient } from "../../prisma/client";
+import {isAdminRequest, handleAdminRequest} from "../api/admin";
 
 let tgLoad: Promise<TelegrafApi>;
 di.factory(PrismaClient, prismaFactory)
@@ -22,6 +23,9 @@ export function init(){
 }
 
 export const telegram = baseFunction('telegram', async (req, res) => {
+    if (req && res && isAdminRequest(req.path)) {
+        return handleAdminRequest(req, res);
+    }
     const tg = await (tgLoad ??= initTelegram());
     if (req && res) {
         if (req.path.startsWith('/task')){
