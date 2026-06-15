@@ -146,14 +146,8 @@ async function getWordFlashcard(res: Res, id: string) {
         return;
     }
     const render = new ImageRender(word.word, word.description ?? '');
-    const stream = render.render();
-    const chunks: Buffer[] = [];
-    await new Promise<void>((resolve, reject) => {
-        stream.on('data', (chunk: Buffer) => chunks.push(chunk));
-        stream.on('end', () => resolve());
-        stream.on('error', reject);
-    });
-    sendBuffer(res, Buffer.concat(chunks), 'image/png');
+    const buf = render.render();
+    sendBuffer(res, buf instanceof Buffer ? buf : Buffer.from(buf), 'image/png');
 }
 
 async function getWordVoice(res: Res, id: string) {
