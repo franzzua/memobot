@@ -114,7 +114,11 @@ export class TelegrafApi {
                             'WordHandler.' + handler.name
                         );
                         if (content) {
-                            await this.messenger.send(chatId, content, {disable_notification: skipNotification});
+                            const items = Array.isArray(content) ? content : [content];
+                            for (let k = 0; k < items.length; k++) {
+                                const isLast = k === items.length - 1;
+                                await this.messenger.send(chatId, items[k] as any, {disable_notification: skipNotification || !isLast});
+                            }
                         }
                     }
                 } else if (kind === 'quiz') {

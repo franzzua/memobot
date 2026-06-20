@@ -8,16 +8,32 @@ import {AiModel} from "./ai-model";
 import {TextToSpeech} from "./text-to-speech";
 import {ImageRender} from "./image-render";
 import {Imagen} from "./imagen";
+import {generateSatQuiz} from "./sat-quiz-generator";
+import {renderQuiz} from "./quiz-render";
+
+type SatQuiz = {question: string; answers: string[]; correct: number};
 
 export type WordSendHandler = (ctx: {
     chatId: string;
     message: Message;
     word: Word;
-}) => Promise<MessageData | string | undefined>;
+}) => Promise<MessageData | MessageData[] | string | undefined>;
 
 const wordHeader = (word: Word) => `<b>${word.word}</b>`;
 
 const quizHandler: WordSendHandler = async function quizHandler({chatId, word}) {
+    const sat = await ensureSatQuiz(chatId, word);
+    if (sat) {
+        return renderQuiz({
+            id: '', index: 0,
+            question: sat.question,
+            answers: sat.answers,
+            correct: sat.correct,
+            table_md: null, attachment: null,
+        } as any) as MessageData[];
+    }
+    // Fallback when a SAT quiz can't be built (e.g. fewer than 3 distractor words):
+    // a plain definition→word poll, or just the word card if even that is impossible.
     const distractors = await pickDistractorWords(chatId, word.id, 3);
     if (distractors.length < 3) {
         return `${wordHeader(word)}\n${word.description ?? ''}`;
@@ -33,6 +49,20 @@ const quizHandler: WordSendHandler = async function quizHandler({chatId, word}) 
         options: {correct_option_id: correct, allows_multiple_answers: false},
     } as QuizMessage;
 };
+
+// Returns the word's cached SAT quiz, generating and caching one if absent.
+async function ensureSatQuiz(chatId: string, word: Word): Promise<SatQuiz | null> {
+    const cached = word.satQuiz as SatQuiz | null;
+    if (cached && Array.isArray(cached.answers) && cached.answers.length > 0) return cached;
+    const distractors = await pickDistractorWords(chatId, word.id, 3);
+    if (distractors.length < 3) return null;
+    const quiz = await generateSatQuiz(word, distractors);
+    if (quiz) {
+        await resolve(WordsDatabase).setSatQuiz(word.id, quiz);
+        word.satQuiz = quiz as any;
+    }
+    return quiz;
+}
 
 const voiceTransHandler: WordSendHandler = async function voiceTransHandler({word}) {
     const wordsDb = resolve(WordsDatabase);
