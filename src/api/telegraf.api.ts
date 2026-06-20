@@ -7,7 +7,8 @@ import {onAnyMessage} from "./commands/onAnyMessage";
 import {Message} from "../types";
 import {TaskHandle} from "../scheduler/scheduler";
 import {TaskSendHandlers} from "../services/send-handlers/index";
-import {WordSendHandlers} from "../services/word-send-handlers";
+import {WordSendHandlers, ensureSatQuiz} from "../services/word-send-handlers";
+import type {Word} from "../../prisma/client";
 import {Logger} from "../logger/logger";
 import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
 import {renderQuiz} from "../services/quiz-render";
@@ -114,11 +115,7 @@ export class TelegrafApi {
                             'WordHandler.' + handler.name
                         );
                         if (content) {
-                            const items = Array.isArray(content) ? content : [content];
-                            for (let k = 0; k < items.length; k++) {
-                                const isLast = k === items.length - 1;
-                                await this.messenger.send(chatId, items[k] as any, {disable_notification: skipNotification || !isLast});
-                            }
+                            await this.messenger.send(chatId, content, {disable_notification: skipNotification});
                         }
                     }
                 } else if (kind === 'quiz') {
@@ -131,17 +128,46 @@ export class TelegrafApi {
         }
     }
 
+    // Part 2 of the SRS plan (post-peak): quiz the user on a word they've already learned
+    // with a SAT-style fill-in-the-blank, cached per word. Falls back to the seeded SAT
+    // test bank only when no learned word is available to build one from.
     private async sendNextQuiz(chatId: string, skipNotification: boolean): Promise<void> {
+        const word = await this.pickLearnedWord(chatId);
+        if (word) {
+            const sat = await ensureSatQuiz(chatId, word);
+            if (sat) {
+                const payloads = renderQuiz({
+                    id: '', index: 0, table_md: null, attachment: null,
+                    question: sat.question, answers: sat.answers, correct: sat.correct,
+                } as any);
+                return this.sendPayloads(chatId, payloads, skipNotification);
+            }
+        }
+
         const quiz = await this.chatDatabase.getNextUnseenQuiz(chatId)
             ?? await this.chatDatabase.getRandomQuiz();
         if (!quiz) return;
         await this.chatDatabase.appendSeenQuiz(chatId, quiz.id);
-        const payloads = renderQuiz(quiz);
+        return this.sendPayloads(chatId, renderQuiz(quiz), skipNotification);
+    }
+
+    private async sendPayloads(chatId: string, payloads: any[], skipNotification: boolean): Promise<void> {
         for (let j = 0; j < payloads.length; j++) {
             const isLast = j === payloads.length - 1;
             await this.messenger.send(chatId, payloads[j] as any, {
                 disable_notification: skipNotification || !isLast,
             });
         }
+    }
+
+    // Picks a random word the user has already been introduced to, to quiz them on.
+    private async pickLearnedWord(chatId: string): Promise<Word | null> {
+        const state = await this.chatDatabase.getPlanState(chatId);
+        if (!state) return null;
+        const introducedCount = await this.chatDatabase.countMessagesByKind(chatId, 'word');
+        const introducedIds = state.wordOrder.slice(0, Math.max(0, introducedCount));
+        if (introducedIds.length === 0) return null;
+        const id = introducedIds[Math.floor(Math.random() * introducedIds.length)];
+        return (await resolve(WordsDatabase).getByIds([id])).get(id) ?? null;
     }
 }

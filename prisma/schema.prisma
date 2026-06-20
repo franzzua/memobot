@@ -62,6 +62,7 @@ model Word {
   example       String?
   image         Bytes?
   satQuiz       Json?
+  wordQuiz      Json?
 }
 
 model Quiz {

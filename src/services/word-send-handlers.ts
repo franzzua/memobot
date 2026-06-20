@@ -9,51 +9,53 @@ import {TextToSpeech} from "./text-to-speech";
 import {ImageRender} from "./image-render";
 import {Imagen} from "./imagen";
 import {generateSatQuiz} from "./sat-quiz-generator";
-import {renderQuiz} from "./quiz-render";
 
-type SatQuiz = {question: string; answers: string[]; correct: number};
+export type CachedQuiz = {question: string; answers: string[]; correct: number};
 
 export type WordSendHandler = (ctx: {
     chatId: string;
     message: Message;
     word: Word;
-}) => Promise<MessageData | MessageData[] | string | undefined>;
+}) => Promise<MessageData | string | undefined>;
 
 const wordHeader = (word: Word) => `<b>${word.word}</b>`;
 
+// Step 1 of the per-word flow: a simple definition→word poll, cached per word.
 const quizHandler: WordSendHandler = async function quizHandler({chatId, word}) {
-    const sat = await ensureSatQuiz(chatId, word);
-    if (sat) {
-        return renderQuiz({
-            id: '', index: 0,
-            question: sat.question,
-            answers: sat.answers,
-            correct: sat.correct,
-            table_md: null, attachment: null,
-        } as any) as MessageData[];
-    }
-    // Fallback when a SAT quiz can't be built (e.g. fewer than 3 distractor words):
-    // a plain definition→word poll, or just the word card if even that is impossible.
-    const distractors = await pickDistractorWords(chatId, word.id, 3);
-    if (distractors.length < 3) {
+    const wq = await ensureWordQuiz(chatId, word);
+    if (!wq) {
         return `${wordHeader(word)}\n${word.description ?? ''}`;
     }
-    const pool = [word, ...distractors];
-    shuffleInPlace(pool);
-    const answers = pool.map(w => w.word);
-    const correct = pool.findIndex(w => w.id === word.id);
     return {
         type: 'quiz',
-        question: word.description ?? word.word,
-        answers,
-        options: {correct_option_id: correct, allows_multiple_answers: false},
+        question: wq.question,
+        answers: wq.answers,
+        options: {correct_option_id: wq.correct, allows_multiple_answers: false},
     } as QuizMessage;
 };
 
-// Returns the word's cached SAT quiz, generating and caching one if absent.
-async function ensureSatQuiz(chatId: string, word: Word): Promise<SatQuiz | null> {
-    const cached = word.satQuiz as SatQuiz | null;
-    if (cached && Array.isArray(cached.answers) && cached.answers.length > 0) return cached;
+// Returns the word's cached wordQuiz (definition→word poll), building and caching one if absent.
+async function ensureWordQuiz(chatId: string, word: Word): Promise<CachedQuiz | null> {
+    const cached = word.wordQuiz as CachedQuiz | null;
+    if (isCachedQuiz(cached)) return cached;
+    const distractors = await pickDistractorWords(chatId, word.id, 3);
+    if (distractors.length < 3) return null;
+    const pool = [word, ...distractors];
+    shuffleInPlace(pool);
+    const quiz: CachedQuiz = {
+        question: word.description ?? word.word,
+        answers: pool.map(w => w.word),
+        correct: pool.findIndex(w => w.id === word.id),
+    };
+    await resolve(WordsDatabase).setWordQuiz(word.id, quiz);
+    word.wordQuiz = quiz as any;
+    return quiz;
+}
+
+// Returns the word's cached SAT quiz (fill-in-the-blank passage), generating and caching one if absent.
+export async function ensureSatQuiz(chatId: string, word: Word): Promise<CachedQuiz | null> {
+    const cached = word.satQuiz as CachedQuiz | null;
+    if (isCachedQuiz(cached)) return cached;
     const distractors = await pickDistractorWords(chatId, word.id, 3);
     if (distractors.length < 3) return null;
     const quiz = await generateSatQuiz(word, distractors);
@@ -62,6 +64,10 @@ async function ensureSatQuiz(chatId: string, word: Word): Promise<SatQuiz | null
         word.satQuiz = quiz as any;
     }
     return quiz;
+}
+
+function isCachedQuiz(q: CachedQuiz | null): q is CachedQuiz {
+    return !!q && Array.isArray(q.answers) && q.answers.length > 0;
 }
 
 const voiceTransHandler: WordSendHandler = async function voiceTransHandler({word}) {

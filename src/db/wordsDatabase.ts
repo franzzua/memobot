@@ -59,4 +59,8 @@ export class WordsDatabase {
     public async setSatQuiz(id: string, satQuiz: {question: string; answers: string[]; correct: number}): Promise<void> {
         await this.prisma.word.update({where: {id}, data: {satQuiz}});
     }
+
+    public async setWordQuiz(id: string, wordQuiz: {question: string; answers: string[]; correct: number}): Promise<void> {
+        await this.prisma.word.update({where: {id}, data: {wordQuiz}});
+    }
 }
