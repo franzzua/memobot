@@ -55,4 +55,8 @@ export class WordsDatabase {
     public async setImage(id: string, image: Buffer): Promise<void> {
         await this.prisma.word.update({where: {id}, data: {image}});
     }
+
+    public async setSatQuiz(id: string, satQuiz: {question: string; answers: string[]; correct: number}): Promise<void> {
+        await this.prisma.word.update({where: {id}, data: {satQuiz}});
+    }
 }

@@ -1,10 +1,11 @@
 import {resolve} from "@cmmn/core";
-import {PrismaClient} from "../../prisma/client";
+import {PrismaClient, type Word} from "../../prisma/client";
 import {WordsDatabase} from "../db/wordsDatabase";
 import {ImageRender} from "../services/image-render";
 import {TextToSpeech} from "../services/text-to-speech";
 import {AiModel} from "../services/ai-model";
 import {Imagen} from "../services/imagen";
+import {generateSatQuiz} from "../services/sat-quiz-generator";
 import type {ServerResponse} from "node:http";
 
 export const ADMIN_PATH = '/very-strong-and-secure-html-page-bh-90210';
@@ -72,6 +73,12 @@ export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
             return sendJson(res, await regenerateImage(regenImageMatch[1]));
         }
 
+        // POST /api/words/:id/regenerate/satquiz
+        const regenSatQuizMatch = apiPath.match(/^\/words\/([^/]+)\/regenerate\/satquiz$/);
+        if (method === 'POST' && regenSatQuizMatch) {
+            return sendJson(res, await regenerateSatQuiz(regenSatQuizMatch[1]));
+        }
+
         res.writeHead(404, {'Content-Type': 'application/json'});
         res.end(JSON.stringify({error: 'not found'}));
     } catch (err: any) {
@@ -112,7 +119,7 @@ async function getWords(query: Record<string, string>) {
     const [words, total] = await Promise.all([
         prisma.word.findMany({
             where, orderBy: {word: 'asc'}, take, skip,
-            select: {id: true, word: true, description: true, type: true, level: true, frequency: true, transcription: true, example: true, voice: false, image: false}
+            select: {id: true, word: true, description: true, type: true, level: true, frequency: true, transcription: true, example: true, satQuiz: true, voice: false, image: false}
         }),
         prisma.word.count({where})
     ]);
@@ -216,6 +223,23 @@ async function regenerateImage(id: string) {
         return {ok: true};
     }
     return {error: 'image generation failed'};
+}
+
+async function regenerateSatQuiz(id: string) {
+    const prisma = resolve(PrismaClient);
+    const target = await prisma.word.findUnique({where: {id}, select: {id: true, word: true, description: true}});
+    if (!target) return {error: 'not found'};
+    // No chat context here, so pick distractors at random from the word cache.
+    const distractors = await prisma.$queryRaw<Word[]>`
+        SELECT id, word, description FROM "Word"
+        WHERE id != ${id} AND description IS NOT NULL
+        ORDER BY RANDOM() LIMIT 3
+    `;
+    if (distractors.length < 3) return {error: 'not enough words to build a quiz'};
+    const quiz = await generateSatQuiz(target as Word, distractors);
+    if (!quiz) return {error: 'quiz generation failed'};
+    await resolve(WordsDatabase).setSatQuiz(id, quiz);
+    return {ok: true, satQuiz: quiz};
 }
 
 // ---- Fastify adapter (for start.ts / local dev) ----
@@ -343,6 +367,16 @@ const adminHTML = `<!DOCTYPE html>
   .success { color: #5a5; font-size: 0.85em; margin-top: 4px; }
   .loading-text { color: #888; padding: 40px; text-align: center; }
   .empty { color: #666; padding: 40px; text-align: center; }
+
+  .quiz-question { color: #ddd; white-space: pre-wrap; line-height: 1.5; }
+  .quiz-answers { display: flex; flex-direction: column; gap: 6px; }
+  .quiz-answer {
+    background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 8px 12px;
+    color: #ccc; display: flex; gap: 10px; align-items: baseline;
+  }
+  .quiz-answer.correct { background: #1a3a1a; border-color: #2a5a2a; color: #8d8; }
+  .quiz-label { font-weight: 700; color: #888; min-width: 18px; }
+  .quiz-answer.correct .quiz-label { color: #6c6; }
 </style>
 </head>
 <body>
@@ -426,7 +460,8 @@ function createCard(w) {
     (w.level ? '<span class="badge badge-level">' + esc(w.level) + '</span>' : '') +
     (w.type ? '<span class="badge badge-type">' + esc(w.type) + '</span>' : '') +
     '<span class="badge badge-cache ' + (w.hasVoice ? 'yes' : '') + '" data-cache="voice">voice: ' + (w.hasVoice ? 'yes' : 'no') + '</span>' +
-    '<span class="badge badge-cache ' + (w.hasImage ? 'yes' : '') + '" data-cache="image">image: ' + (w.hasImage ? 'yes' : 'no') + '</span>';
+    '<span class="badge badge-cache ' + (w.hasImage ? 'yes' : '') + '" data-cache="image">image: ' + (w.hasImage ? 'yes' : 'no') + '</span>' +
+    '<span class="badge badge-cache ' + (w.satQuiz ? 'yes' : '') + '" data-cache="quiz">quiz: ' + (w.satQuiz ? 'yes' : 'no') + '</span>';
 
   card.innerHTML =
     '<div class="card-header" onclick="toggleCard(this)">' +
@@ -468,6 +503,15 @@ function createCard(w) {
           '</div>' +
         '</div>' +
         '<div class="asset-section">' +
+          '<h3>SAT Quiz</h3>' +
+          '<div class="asset-content" id="satquiz-' + w.id + '">' +
+            renderSatQuiz(w.satQuiz) +
+          '</div>' +
+          '<div class="actions">' +
+            '<button class="btn" data-id="' + w.id + '" onclick="regenSatQuiz(event)"><span class="spinner"></span>Regenerate SAT Quiz</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="asset-section">' +
           '<h3>AI Image</h3>' +
           '<div class="actions">' +
             '<button class="btn" data-id="' + w.id + '" onclick="regenImage(event)"><span class="spinner"></span>Regenerate Image</button>' +
@@ -477,6 +521,20 @@ function createCard(w) {
       '</div>' +
     '</div>';
   return card;
+}
+
+function renderSatQuiz(q) {
+  if (!q) return '<span style="color:#555">Not generated</span>';
+  const answers = Array.isArray(q.answers) ? q.answers : [];
+  const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+  const question = esc(q.question).replace(/&lt;b&gt;_____&lt;\\/b&gt;/g, '<b>_____</b>');
+  const answersHtml = answers.map((a, i) =>
+    '<div class="quiz-answer' + (i === q.correct ? ' correct' : '') + '">' +
+      '<span class="quiz-label">' + (labels[i] || (i + 1)) + '</span>' +
+      '<span>' + esc(a) + '</span>' +
+    '</div>').join('');
+  return '<div class="quiz-question">' + question + '</div>' +
+         '<div class="quiz-answers" style="margin-top:8px">' + answersHtml + '</div>';
 }
 
 function toggleCard(header) {
@@ -541,6 +599,26 @@ async function regenImage(e) {
     }
   } catch (err) {
     status.innerHTML = '<div class="error">Failed: ' + esc(err.message) + '</div>';
+  }
+  setLoading(btn, false);
+}
+
+async function regenSatQuiz(e) {
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const id = btn.dataset.id;
+  setLoading(btn, true);
+  const el = document.getElementById('satquiz-' + id);
+  try {
+    const data = await api('/words/' + id + '/regenerate/satquiz', {method: 'POST'});
+    if (data.satQuiz) {
+      el.innerHTML = renderSatQuiz(data.satQuiz);
+      updateBadge(id, 'quiz', true);
+    } else {
+      el.innerHTML = '<div class="error">' + esc(data.error || 'failed') + '</div>';
+    }
+  } catch (err) {
+    el.innerHTML += '<div class="error">Failed: ' + esc(err.message) + '</div>';
   }
   setLoading(btn, false);
 }
