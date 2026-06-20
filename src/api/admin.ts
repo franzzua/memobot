@@ -6,6 +6,7 @@ import {TextToSpeech} from "../services/text-to-speech";
 import {AiModel} from "../services/ai-model";
 import {Imagen} from "../services/imagen";
 import {generateSatQuiz} from "../services/sat-quiz-generator";
+import {transcriptionPrompt, examplePrompt, imagePrompt} from "../services/prompts";
 import type {ServerResponse} from "node:http";
 
 export const ADMIN_PATH = '/very-strong-and-secure-html-page-bh-90210';
@@ -176,7 +177,7 @@ async function regenerateVoice(id: string) {
     const ai = resolve(AiModel);
     let transcription = word.transcription?.trim();
     if (!transcription) {
-        const ipa = await ai.prompt(`Return only the IPA phonetic transcription (in the standard /…/ form, no extra words) for the English word: "${word.word}".`);
+        const ipa = await ai.prompt(transcriptionPrompt(word.word));
         transcription = (ipa ?? '').trim();
         if (transcription) await wordsDb.setTranscription(id, transcription);
     }
@@ -191,10 +192,7 @@ async function regenerateExample(id: string) {
     const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true}});
     if (!word) return {error: 'not found'};
     const ai = resolve(AiModel);
-    const meaningClause = word.description?.trim() ? ` in the sense of "${word.description.trim()}"` : '';
-    const sentence = await ai.prompt(
-        `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
-    );
+    const sentence = await ai.prompt(examplePrompt(word.word, word.description));
     const example = (sentence ?? '').trim();
     if (example) await wordsDb.setExample(id, example);
     return {ok: true, example};
@@ -208,16 +206,12 @@ async function regenerateImage(id: string) {
     const ai = resolve(AiModel);
     let example = word.example?.trim();
     if (!example) {
-        const meaningClause = word.description?.trim() ? ` in the sense of "${word.description.trim()}"` : '';
-        const sentence = await ai.prompt(
-            `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
-        );
+        const sentence = await ai.prompt(examplePrompt(word.word, word.description));
         example = (sentence ?? '').trim();
         if (example) await wordsDb.setExample(id, example);
     }
     const imagen = resolve(Imagen);
-    const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
-    const image = await imagen.generate(prompt);
+    const image = await imagen.generate(imagePrompt(example));
     if (image) {
         await wordsDb.setImage(id, image);
         return {ok: true};

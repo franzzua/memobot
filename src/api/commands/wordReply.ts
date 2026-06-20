@@ -12,6 +12,7 @@ import {pickDistractorWords} from "../../services/word-send-handlers";
 import {generateSatQuiz} from "../../services/sat-quiz-generator";
 import {renderQuiz} from "../../services/quiz-render";
 import {ImageRender} from "../../services/image-render";
+import {transcriptionPrompt, examplePrompt, imagePrompt} from "../../services/prompts";
 
 const KEYWORDS = ['voice', 'example', 'image', 'skip', 'wordquiz', 'satquiz', 'card'] as const;
 type Keyword = typeof KEYWORDS[number];
@@ -50,9 +51,7 @@ export async function resolveWord(e: IncomingMessageEvent): Promise<Word | null>
 async function ensureTranscription(word: Word, force = false): Promise<string> {
     const existing = word.transcription?.trim();
     if (existing && !force) return existing;
-    const ipa = await resolve(AiModel).prompt(
-        `Return only the IPA phonetic transcription (in the standard /…/ form, no extra words) for the English word: "${word.word}".`
-    );
+    const ipa = await resolve(AiModel).prompt(transcriptionPrompt(word.word));
     const transcription = (ipa ?? '').trim();
     if (transcription) await resolve(WordsDatabase).setTranscription(word.id, transcription);
     return transcription;
@@ -61,12 +60,7 @@ async function ensureTranscription(word: Word, force = false): Promise<string> {
 async function ensureExample(word: Word, force = false): Promise<string> {
     const existing = word.example?.trim();
     if (existing && !force) return existing;
-    const meaningClause = word.description?.trim()
-        ? ` in the sense of "${word.description.trim()}"`
-        : '';
-    const sentence = await resolve(AiModel).prompt(
-        `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
-    );
+    const sentence = await resolve(AiModel).prompt(examplePrompt(word.word, word.description));
     const example = (sentence ?? '').trim();
     if (example) await resolve(WordsDatabase).setExample(word.id, example);
     return example;
@@ -75,8 +69,7 @@ async function ensureExample(word: Word, force = false): Promise<string> {
 async function ensureImage(word: Word, force = false): Promise<{image: Buffer | undefined, example: string}> {
     if (word.image && !force) return {image: Buffer.from(word.image), example: word.example?.trim() ?? ''};
     const example = await ensureExample(word, force);
-    const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
-    const image = await resolve(Imagen).generate(prompt);
+    const image = await resolve(Imagen).generate(imagePrompt(example));
     if (image) await resolve(WordsDatabase).setImage(word.id, image);
     return {image, example};
 }

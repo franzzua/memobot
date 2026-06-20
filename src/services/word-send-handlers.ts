@@ -9,6 +9,7 @@ import {TextToSpeech} from "./text-to-speech";
 import {ImageRender} from "./image-render";
 import {Imagen} from "./imagen";
 import {generateSatQuiz} from "./sat-quiz-generator";
+import {transcriptionPrompt, examplePrompt, imagePrompt} from "./prompts";
 
 export type CachedQuiz = {question: string; answers: string[]; correct: number};
 
@@ -74,9 +75,7 @@ const voiceTransHandler: WordSendHandler = async function voiceTransHandler({wor
     const wordsDb = resolve(WordsDatabase);
     let transcription = word.transcription?.trim();
     if (!transcription) {
-        const ipa = await resolve(AiModel).prompt(
-            `Return only the IPA phonetic transcription (in the standard /…/ form, no extra words) for the English word: "${word.word}".`
-        );
+        const ipa = await resolve(AiModel).prompt(transcriptionPrompt(word.word));
         transcription = (ipa ?? '').trim();
         if (transcription) await wordsDb.setTranscription(word.id, transcription);
     }
@@ -97,8 +96,7 @@ const imagenHandler: WordSendHandler = async function imagenHandler({word}) {
     const example = await ensureExample(word);
     let image: Buffer | undefined = word.image ? Buffer.from(word.image) : undefined;
     if (!image) {
-        const prompt = `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
-        image = await resolve(Imagen).generate(prompt);
+        image = await resolve(Imagen).generate(imagePrompt(example));
         if (image) await resolve(WordsDatabase).setImage(word.id, image);
     }
     if (!image) {
@@ -126,12 +124,7 @@ export const WordSendHandlers: WordSendHandler[] = [
 
 async function ensureExample(word: Word): Promise<string> {
     if (word.example?.trim()) return word.example.trim();
-    const meaningClause = word.description?.trim()
-        ? ` in the sense of "${word.description.trim()}"`
-        : '';
-    const sentence = await resolve(AiModel).prompt(
-        `Write one short, natural example sentence using the English word "${word.word}"${meaningClause}. Avoid military or depressive themes. Return only the sentence.`
-    );
+    const sentence = await resolve(AiModel).prompt(examplePrompt(word.word, word.description));
     const example = (sentence ?? '').trim();
     if (example) await resolve(WordsDatabase).setExample(word.id, example);
     word.example = example;
