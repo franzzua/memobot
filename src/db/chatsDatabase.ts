@@ -4,12 +4,12 @@ import {Firestore} from "@google-cloud/firestore";
 import {Logger} from "../logger/logger";
 import {env} from "../env";
 import {gcsConfig} from "./gcs.config";
-import {SchedulerStorage, Task, TimetableEntity} from "../scheduler/storage/schedulerStorage";
+import {TimetableStore, Task, TimetableEntity} from "../scheduler/storage/schedulerStorage";
 import {MessagesDatabase, MessageTimetable} from "./messagesDatabase";
 import {fixTimestamps} from "./fixTimestamps";
 
 @singleton()
-export class ChatsDatabase implements SchedulerStorage<MessageTimetable> {
+export class ChatsDatabase implements TimetableStore<MessageTimetable> {
 
     constructor() {
     }

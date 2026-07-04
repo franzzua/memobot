@@ -1,9 +1,9 @@
 import { Timetable } from "src/scheduler/types";
-import {TimetableEntity, SchedulerStorage, Task} from "../../storage/schedulerStorage";
+import {TimetableEntity, TimetableStore, Task} from "../../storage/schedulerStorage";
 import {scoped} from "@cmmn/core";
 
 @scoped()
-export class SchedulerMockStorage implements SchedulerStorage {
+export class SchedulerMockStorage implements TimetableStore {
 
     private storage = new Map<unknown, {
         task: Task;

@@ -4,12 +4,12 @@ import {Scheduler} from "../scheduler/scheduler";
 import {Message} from "../types";
 import {TaskScheduler} from "../db/task.scheduler";
 import {TimetablePolicyType} from "../scheduler/types";
-import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
+import {PrismaStorage} from "../db/prismaStorage";
 
 @singleton()
 export class MemoBot {
-    @inject(PrismaSchedulerStorage)
-    private accessor db!: PrismaSchedulerStorage;
+    @inject(PrismaStorage)
+    private accessor db!: PrismaStorage;
     @inject(TaskScheduler)
     private accessor scheduler!: Scheduler<Message>
     constructor() {

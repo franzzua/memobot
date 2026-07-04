@@ -10,7 +10,7 @@ import {TaskSendHandlers} from "../services/send-handlers/index";
 import {WordSendHandlers, ensureSatQuiz} from "../services/word-send-handlers";
 import type {Word} from "../../prisma/client";
 import {Logger} from "../logger/logger";
-import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
+import {PrismaStorage} from "../db/prismaStorage";
 import {renderQuiz} from "../services/quiz-render";
 import {resolve} from "@cmmn/core";
 import {SrsPlanner} from "../services/srs-planner";
@@ -34,8 +34,8 @@ if (!process.env.PUBLIC_URL)
 export class TelegrafApi {
     @inject(MemoBot)
     accessor bot!: MemoBot;
-    @inject(PrismaSchedulerStorage)
-    chatDatabase!: PrismaSchedulerStorage;
+    @inject(PrismaStorage)
+    chatDatabase!: PrismaStorage;
     @inject(Logger)
     logger!: Logger;
 

@@ -1,6 +1,6 @@
 import {Timetable} from "../types";
 
-export abstract class SchedulerStorage<
+export abstract class TimetableStore<
     TTimetable extends Timetable = Timetable,
     TaskId = string,
     QueueId = string

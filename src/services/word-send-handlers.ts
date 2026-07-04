@@ -3,7 +3,7 @@ import type {Word} from "../../prisma/client";
 import type {AudioMessage, ImageMessage, Message as MessageData, QuizMessage} from "../messengers/messenger";
 import type {Message} from "../types";
 import {WordsDatabase} from "../db/wordsDatabase";
-import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
+import {PrismaStorage} from "../db/prismaStorage";
 import {AiModel} from "./ai-model";
 import {TextToSpeech} from "./text-to-speech";
 import {ImageRender} from "./image-render";
@@ -148,7 +148,7 @@ function shuffleInPlace<T>(arr: T[]): void {
 }
 
 export async function pickDistractorWords(chatId: string, currentWordId: string, n: number): Promise<Word[]> {
-    const db = resolve(PrismaSchedulerStorage);
+    const db = resolve(PrismaStorage);
     const plan = await db.getPlanState(chatId);
     if (!plan) return [];
     const introducedCount = await db.countMessagesByKind(chatId, 'word');

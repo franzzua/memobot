@@ -4,11 +4,11 @@ import { ChatState } from "../../types";
 import { TelegrafApi } from "../telegraf.api";
 import {IncomingMessageEvent} from "../../messengers/messenger";
 import {getRandomText} from "../../helpers/getRandomText";
-import {PrismaSchedulerStorage} from "../../db/prismaSchedulerStorage";
+import {PrismaStorage} from "../../db/prismaStorage";
 
 
 export async function onNewCommand(this: TelegrafApi, ctx: IncomingMessageEvent) {
-    const db = resolve(PrismaSchedulerStorage);
+    const db = resolve(PrismaStorage);
     const message = await ctx.text();
     if (!message) return;
     const [, content, details] = message.text.split(' ');

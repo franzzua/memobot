@@ -5,7 +5,7 @@ import {WordsDatabase} from "../../db/wordsDatabase";
 import {TextToSpeech} from "../../services/text-to-speech";
 import {AiModel} from "../../services/ai-model";
 import {Imagen} from "../../services/imagen";
-import {PrismaSchedulerStorage} from "../../db/prismaSchedulerStorage";
+import {PrismaStorage} from "../../db/prismaStorage";
 import {TaskScheduler} from "../../db/task.scheduler";
 import type {Word} from "../../../prisma/client";
 import {pickDistractorWords} from "../../services/word-send-handlers";
@@ -43,7 +43,7 @@ export async function resolveWord(e: IncomingMessageEvent): Promise<Word | null>
             if (word) return word;
         }
     }
-    const lastId = await resolve(PrismaSchedulerStorage).getLastSentWordRefId(e.chat.toString());
+    const lastId = await resolve(PrismaStorage).getLastSentWordRefId(e.chat.toString());
     if (!lastId) return null;
     return wordsDb.getById(lastId);
 }

@@ -6,9 +6,17 @@ import {getMessenger} from "./getMessenger";
 import {prismaFactory} from "../../prisma/client";
 import { PrismaClient } from "../../prisma/client";
 import {isAdminRequest, handleAdminRequest} from "../api/admin";
+import {DataStore} from "../scheduler/storage/dataStore";
+import {PrismaStorage} from "../db/prismaStorage";
+import {Scheduler} from "../scheduler/scheduler";
+import {TaskScheduler} from "../db/task.scheduler";
 
 let tgLoad: Promise<TelegrafApi>;
 di.factory(PrismaClient, prismaFactory)
+// Bind the scheduler's abstract ports to their Prisma-backed implementations, so
+// SrsPlanner (which resolves DataStore/Scheduler) works from every entrypoint.
+di.override(DataStore, PrismaStorage)
+di.override(Scheduler as any, TaskScheduler)
 
 async function initTelegram() {
     const context = di.child();

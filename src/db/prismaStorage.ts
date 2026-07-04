@@ -1,7 +1,9 @@
-import type { Prisma, Message as PrismaMessage } from "../../prisma/client";
+import type { Prisma, Message as PrismaMessage, Word } from "../../prisma/client";
 import { PrismaClient } from "../../prisma/client";
-import type { SchedulerStorage, Task, TimetableEntity } from "../scheduler/storage/schedulerStorage";
+import type { Task, TimetableEntity } from "../scheduler/storage/schedulerStorage";
+import { DataStore } from "../scheduler/storage/dataStore";
 import type { MessageTimetable } from "./messagesDatabase";
+import { WordsDatabase } from "./wordsDatabase";
 import {resolve, singleton} from "@cmmn/core";
 import type { Chat } from "../types";
 import { ChatState } from "../types";
@@ -14,8 +16,9 @@ type ChatEntity = Chat & Task & {
 }
 
 @singleton()
-export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable> {
+export class PrismaStorage extends DataStore {
     private prisma = resolve(PrismaClient)
+    private words = resolve(WordsDatabase)
 
     @Logger.measure
     async addOrUpdateChat(chat: Omit<Chat, "state">) {
@@ -310,6 +313,14 @@ export class PrismaSchedulerStorage implements SchedulerStorage<MessageTimetable
             where: {chatId, number},
             data: {deleted: true}
         });
+    }
+
+    pickTopForLevel(level: string, n: number): Promise<Word[]> {
+        return this.words.pickTopForLevel(level, n);
+    }
+
+    getByIds(ids: string[]): Promise<Map<string, Word>> {
+        return this.words.getByIds(ids);
     }
 
     private mapToEntity(msg: PrismaMessage): TimetableEntity<MessageTimetable> {

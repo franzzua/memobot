@@ -1,0 +1,105 @@
+import {describe, test} from "node:test";
+import {expect} from "expect";
+import {Scheduler} from "../scheduler/scheduler";
+import {SchedulerMockQueue} from "../scheduler/specs/mocks/SchedulerMockQueue";
+import {TestJsonStorage, TestJsonSeed} from "../scheduler/storage/testJsonStorage";
+import {SrsPlanner, buildQuizDates, introOffsetMs} from "./srs-planner";
+import {Message} from "../types";
+import type {Word} from "../../prisma/client";
+
+const day = 86400 * 1000;
+const chatId = 'c1';
+
+function word(i: number): Word {
+    return {id: `w${i}`, word: `word${i}`, description: `desc${i}`, satFrequency: 100 - i} as unknown as Word;
+}
+
+function make(seed: TestJsonSeed) {
+    const store = new TestJsonStorage(seed);
+    const scheduler = new Scheduler<Message>(store, new SchedulerMockQueue());
+    const planner = new SrsPlanner(store, scheduler);
+    return {store, scheduler, planner};
+}
+
+const fiveWords = [0, 1, 2, 3, 4].map(word);
+
+describe("SrsPlanner (TestJsonStorage)", () => {
+    test("no plan state → next time null and advance is a no-op", async () => {
+        const {planner, store} = make({chats: [{id: chatId}]});
+        expect(await planner.getNextMessageTime(chatId)).toBeNull();
+        expect(await planner.advance(chatId)).toEqual({scheduledWord: null, scheduledQuiz: false});
+        expect(await store.countMessagesByKind(chatId, 'word')).toBe(0);
+    });
+
+    test("fresh plan schedules word[0] + a tick and arms the queue", async () => {
+        const {planner, store} = make({chats: [{id: chatId}], words: fiveWords});
+        const res = await planner.planForChat(chatId, 'B2', 1);
+
+        expect(res.wordCount).toBe(5);
+        expect(await store.countMessagesByKind(chatId, 'word')).toBe(1);
+        expect(await store.countMessagesByKind(chatId, 'tick')).toBe(1);
+        expect(await planner.getNextMessageTime(chatId)).toBeInstanceOf(Date);
+        expect(store.state.chats[chatId].scheduledAt).toBeInstanceOf(Date);
+    });
+
+    test("advance mid-plan introduces the next word in order", async () => {
+        const {planner, store} = make({chats: [{id: chatId}], words: fiveWords});
+        await planner.planForChat(chatId, 'B2', 1);
+
+        const r = await planner.advance(chatId);
+        expect(r.scheduledWord?.id).toBe('w1');
+        expect(await store.countMessagesByKind(chatId, 'word')).toBe(2);
+    });
+
+    test("advance past the quiz-peak fires due quizzes and re-arms a future tick", async () => {
+        const past = new Date(Date.now() - 9 * day);
+        const {planner} = make({
+            chats: [{id: chatId, planStart: past, planDurationDays: 10, wordOrder: []}],
+        });
+
+        const r = await planner.advance(chatId);
+        expect(r.scheduledQuiz).toBe(true);
+
+        const next = await planner.getNextMessageTime(chatId);
+        expect(next).toBeInstanceOf(Date);
+        expect(next!.getTime()).toBeGreaterThan(Date.now());
+    });
+
+    test("advance on a finished plan schedules nothing and leaves no next message", async () => {
+        const past = new Date(Date.now() - 5 * day);
+        const {planner} = make({
+            chats: [{id: chatId, planStart: past, planDurationDays: 1, wordOrder: []}],
+        });
+
+        expect(await planner.advance(chatId)).toEqual({scheduledWord: null, scheduledQuiz: false});
+        expect(await planner.getNextMessageTime(chatId)).toBeNull();
+    });
+
+    test("projectPlan marks the introduced word scheduled and the rest projected", async () => {
+        const {planner} = make({chats: [{id: chatId}], words: fiveWords});
+        await planner.planForChat(chatId, 'B2', 1);
+
+        const proj = await planner.projectPlan(chatId);
+        expect(proj.words.length).toBe(5);
+        expect(proj.words[0].scheduled).toBe(true);
+        expect(proj.words[4].scheduled).toBe(false);
+    });
+});
+
+describe("SRS timing math", () => {
+    test("buildQuizDates is empty for a plan too short to reach the peak", () => {
+        expect(buildQuizDates(new Date(), 1 * day, 5)).toEqual([]);
+    });
+
+    test("buildQuizDates returns a strictly ascending schedule for a normal plan", () => {
+        const q = buildQuizDates(new Date(), 30 * day, 200);
+        expect(q.length).toBeGreaterThan(0);
+        for (let i = 1; i < q.length; i++) {
+            expect(+q[i]).toBeGreaterThan(+q[i - 1]);
+        }
+    });
+
+    test("introOffsetMs is zero for the first introduction", () => {
+        expect(introOffsetMs(5, 4 * 3600 * 1000, 0)).toBe(0);
+    });
+});

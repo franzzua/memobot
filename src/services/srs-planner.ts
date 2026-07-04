@@ -1,11 +1,17 @@
-import {inject, singleton} from "@cmmn/core";
-import {WordsDatabase} from "../db/wordsDatabase";
-import {PrismaSchedulerStorage} from "../db/prismaSchedulerStorage";
-import {TaskScheduler} from "../db/task.scheduler";
+import {resolve, singleton} from "@cmmn/core";
+import {DataStore} from "../scheduler/storage/dataStore";
 import {Scheduler} from "../scheduler/scheduler";
 import {TimetablePolicyType} from "../scheduler/types";
 import {Message, MessageKind} from "../types";
 import type {Word} from "../../prisma/client";
+import {SchedulerStorage, ProjectedWord, ProjectedQuiz} from "./schedulerStorage";
+
+export type {ProjectedWord, ProjectedQuiz} from "./schedulerStorage";
+
+// db/scheduler are resolved via the abstract DataStore/Scheduler tokens (bound to
+// PrismaStorage/TaskScheduler in start.ts). This keeps SrsPlanner — and its tests —
+// free of any static import of the Prisma runtime, so it can run against TestJsonStorage
+// with no database.
 
 const day = 86400 * 1000;
 const HOUR = 3600 * 1000;
@@ -18,26 +24,16 @@ const INTRO_WINDOW_FRACTION = 0.80;
 
 const WORD_DELAYS = [0.0005, 0.01, 0.04, 0.08, 0.16, 0.32];
 
-export type ProjectedWord = {
-    word: string;
-    description: string;
-    dates: Date[];
-    scheduled: boolean;
-};
-
-export type ProjectedQuiz = {
-    date: Date;
-    scheduled: boolean;
-};
-
 @singleton()
-export class SrsPlanner {
-    @inject(WordsDatabase)
-    private accessor words!: WordsDatabase;
-    @inject(PrismaSchedulerStorage)
-    private accessor db!: PrismaSchedulerStorage;
-    @inject(TaskScheduler)
-    private accessor scheduler!: Scheduler<Message>;
+export class SrsPlanner implements SchedulerStorage {
+    constructor(
+        private db: DataStore = resolve(DataStore),
+        private scheduler: Scheduler<Message> = resolve(Scheduler) as unknown as Scheduler<Message>,
+    ) {}
+
+    getNextMessageTime(chatId: string): Promise<Date | null> {
+        return this.db.getNextTimetableTime(chatId);
+    }
 
     async planForChat(chatId: string, level: string, months: number): Promise<{
         wordCount: number;
@@ -52,7 +48,7 @@ export class SrsPlanner {
         const T_ms = planDurationDays * day;
         const N = Math.max(200, Math.min(300, Math.round(planDurationDays * 2.5)));
 
-        const picked = await this.words.pickTopForLevel(level, N);
+        const picked = await this.db.pickTopForLevel(level, N);
         const wordOrder = picked.map(p => p.id);
         const wordCount = wordOrder.length;
         await this.db.savePlanState(chatId, T0, planDurationDays, wordOrder);
@@ -99,7 +95,7 @@ export class SrsPlanner {
         let scheduledWord: Word | null = null;
         let wordCursor = await this.db.countMessagesByKind(chatId, 'word');
         if (wordCursor < wordCount) {
-            const map = await this.words.getByIds([wordOrder[wordCursor]]);
+            const map = await this.db.getByIds([wordOrder[wordCursor]]);
             const word = map.get(wordOrder[wordCursor]);
             if (word) {
                 await this.scheduleWord(chatId, word, now, T_ms);
@@ -153,7 +149,7 @@ export class SrsPlanner {
         }
 
         const futureIds = wordOrder.filter(id => !scheduledWords.has(id));
-        const futureWords = await this.words.getByIds(futureIds);
+        const futureWords = await this.db.getByIds(futureIds);
 
         const words: ProjectedWord[] = [];
         for (let i = 0; i < wordCount; i++) {

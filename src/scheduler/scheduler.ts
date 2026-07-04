@@ -1,6 +1,6 @@
 import {SchedulerBackend} from "./shared";
 import {Timetable} from "./types";
-import {Task, SchedulerStorage, TimetableEntity} from "./storage/schedulerStorage";
+import {Task, TimetableStore, TimetableEntity} from "./storage/schedulerStorage";
 import {TimetableHelper} from "./helpers/timetable.helper";
 
 export class Scheduler<
@@ -9,7 +9,7 @@ export class Scheduler<
     ScheduleId = string,
 > {
     constructor(
-        private readonly storage: SchedulerStorage<TimetableData & Timetable, TaskId, ScheduleId>,
+        private readonly storage: TimetableStore<TimetableData & Timetable, TaskId, ScheduleId>,
         private readonly queue: SchedulerBackend<TaskId, ScheduleId>,
     ) {
     }
