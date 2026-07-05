@@ -8,6 +8,10 @@ import {renderPlanHistogram} from "../../services/histogram-render";
 
 export async function init(this: TelegrafApi, ctx: IncomingMessageEvent) {
     await setChatFromContext.call(this, ctx);
+    // Re-initializing a plan means the user is active again. Clearing the pause here is
+    // essential: getChatState filters on isPaused=false, so a paused chat would otherwise
+    // read back `undefined` at the months step (crash) and lose the chosen level.
+    await this.chatDatabase.setIsPaused(ctx.chat.toString(), false);
     return ctx.reply("What is your current English level?", {
         reply_markup: {
             inline_keyboard: [[
@@ -38,7 +42,7 @@ export async function onInitMonths(this: TelegrafApi, ctx: CallbackEvent) {
     const months = parseInt((ctx.data as string).replace("init:months:", ""), 10);
     const chatId = ctx.chat.toString();
     await ctx.reply("⏳ Preparing your personal plan...");
-    const { stateData } = await this.chatDatabase.getChatState(chatId);
+    const { stateData } = (await this.chatDatabase.getChatState(chatId)) ?? {};
     const level = (stateData as any)?.level;
     await this.chatDatabase.saveInitData(chatId, level, months);
     const { wordCount, quizCount, words, quizzes } = await resolve(SrsPlanner).planForChat(chatId, level, months);
