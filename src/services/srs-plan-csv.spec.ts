@@ -13,9 +13,10 @@ import type {Word} from "../../prisma/client";
 const day = 86400 * 1000;
 const chatId = 'sim';
 
-// The six per-word sends, in the order the scheduler fires them (see telegraf.api sendTasks +
-// WordSendHandlers): index 0 is the word card, 1..5 map to WordSendHandlers[0..4].
-const WORD_TYPE_BY_INDEX = ['description', 'quiz', 'voice', 'example', 'picture', 'card'];
+// The per-word sends, in the order the scheduler fires them (see telegraf.api sendTasks +
+// WordSendHandlers): index 0 is the word card, 1..5 map to WordSendHandlers[0..4]. A 4-month
+// plan gets 4 reps (quiz, voice, picture, card) — no example, which only kicks in past 5 months.
+const WORD_TYPE_BY_INDEX = ['description', 'quiz', 'voice', 'picture', 'card', 'example'];
 
 function word(i: number): Word {
     return {id: `w${i}`, word: `word${i}`, description: `meaning of word ${i}`, satFrequency: 100000 - i} as unknown as Word;
@@ -108,10 +109,13 @@ describe("SRS 4-month plan → CSV", () => {
         console.log(`SRS 4-month plan: ${rows.length} messages → ${out}`);
         console.log('by type:', JSON.stringify(counts));
 
-        // Sanity: the plan produced a real, multi-thousand-message timeline covering every type.
+        // Sanity: the plan produced a real, multi-thousand-message timeline covering every type
+        // a 4-month plan (4 reps: quiz, voice, picture, card) actually sends.
         expect(rows.length).toBeGreaterThan(1000);
-        for (const type of [...WORD_TYPE_BY_INDEX, 'satQuiz']) {
+        for (const type of ['description', 'quiz', 'voice', 'picture', 'card', 'satQuiz']) {
             expect(counts[type]).toBeGreaterThan(0);
         }
+        // Example is only added for plans longer than 5 months, so a 4-month plan sends none.
+        expect(counts['example']).toBeUndefined();
     });
 });

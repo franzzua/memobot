@@ -81,7 +81,8 @@ const voiceTransHandler: WordSendHandler = async function voiceTransHandler({wor
     }
     let audio: Buffer | undefined = word.voice ? Buffer.from(word.voice) : undefined;
     if (!audio) {
-        audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus', transcription || undefined);
+        const example = await ensureExample(word);
+        audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus', transcription || undefined, example || undefined);
         await wordsDb.setVoice(word.id, audio);
     }
     return {type: 'audio', audio, audioType: 'ogg', caption: transcription || undefined} as AudioMessage;
@@ -114,12 +115,15 @@ const flashcardHandler: WordSendHandler = async function flashcardHandler({word}
     return {type: 'image', image: render.render()} as ImageMessage;
 };
 
+// Order matters: SrsPlanner takes a prefix of this list sized to the plan's duration
+// (3 reps for short plans, 4 adds the card, 5 adds the example), so shorter reps must
+// come first.
 export const WordSendHandlers: WordSendHandler[] = [
     quizHandler,
     voiceTransHandler,
-    exampleHandler,
     imagenHandler,
     flashcardHandler,
+    exampleHandler,
 ];
 
 async function ensureExample(word: Word): Promise<string> {

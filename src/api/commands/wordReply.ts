@@ -74,9 +74,9 @@ async function ensureImage(word: Word, force = false): Promise<{image: Buffer | 
     return {image, example};
 }
 
-async function ensureVoice(word: Word, ipa?: string, force = false): Promise<Buffer> {
+async function ensureVoice(word: Word, ipa?: string, example?: string, force = false): Promise<Buffer> {
     if (word.voice && !force) return Buffer.from(word.voice);
-    const audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus', ipa || undefined);
+    const audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus', ipa || undefined, example || undefined);
     await resolve(WordsDatabase).setVoice(word.id, audio);
     return audio;
 }
@@ -94,7 +94,8 @@ export async function tryHandleWordReply(this: TelegrafApi, e: IncomingMessageEv
     switch (keyword) {
         case 'voice': {
             const transcription = await ensureTranscription(word, force);
-            const audio = await ensureVoice(word, transcription, force);
+            const example = await ensureExample(word, force);
+            const audio = await ensureVoice(word, transcription, example, force);
             await e.reply({
                 type: 'audio',
                 audio,

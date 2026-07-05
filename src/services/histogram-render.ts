@@ -1,11 +1,24 @@
 import {Canvas, createCanvas, CanvasRenderingContext2D} from "canvas";
 
+// Word repetition steps in send order (mirrors WordSendHandlers in word-send-handlers.ts):
+// index 0 of a word's `dates` is always the intro (newWords); indices 1..N map here.
+export const REPETITION_TYPES = ['wordQuiz', 'voice', 'image', 'card', 'example'] as const;
+export type RepetitionType = typeof REPETITION_TYPES[number];
+
 export type HistogramBucket = {
     day: Date;
     newWords: number;
-    repetitions: number;
+    wordQuiz: number;
+    voice: number;
+    image: number;
+    card: number;
+    example: number;
     quizzes: number;
 };
+
+function emptyBucket(day: Date): HistogramBucket {
+    return {day, newWords: 0, wordQuiz: 0, voice: 0, image: 0, card: 0, example: 0, quizzes: 0};
+}
 
 const dayMs = 86400 * 1000;
 
@@ -23,7 +36,7 @@ export function bucketPlanByDay(
         const k = dayKey(d);
         let b = map.get(k);
         if (!b) {
-            b = {day: new Date(k * dayMs + tzOffsetMs), newWords: 0, repetitions: 0, quizzes: 0};
+            b = emptyBucket(new Date(k * dayMs + tzOffsetMs));
             map.set(k, b);
         }
         return b;
@@ -33,8 +46,12 @@ export function bucketPlanByDay(
         const sorted = [...w.dates].sort((a, b) => +a - +b);
         for (let i = 0; i < sorted.length; i++) {
             const b = touch(sorted[i]);
-            if (i === 0) b.newWords += 1;
-            else b.repetitions += 1;
+            if (i === 0) {
+                b.newWords += 1;
+            } else {
+                const type = REPETITION_TYPES[i - 1];
+                if (type) b[type] += 1;
+            }
         }
     }
     for (const q of quizzes) {
@@ -45,12 +62,7 @@ export function bucketPlanByDay(
     const keys = [...map.keys()].sort((a, b) => a - b);
     const out: HistogramBucket[] = [];
     for (let k = keys[0]; k <= keys[keys.length - 1]; k++) {
-        const existing = map.get(k);
-        if (existing) {
-            out.push(existing);
-        } else {
-            out.push({day: new Date(k * dayMs + tzOffsetMs), newWords: 0, repetitions: 0, quizzes: 0});
-        }
+        out.push(map.get(k) ?? emptyBucket(new Date(k * dayMs + tzOffsetMs)));
     }
     return out;
 }
@@ -65,11 +77,26 @@ export function renderPlanHistogram(
 }
 
 const COLOR_NEW = '#D8443A';
-const COLOR_REP = '#E89A2C';
-const COLOR_QUIZ = '#8A4FBF';
+const COLOR_WORD_QUIZ = '#E8A23C';
+const COLOR_VOICE = '#4FA8A0';
+const COLOR_IMAGE = '#3E7CB1';
+const COLOR_CARD = '#8A4FBF';
+const COLOR_EXAMPLE = '#C2588A';
+const COLOR_QUIZ = '#5B8C3A';
 const COLOR_AXIS = '#444';
 const COLOR_GRID = '#DDD';
 const COLOR_BG = '#FFF';
+
+// Stacking order (bottom to top) and color for each layer of the plan histogram.
+const STACK: Array<{key: keyof Omit<HistogramBucket, 'day'>; label: string; color: string}> = [
+    {key: 'newWords', label: 'new', color: COLOR_NEW},
+    {key: 'wordQuiz', label: 'wordQuiz', color: COLOR_WORD_QUIZ},
+    {key: 'voice', label: 'voice', color: COLOR_VOICE},
+    {key: 'image', label: 'image', color: COLOR_IMAGE},
+    {key: 'card', label: 'card', color: COLOR_CARD},
+    {key: 'example', label: 'example', color: COLOR_EXAMPLE},
+    {key: 'quizzes', label: 'quiz', color: COLOR_QUIZ},
+];
 
 export class HistogramRender {
     private width = 640;
@@ -95,7 +122,7 @@ export class HistogramRender {
         const plotW = this.width - this.padLeft - this.padRight;
         const plotH = this.height - this.padTop - this.padBottom;
 
-        const maxTotal = Math.max(1, ...this.smoothed.map(b => b.newWords + b.repetitions + b.quizzes));
+        const maxTotal = Math.max(1, ...this.smoothed.map(b => STACK.reduce((sum, s) => sum + b[s.key], 0)));
         const yTicks = niceTicks(maxTotal, 5);
         const yMax = yTicks[yTicks.length - 1];
 
@@ -133,15 +160,13 @@ export class HistogramRender {
         const xs = this.smoothed.map((_, i) => this.padLeft + (i + 0.5) * slot);
         const toY = (v: number) => baselineY - (v / yMax) * plotH;
 
-        const cumNew = this.smoothed.map(b => b.newWords);
-        const cumRep = this.smoothed.map(b => b.newWords + b.repetitions);
-        const cumQuiz = this.smoothed.map(b => b.newWords + b.repetitions + b.quizzes);
-
-        const layers: Array<{top: number[]; bottom: number[] | null; color: string}> = [
-            {top: cumNew, bottom: null, color: COLOR_NEW},
-            {top: cumRep, bottom: cumNew, color: COLOR_REP},
-            {top: cumQuiz, bottom: cumRep, color: COLOR_QUIZ},
-        ];
+        let running = this.smoothed.map(() => 0);
+        const layers: Array<{top: number[]; bottom: number[] | null; color: string}> = STACK.map((s, idx) => {
+            const bottom = idx === 0 ? null : running;
+            const top = this.smoothed.map((b, i) => running[i] + b[s.key]);
+            running = top;
+            return {top, bottom, color: s.color};
+        });
         for (const layer of layers) {
             ctx.beginPath();
             const upper = xs.map((x, i) => ({x, y: toY(layer.top[i])}));
@@ -171,16 +196,11 @@ export class HistogramRender {
         }
 
         const legendY = this.height - 18;
-        const items: Array<{color: string; label: string}> = [
-            {color: COLOR_NEW, label: 'new'},
-            {color: COLOR_REP, label: 'repeat'},
-            {color: COLOR_QUIZ, label: 'quiz'},
-        ];
         ctx.font = '11px sans-serif';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
         let lx = this.padLeft;
-        for (const it of items) {
+        for (const it of STACK) {
             ctx.fillStyle = it.color;
             ctx.fillRect(lx, legendY - 5, 12, 10);
             ctx.fillStyle = COLOR_AXIS;
@@ -209,24 +229,23 @@ function tracePath(ctx: CanvasRenderingContext2D, points: Array<{x: number; y: n
     ctx.lineTo(last.x, last.y);
 }
 
+const SUM_KEYS = ['newWords', 'wordQuiz', 'voice', 'image', 'card', 'example', 'quizzes'] as const;
+
 function smoothBuckets(buckets: HistogramBucket[], window: number): HistogramBucket[] {
     if (buckets.length === 0) return buckets;
     const half = Math.floor(window / 2);
     return buckets.map((_, i) => {
-        let nw = 0, rp = 0, qz = 0, count = 0;
+        const sums: Record<typeof SUM_KEYS[number], number> = {
+            newWords: 0, wordQuiz: 0, voice: 0, image: 0, card: 0, example: 0, quizzes: 0,
+        };
+        let count = 0;
         for (let j = i - half; j <= i + half; j++) {
             if (j < 0 || j >= buckets.length) continue;
-            nw += buckets[j].newWords;
-            rp += buckets[j].repetitions;
-            qz += buckets[j].quizzes;
+            for (const k of SUM_KEYS) sums[k] += buckets[j][k];
             count++;
         }
-        return {
-            day: buckets[i].day,
-            newWords: nw / count,
-            repetitions: rp / count,
-            quizzes: qz / count,
-        };
+        for (const k of SUM_KEYS) sums[k] /= count;
+        return {day: buckets[i].day, ...sums};
     });
 }
 

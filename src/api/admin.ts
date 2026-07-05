@@ -171,7 +171,7 @@ async function getWordVoice(res: Res, id: string) {
 async function regenerateVoice(id: string) {
     const wordsDb = resolve(WordsDatabase);
     const prisma = resolve(PrismaClient);
-    const word = await prisma.word.findUnique({where: {id}, select: {word: true, transcription: true}});
+    const word = await prisma.word.findUnique({where: {id}, select: {word: true, description: true, transcription: true, example: true}});
     if (!word) return {error: 'not found'};
     const tts = resolve(TextToSpeech);
     const ai = resolve(AiModel);
@@ -181,7 +181,13 @@ async function regenerateVoice(id: string) {
         transcription = (ipa ?? '').trim();
         if (transcription) await wordsDb.setTranscription(id, transcription);
     }
-    const audio = await tts.getStream(word.word, 'ogg_opus', transcription || undefined);
+    let example = word.example?.trim();
+    if (!example) {
+        const sentence = await ai.prompt(examplePrompt(word.word, word.description));
+        example = (sentence ?? '').trim();
+        if (example) await wordsDb.setExample(id, example);
+    }
+    const audio = await tts.getStream(word.word, 'ogg_opus', transcription || undefined, example || undefined);
     await wordsDb.setVoice(id, audio);
     return {ok: true, transcription};
 }
@@ -371,6 +377,16 @@ const adminHTML = `<!DOCTYPE html>
   .quiz-answer.correct { background: #1a3a1a; border-color: #2a5a2a; color: #8d8; }
   .quiz-label { font-weight: 700; color: #888; min-width: 18px; }
   .quiz-answer.correct .quiz-label { color: #6c6; }
+
+  .lightbox-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+    align-items: center; justify-content: center; z-index: 1000; cursor: zoom-out;
+  }
+  .lightbox-overlay.open { display: flex; }
+  .lightbox-overlay img {
+    max-width: min(75vw, 75vh); max-height: min(75vw, 75vh);
+    object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  }
 </style>
 </head>
 <body>
@@ -384,6 +400,10 @@ const adminHTML = `<!DOCTYPE html>
 <div id="stats" class="stats"></div>
 <div id="content"></div>
 <div id="pager" class="pagination"></div>
+
+<div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="expanded image" />
+</div>
 
 <script>
 const BASE = location.pathname.replace(/\\/$/, '');
@@ -467,12 +487,12 @@ function createCard(w) {
       '<div class="card-images">' +
         '<div>' +
           '<div class="img-label">Flashcard</div>' +
-          '<img data-src="' + API + '/words/' + w.id + '/flashcard" alt="flashcard" />' +
+          '<img data-src="' + API + '/words/' + w.id + '/flashcard" alt="flashcard" onclick="event.stopPropagation(); openLightbox(this.src)" />' +
         '</div>' +
         '<div id="imagen-' + w.id + '">' +
           '<div class="img-label">AI Image</div>' +
           (w.hasImage
-            ? '<img data-src="' + API + '/words/' + w.id + '/image" alt="ai image" />'
+            ? '<img data-src="' + API + '/words/' + w.id + '/image" alt="ai image" onclick="event.stopPropagation(); openLightbox(this.src)" />'
             : '<div style="color:#555;font-size:0.85em">Not generated</div>') +
         '</div>' +
       '</div>' +
@@ -585,7 +605,7 @@ async function regenImage(e) {
     const data = await api('/words/' + id + '/regenerate/image', {method: 'POST'});
     if (data.ok) {
       const imgEl = document.getElementById('imagen-' + id);
-      imgEl.innerHTML = '<div class="img-label">AI Image</div><img src="' + API + '/words/' + id + '/image?' + Date.now() + '" alt="ai image" />';
+      imgEl.innerHTML = '<div class="img-label">AI Image</div><img src="' + API + '/words/' + id + '/image?' + Date.now() + '" alt="ai image" onclick="event.stopPropagation(); openLightbox(this.src)" />';
       status.innerHTML = '<div class="success">Image regenerated</div>';
       updateBadge(id, 'image', true);
     } else {
@@ -631,6 +651,18 @@ function setLoading(btn, loading) {
   btn.disabled = loading;
   btn.classList.toggle('loading', loading);
 }
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightboxImg').src = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
 function esc(s) {
   if (!s) return '';

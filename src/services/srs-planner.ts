@@ -22,7 +22,23 @@ const HOUR = 3600 * 1000;
 const TARGET_START_INTERVAL_MS = 4 * HOUR;
 const INTRO_WINDOW_FRACTION = 0.80;
 
+// Index 0 is the intro; 1..5 map to WordSendHandlers[0..4] (quiz, voice, image, card, example).
 const WORD_DELAYS = [0.0005, 0.01, 0.04, 0.08, 0.16, 0.32];
+
+// Repetitions scale with how much time the learner has: short plans keep only the core
+// recall loop (quiz, voice, image), 4-5 month plans add the flashcard, and longer plans
+// also get a full example sentence. WordSendHandlers is ordered to match, so slicing
+// WORD_DELAYS to a prefix is enough to select the active steps.
+function repetitionCount(planDurationDays: number): number {
+    const months = planDurationDays / 30;
+    if (months < 4) return 3;
+    if (months <= 5) return 4;
+    return 5;
+}
+
+function wordDelaysForDuration(planDurationDays: number): number[] {
+    return WORD_DELAYS.slice(0, 1 + repetitionCount(planDurationDays));
+}
 
 @singleton()
 export class SrsPlanner implements SchedulerStorage {
@@ -53,9 +69,11 @@ export class SrsPlanner implements SchedulerStorage {
         const wordCount = wordOrder.length;
         await this.db.savePlanState(chatId, T0, planDurationDays, wordOrder);
 
+        const wordDelays = wordDelaysForDuration(planDurationDays);
+
         // Schedule word[0] directly so we can reuse `picked` and skip a DB round-trip.
         if (wordCount > 0) {
-            await this.scheduleWord(chatId, picked[0], T0, T_ms);
+            await this.scheduleWord(chatId, picked[0], T0, T_ms, wordDelays);
         }
         const allQuizDates = buildQuizDates(T0, T_ms, wordCount);
         const nextTick = nextEventTime(T0, planDurationDays, wordCount, Math.min(1, wordCount), 0, allQuizDates);
@@ -69,7 +87,7 @@ export class SrsPlanner implements SchedulerStorage {
             return {
                 word: w.word,
                 description: w.description ?? '',
-                dates: WORD_DELAYS.map(f => new Date(+pickDate + f * T_ms)),
+                dates: wordDelays.map(f => new Date(+pickDate + f * T_ms)),
                 scheduled: i === 0,
             };
         });
@@ -92,13 +110,15 @@ export class SrsPlanner implements SchedulerStorage {
 
         await this.db.deactivateTicks(chatId);
 
+        const wordDelays = wordDelaysForDuration(planDurationDays);
+
         let scheduledWord: Word | null = null;
         let wordCursor = await this.db.countMessagesByKind(chatId, 'word');
         if (wordCursor < wordCount) {
             const map = await this.db.getByIds([wordOrder[wordCursor]]);
             const word = map.get(wordOrder[wordCursor]);
             if (word) {
-                await this.scheduleWord(chatId, word, now, T_ms);
+                await this.scheduleWord(chatId, word, now, T_ms, wordDelays);
                 wordCursor++;
                 scheduledWord = word;
             }
@@ -132,6 +152,7 @@ export class SrsPlanner implements SchedulerStorage {
         const T_ms = planDurationDays * day;
         const wordCount = wordOrder.length;
         const tickStart = tickStartIntervalMs(planDurationDays, wordCount);
+        const wordDelays = wordDelaysForDuration(planDurationDays);
 
         const messages = await this.db.getMessagesByKind(chatId, ['word', 'quiz']);
         const scheduledWords = new Map<string, { content: string; details: string; dates: Date[] }>();
@@ -167,7 +188,7 @@ export class SrsPlanner implements SchedulerStorage {
             const w = futureWords.get(id);
             if (!w) continue;
             const pickDate = new Date(+T0 + introOffsetMs(wordCount, tickStart, i));
-            const dates = WORD_DELAYS.map(f => new Date(+pickDate + f * T_ms));
+            const dates = wordDelays.map(f => new Date(+pickDate + f * T_ms));
             words.push({
                 word: w.word,
                 description: w.description ?? '',
@@ -193,8 +214,8 @@ export class SrsPlanner implements SchedulerStorage {
         await this.scheduler.recomputeTask(chatId);
     }
 
-    private async scheduleWord(chatId: string, word: Word, t_i: Date, T_ms: number): Promise<void> {
-        const dates = WORD_DELAYS.map(f => new Date(+t_i + f * T_ms));
+    private async scheduleWord(chatId: string, word: Word, t_i: Date, T_ms: number, wordDelays: number[]): Promise<void> {
+        const dates = wordDelays.map(f => new Date(+t_i + f * T_ms));
         await this.scheduler.schedule(chatId, {
             id: `word.${word.id}`,
             content: word.word,
@@ -256,12 +277,13 @@ export function introOffsetMs(wordCount: number, tickStartMs: number, i: number)
     return 2 * tickStartMs * (wordCount - Math.sqrt(wordCount * (wordCount - i)));
 }
 
-// Quizzes start 5 days after the message-rate peak (the instant when the longest
-// WORD_DELAYS term first kicks in for the first cohort, after which total rate decreases
+// Quizzes start 5 days after the message-rate peak (the instant when the longest active
+// per-word delay first kicks in for the first cohort, after which total rate decreases
 // monotonically). Rate ramps 1/day → 10/day at 80% T, then 10/day → 4/day through 100% T.
 const QUIZ_DELAY_AFTER_PEAK_MS = 5 * day;
 export function buildQuizDates(T0: Date, T_ms: number, _wordCount: number): Date[] {
-    const quizStart = Math.max(...WORD_DELAYS) * T_ms + QUIZ_DELAY_AFTER_PEAK_MS;
+    const wordDelays = wordDelaysForDuration(T_ms / day);
+    const quizStart = Math.max(...wordDelays) * T_ms + QUIZ_DELAY_AFTER_PEAK_MS;
     const peak = 0.80 * T_ms;
     if (quizStart >= T_ms) return [];
     const out: Date[] = [];
