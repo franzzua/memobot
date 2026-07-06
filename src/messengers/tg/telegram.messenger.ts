@@ -9,8 +9,11 @@ import {Logger} from "../../logger/logger";
 
 export class TelegramMessenger extends Messenger {
     name = 'telegram';
+    // webhookReply must stay off: it would send the first bot API call as the webhook
+    // response, closing the request early — on Cloud Functions CPU is throttled to ~0
+    // after the response, so any work still running (e.g. plan generation) freezes.
     tg = new Telegraf(this.token, {
-        telegram: { webhookReply: true },
+        telegram: { webhookReply: false },
     });
     @inject(Logger)
     logger!: Logger;
@@ -150,14 +153,12 @@ export class TelegramMessenger extends Messenger {
     }
 
 
-    private onCallbackQuery = (ctx: Context<Update.CallbackQueryUpdate>) => {
-        this.emit('callback', new TelegramCallbackEvent(ctx.update.callback_query, this))
-        // if ('data' in ctx.update.callback_query) {
-        //     const query = ctx.update.callback_query.data;
-        //     if (query in callbacks) {
-        //         return callbacks[query].call(this, ctx as Context<Update.CallbackQueryUpdate<CallbackQuery.DataQuery>>);
-        //     }
-        // }
+    // Handlers must be awaited so handleUpdate keeps the webhook request open until the
+    // work is done — emit() is fire-and-forget and the function gets frozen after replying.
+    private onCallbackQuery = async (ctx: Context<Update.CallbackQueryUpdate>) => {
+        const event = new TelegramCallbackEvent(ctx.update.callback_query, this);
+        const handlers = (this as any).listeners?.get('callback') ?? [];
+        await Promise.all(handlers.map((h: any) => h.listener(event)));
     }
 
 
