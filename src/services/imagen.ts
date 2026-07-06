@@ -5,7 +5,7 @@ import {gcsConfig} from "../db/gcs.config";
 
 const MODEL = 'gemini-2.5-flash-image';
 const MASCOT_PATH = './assets/parrot.jpeg';
-const MASCOT_INSTRUCTION = 'Also, seamlessly integrate an image of a parrot that is based on the attached image of the blue parrot mascot into the scene that illustrates the word corresponding to the resulted image, making it fit the visual context naturally in terms of the composition and the style. Totally avoid simply inserting the source image and generate an image that just adds the visual that merely resembles it. It may be located anywhere where it makes sense based on the provided context, and it’s only a tiny detail that’s kinda hard to notice at first glance. ';
+const MASCOT_INSTRUCTION = 'Include a small blue parrot in the scene. Use the attached image only as a character reference, not as artwork to insert or copy. Redraw the parrot from scratch so it preserves its recognizable identity (blue body, yellow eye, black beak, overall silhouette and expression) while fully matching the scene's style, lighting, perspective, colors, textures, and level of detail. It must look like it was created by the same artist as the rest of the image, not pasted from a separate asset. Keep it subtle and naturally placed within the environment.';
 
 @singleton()
 export class Imagen {
