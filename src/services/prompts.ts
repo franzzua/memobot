@@ -30,7 +30,7 @@ export function satQuizPrompt(target: WordLike, distractors: WordLike[]): string
         .map(w => `"${w.word}" (${w.description ?? w.word})`)
         .join('; ');
 
-    return `You are an SAT question generator. Create a formal academic reading passage at C1–C2 level.
+    return `You are a qualified experienced SAT Reading & Writing question writer. Create a formal academic reading passage at C1–C2 level that is either based on the recent test papers or is highly resemblant of them in terms of the style, content and authenticity.
 
 Target word: "${target.word}" — ${target.description ?? ''}
 Distractor words: ${distractorList}
