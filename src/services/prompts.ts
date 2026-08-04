@@ -15,7 +15,7 @@ export function transcriptionPrompt(word: string): string {
 
 // One short example sentence for a word (optionally pinned to a specific meaning).
 export function examplePrompt(word: string, description?: string | null): string {
-    return `Write a relatively short sentence using the English word "${word}"${meaningClause(description)} to demonstrate an example of how it is used in a natural context that matches CEFR B1-B2 level. Avoid military, depressive or any globally taboo contexts — instead, write a nice and memorable sentence that encourages memorizing the word. Return the sentence only.`;
+    return `Write a relatively short sentence using the English word "${word}"${meaningClause(description)} to demonstrate an example of how it is used in a natural context that matches CEFR B1-B2 level. Avoid military, depressive, weird, creepy, triggering, alarming or any globally taboo contexts — instead, write a nice and encouraging memorable sentence that helps memorizing the word. Return the sentence only.`;
 }
 
 // Illustration prompt for the image generator, themed around an example sentence.
