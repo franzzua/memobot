@@ -76,15 +76,15 @@ export function renderPlanHistogram(
     return new HistogramRender(buckets, title).render();
 }
 
-const COLOR_NEW = '#D8443A';
-const COLOR_WORD_QUIZ = '#E8A23C';
-const COLOR_VOICE = '#4FA8A0';
-const COLOR_IMAGE = '#3E7CB1';
-const COLOR_CARD = '#8A4FBF';
-const COLOR_EXAMPLE = '#C2588A';
-const COLOR_QUIZ = '#5B8C3A';
-const COLOR_AXIS = '#444';
-const COLOR_GRID = '#DDD';
+const COLOR_NEW = '#DE3C4C';
+const COLOR_WORD_QUIZ = '#FFB703';
+const COLOR_VOICE = '#8CC9E3';
+const COLOR_IMAGE = '#209DBA';
+const COLOR_CARD = '#6DA34E';
+const COLOR_EXAMPLE = '#BD408A';
+const COLOR_QUIZ = '#F68201';
+const COLOR_AXIS = '#023046';
+const COLOR_GRID = '#B2C0C7';
 const COLOR_BG = '#FFF';
 
 // Stacking order (bottom to top) and color for each layer of the plan histogram.
