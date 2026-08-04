@@ -10,17 +10,17 @@ const meaningClause = (description?: string | null): string =>
 
 // IPA phonetic transcription, used to drive text-to-speech.
 export function transcriptionPrompt(word: string): string {
-    return `Return only the IPA phonetic transcription (in the standard /…/ form, no extra words) for the English word: "${word}".`;
+    return `Return only the IPA phonetic transcription (in the standard /…/ form, no extra words, American English variety) for the English word: "${word}".`;
 }
 
 // One short example sentence for a word (optionally pinned to a specific meaning).
 export function examplePrompt(word: string, description?: string | null): string {
-    return `Write one short, natural example sentence using the English word "${word}"${meaningClause(description)}. Avoid military or depressive themes. Return only the sentence.`;
+    return `Write a relatively short sentence using the English word "${word}"${meaningClause(description)} to demonstrate an example of how it is used in a natural context. Avoid military, depressive or any globally taboo contexts — instead, write a nice and memorable sentence that encourages memorizing the word. Return the sentence only.`;
 }
 
 // Illustration prompt for the image generator, themed around an example sentence.
 export function imagePrompt(example: string): string {
-    return `Image in rubberhouse style but #f68201-#209dba desaturated gamma, like pastel or Anderson films, ${example}`;
+    return `Create a memorable image in a mix of styles that seamlessly blends rubber hose animation with a hint of Pixar cartoons, the color palette of which mostly revolves around the colors #F68201 and #209DBA (HEX) with the gamma a bit desaturated like pastel and a bit inspired by Wed Anderson’s films, and the plot of which is based on the sentence in ${example}.`;
 }
 
 // SAT-style fill-in-the-blank passage that tests `target` against the given distractors.
