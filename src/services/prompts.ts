@@ -30,15 +30,15 @@ export function satQuizPrompt(target: WordLike, distractors: WordLike[]): string
         .map(w => `"${w.word}" (${w.description ?? w.word})`)
         .join('; ');
 
-    return `You are a qualified experienced SAT Reading & Writing question writer. Create a formal academic reading passage at C1–C2 level that is either based on the recent test papers or is highly resemblant of them in terms of the style, content and authenticity.
+    return `You are a qualified experienced SAT Reading & Writing question writer. Create a formal academic reading passage at C1–C2 level that is either based on the recent test papers or is highly resemblant of them in terms of the volume (2-4 sentences), style, content and authenticity.
 
 Target word: "${target.word}" — ${target.description ?? ''}
 Distractor words: ${distractorList}
 
 Rules:
-- All four answer choices must be the same part of speech as the target word.
+- Absolutely make sure that all four answer options are the same part of speech as the target word, i.e. if the expected answer is an adjective, provide adjectives only as the other 3 options — it's critical.
 - The distractor words must NOT be direct synonyms of the target word — they should have distinct meanings so the correct choice depends on understanding the context.
-- Write 2–3 sentences of academic prose (literary analysis, history, science, or social science tone, SAT register).
+- Write 2–4 sentences of academic prose (literary analysis, history, science, or social science tone, SAT register) which serves as the passage for the missing word.
 - Place exactly one [BLANK] where the target word belongs.
 - The passage context must make the target word clearly correct while the distractors would not fit naturally.
 
