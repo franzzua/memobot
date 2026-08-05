@@ -36,7 +36,7 @@ Target word: "${target.word}" — ${target.description ?? ''}
 Distractor words: ${distractorList}
 
 Rules:
-- Absolutely make sure that all four answer options are the same part of speech as the target word, i.e. if the expected answer is an adjective, provide adjectives only as the other 3 options — it's critical.
+- Absolutely make sure that all four answer options are the same part of speech as the target word, i.e. if the expected answer is an adjective, provide adjectives only as the other 3 options; if the target word is a verb, provide verbs only as the other options; etc. — it's critical!
 - The distractor words must NOT be direct synonyms of the target word — they should have distinct meanings so the correct choice depends on understanding the context.
 - Write 2–4 sentences of academic prose (literary analysis, history, science, or social science tone, SAT register) which serves as the passage for the missing word.
 - Place exactly one [BLANK] where the target word belongs.
