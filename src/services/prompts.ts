@@ -20,7 +20,7 @@ export function examplePrompt(word: string, description?: string | null): string
 
 // Illustration prompt for the image generator, themed around an example sentence.
 export function imagePrompt(example: string): string {
-    return `Create a memorable image in a mix of styles that seamlessly blends 2D rubber hose animation with a subtle hint of Pixar cartoons, not too rich in small detail, with a clear composition, the color palette of which mostly revolves around the colors #F68201 and #209DBA (HEX) with the gamma a bit desaturated like pastel and a bit inspired by Wed Anderson’s films, and the plot of which is based on the sentence in ${example}.`;
+    return `Create a memorable image in a mix of styles that seamlessly blends 2D rubber hose animation with a subtle hint of Pixar cartoons, not too rich in small detail, with a clear composition, the color palette of which mostly revolves around the colors #F68201 and #209DBA (HEX) with the gamma a bit desaturated like pastel and a bit inspired by Wed Anderson’s films, and the plot of which is based on the sentence in ${example}. Do not make any words a visible part of the image at all. Square or almost square format, no black or white borders at the top and the bottom of the image.`;
 }
 
 // SAT-style fill-in-the-blank passage that tests `target` against the given distractors.
