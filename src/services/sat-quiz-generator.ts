@@ -42,7 +42,7 @@ export async function generateSatQuiz(target: Word, distractors: Word[]): Promis
     if (!passage) return null;
 
     const formattedPassage = passage.replace('[BLANK]', '<b>_____</b>');
-    const question = `${formattedPassage}\n\nWhich word best completes the passage?`;
+    const question = `${formattedPassage}\n\nWhich choice completes the text with the most logical and precise word or phrase?`;
 
     return {
         question,
