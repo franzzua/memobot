@@ -126,9 +126,24 @@ export class SrsPlanner implements SchedulerStorage {
 
         let scheduledQuiz = false;
         const allQuizDates = buildQuizDates(T0, T_ms, wordCount);
-        let quizCursor = await this.db.countMessagesByKind(chatId, 'quiz');
-        while (quizCursor < allQuizDates.length && +allQuizDates[quizCursor] <= +now) {
-            await this.scheduleQuiz(chatId, quizCursor, allQuizDates[quizCursor]);
+        // The cursor is the highest scheduled slot index + 1, not the row count: stale
+        // slots may be skipped below, so slot indices and row count can diverge.
+        let quizCursor = 0;
+        for (const m of await this.db.getMessagesByKind(chatId, ['quiz'])) {
+            const idx = Number(m.id.slice('quiz.'.length));
+            if (Number.isFinite(idx)) quizCursor = Math.max(quizCursor, idx + 1);
+        }
+        // Ticks arm exactly at quiz dates, so by the time advance() runs the current slot
+        // has normally just elapsed — and Scheduler.schedule() drops a timetable with no
+        // future occurrence, so it cannot be scheduled at its own date. Deliver it a second
+        // from now instead. After downtime, skip all but the most recent elapsed slot so
+        // the user gets one catch-up quiz rather than the whole backlog.
+        while (quizCursor + 1 < allQuizDates.length && +allQuizDates[quizCursor + 1] <= +now) {
+            quizCursor++;
+        }
+        if (quizCursor < allQuizDates.length) {
+            const due = allQuizDates[quizCursor];
+            await this.scheduleQuiz(chatId, quizCursor, +due > +now ? due : new Date(+now + 1000));
             quizCursor++;
             scheduledQuiz = true;
         }
