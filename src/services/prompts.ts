@@ -30,19 +30,34 @@ export function satQuizPrompt(target: WordLike, distractors: WordLike[]): string
         .map(w => `"${w.word}" (${w.description ?? w.word})`)
         .join('; ');
 
-    return `You are a qualified experienced SAT Reading & Writing question writer. Create a formal academic reading passage at C1–C2 level that is either based on the recent test papers or is highly resemblant of them in terms of the volume (2-4 sentences), style, content and authenticity.
+    return `You are an experienced SAT Reading & Writing question writer.
 
-Target word: "${target.word}" — ${target.description ?? ''}
-Distractor words: ${distractorList}
+Create an authentic SAT-style Reading & Writing passage (2–4 sentences, C1–C2 level).
+
+Target word:
+- word: "${target.word}"
+- part_of_speech: "${target.partOfSpeech}"
+- description: "${target.description ?? ''}"
+
+Candidate distractors:
+${distractorList}
 
 Rules:
-- Absolutely make sure that all four answer options are the same part of speech as the expected answer, i.e. provide 3 other options that are verbs only for the expected answer when that is a verb, etc.; do not mix verbs with nouns and adjectives — it's critical.
-– Once more: avoid mixing different parts of speech in the list of answer options for the task. 
-- The distractor words must NOT be direct synonyms of the target word — they should have distinct meanings so the correct choice depends on understanding the context.
-- Write 2–4 sentences of academic prose (literary analysis, history, science, or social science tone, SAT register) which serves as the passage for the missing word.
-- Place exactly one [BLANK] where the target word belongs.
-- The passage context must make the target word clearly correct while the distractors would not fit naturally.
+- Use exactly one [BLANK] where the target word belongs.
+- The passage must sound authentic to the SAT (literary analysis, history, science, or social science).
+- Select exactly 3 distractors from the candidate list. If fewer than 3 match the required part of speech, generate only the remaining ones.
+- The supplied `part_of_speech` is authoritative.
+- ALL four answer options (correct answer + 3 distractors) MUST have the same part of speech as `${target.partOfSpeech}`. Never mix parts of speech.
+- Distractors must not be direct synonyms of the target word and should require understanding the passage to eliminate.
 
-Return ONLY valid JSON with no markdown fences:
-{"passage":"...the [BLANK]..."}`;
+Before returning the answer, verify:
+✓ all four options have the same part of speech;
+✓ exactly one option fits the passage naturally.
+
+Return only JSON:
+{
+  "passage": "...",
+  "options": ["...", "...", "...", "..."],
+  "answer": "${target.word}"
+}`;
 }
