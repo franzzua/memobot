@@ -36,18 +36,17 @@ Create an authentic SAT-style Reading & Writing passage (2–4 sentences, C1–C
 
 Target word:
 - word: "${target.word}"
-- part_of_speech: "${target.partOfSpeech}"
 - description: "${target.description ?? ''}"
 
-Candidate distractors:
-${distractorList}
+Candidate distractors: ${distractorList}
 
 Rules:
 - Use exactly one [BLANK] where the target word belongs.
 - The passage must sound authentic to the SAT (literary analysis, history, science, or social science).
+- Determine the part of speech of the target word first.
 - Select exactly 3 distractors from the candidate list. If fewer than 3 match the required part of speech, generate only the remaining ones.
-- The supplied `part_of_speech` is authoritative.
-- ALL four answer options (correct answer + 3 distractors) MUST have the same part of speech as `${target.partOfSpeech}`. Never mix parts of speech.
+- All four answer options MUST have the same part of speech as the target word.
+- Never mix nouns, verbs, adjectives, or adverbs.
 - Distractors must not be direct synonyms of the target word and should require understanding the passage to eliminate.
 
 Before returning the answer, verify:
@@ -56,7 +55,7 @@ Before returning the answer, verify:
 
 Return only JSON:
 {
-  "passage": "...",
+  "passage": "...the [BLANK]...",
   "options": ["...", "...", "...", "..."],
   "answer": "${target.word}"
 }`;
