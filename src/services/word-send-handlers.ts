@@ -10,6 +10,7 @@ import {ImageRender} from "./image-render";
 import {Imagen} from "./imagen";
 import {generateSatQuiz} from "./sat-quiz-generator";
 import {transcriptionPrompt, examplePrompt, imagePrompt} from "./prompts";
+import {pickSimilarDistractors} from "./distractor-picker";
 
 export type CachedQuiz = {question: string; answers: string[]; correct: number};
 
@@ -152,11 +153,21 @@ function shuffleInPlace<T>(arr: T[]): void {
 }
 
 export async function pickDistractorWords(chatId: string, currentWordId: string, n: number): Promise<Word[]> {
+    const wordsDb = resolve(WordsDatabase);
+
+    // Preferred strategy: same POS, sorted by embedding similarity, synonyms dropped,
+    // n at random from the closest SIMILAR_POOL_SIZE. Falls through to the old
+    // random plan-based pick while POS/embeddings are not yet backfilled.
+    const target = await wordsDb.getById(currentWordId);
+    if (target) {
+        const picked = pickSimilarDistractors(target, await wordsDb.getAllLight(), n);
+        if (picked.length === n) return picked;
+    }
+
     const db = resolve(PrismaStorage);
     const plan = await db.getPlanState(chatId);
     if (!plan) return [];
     const introducedCount = await db.countMessagesByKind(chatId, 'word');
-    const wordsDb = resolve(WordsDatabase);
     const introducedIds = plan.wordOrder.slice(0, introducedCount).filter(id => id !== currentWordId);
     const upcomingIds = plan.wordOrder.slice(introducedCount).filter(id => id !== currentWordId);
     const pickFrom = (ids: string[], take: number) => {

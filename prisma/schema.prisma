@@ -63,6 +63,7 @@ model Word {
   image         Bytes?
   satQuiz       Json?
   wordQuiz      Json?
+  embedding     Json?
 }
 
 model Quiz {

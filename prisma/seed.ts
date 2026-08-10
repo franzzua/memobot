@@ -1,6 +1,8 @@
 import {PrismaClient, prismaFactory} from './client'
 import quizData from "../sat_tests.json" with {type: "json"};
 import nlp from 'compromise';
+import {AiModel} from "../src/services/ai-model";
+import {posPrompt, POS_VALUES} from "../src/services/prompts";
 const prisma = prismaFactory()
 
 function getInflectedForms(word: string): RegExp {
@@ -22,8 +24,106 @@ function getInflectedForms(word: string): RegExp {
 }
 
 export async function seedData() {
+    await dedupeWords();
     await seedQuiz();
     await seedSatFrequency();
+    await seedPos();
+    await seedEmbeddings();
+}
+
+// The word list was imported with occasional duplicates (same word, paraphrased
+// description). Keep one copy per word — preferring one that scheduled messages
+// reference (already introduced to a learner) — and delete the rest, also pulling
+// deleted ids out of plan wordOrders. That array edit is safe: words are introduced
+// strictly in order, so an id with no word-message sits at an index the plan cursor
+// has not reached yet, and removing it never shifts already-introduced positions.
+// If several copies were already introduced, all of those are kept.
+export async function dedupeWords() {
+    const words = await prisma.word.findMany({select: {id: true, word: true}, orderBy: {id: 'asc'}});
+    const groups = new Map<string, string[]>();
+    for (const w of words) {
+        const key = w.word.trim().toUpperCase();
+        groups.set(key, [...(groups.get(key) ?? []), w.id]);
+    }
+    const dupGroups = [...groups.values()].filter(ids => ids.length > 1);
+    if (dupGroups.length === 0) return;
+
+    const dupIds = dupGroups.flat();
+    const introduced = new Set<string>();
+    for (const m of await prisma.message.findMany({where: {refId: {in: dupIds}}, select: {refId: true}})) {
+        if (m.refId) introduced.add(m.refId);
+    }
+
+    const remove = new Set<string>();
+    for (const ids of dupGroups) {
+        const keep = ids.find(id => introduced.has(id)) ?? ids[0];
+        for (const id of ids) {
+            if (id !== keep && !introduced.has(id)) remove.add(id);
+        }
+    }
+    if (remove.size === 0) return;
+
+    const chats = await prisma.chat.findMany({select: {id: true, wordOrder: true}});
+    for (const c of chats) {
+        if (!c.wordOrder.some(id => remove.has(id))) continue;
+        await prisma.chat.update({
+            where: {id: c.id},
+            data: {wordOrder: c.wordOrder.filter(id => !remove.has(id))},
+        });
+    }
+    await prisma.word.deleteMany({where: {id: {in: [...remove]}}});
+}
+
+// One-time local-model backfill of Word.embedding: a MiniLM sentence vector of
+// "word: description" (the description pins the taught meaning). Only rows still
+// null are processed, so once filled the model is never even loaded — the dynamic
+// import keeps ~50MB of onnxruntime out of ordinary startups.
+export async function seedEmbeddings() {
+    const rows = await prisma.word.findMany({select: {id: true, word: true, description: true, embedding: true}});
+    const missing = rows.filter(w => !w.embedding);
+    if (missing.length === 0) return;
+
+    const {pipeline} = await import('@xenova/transformers');
+    const embed = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    for (const w of missing) {
+        const text = w.description?.trim() ? `${w.word}: ${w.description.trim()}` : w.word;
+        const out = await embed(text, {pooling: 'mean', normalize: true});
+        await prisma.word.update({where: {id: w.id}, data: {embedding: Array.from(out.data as Float32Array)}});
+    }
+}
+
+// One-time AI backfill of Word.type (part of speech), pinned to each word's taught
+// meaning via its description. Only rows still null are processed, so it is a no-op
+// once filled and picks up any words added later without a type.
+export async function seedPos() {
+    const words = await prisma.word.findMany({ where: { type: null } });
+    if (words.length === 0) return;
+
+    const ai = new AiModel();
+    const valid = new Set<string>(POS_VALUES);
+    const chunkSize = 4;
+    for (let i = 0; i < words.length; i += chunkSize) {
+        await Promise.all(words.slice(i, i + chunkSize).map(async (w) => {
+            const raw = await promptWithRetry(ai, posPrompt(w.word, w.description));
+            const pos = raw?.trim().toLowerCase().replace(/[^a-z]/g, '');
+            if (pos && valid.has(pos)) {
+                await prisma.word.update({ where: { id: w.id }, data: { type: pos } });
+            }
+        }));
+    }
+}
+
+// Vertex throttles bursts with 429 RESOURCE_EXHAUSTED; back off and retry before
+// giving up on a word (a skipped word stays null and is retried on the next start).
+async function promptWithRetry(ai: AiModel, prompt: string, attempts = 4): Promise<string | null> {
+    for (let i = 0; i < attempts; i++) {
+        try {
+            return await ai.prompt(prompt) ?? null;
+        } catch {
+            if (i < attempts - 1) await new Promise(r => setTimeout(r, 5000 * 2 ** i));
+        }
+    }
+    return null;
 }
 
 export async function seedSatFrequency() {

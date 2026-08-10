@@ -3,10 +3,20 @@
 // the call sites (admin, word-send-handlers, wordReply, sat-quiz-generator)
 // all import from here instead of inlining their own copies.
 
-type WordLike = { word: string; description?: string | null };
+type WordLike = { word: string; description?: string | null; type?: string | null };
 
 const meaningClause = (description?: string | null): string =>
     description?.trim() ? ` in the sense of "${description.trim()}"` : '';
+
+const posClause = (type?: string | null): string =>
+    type?.trim() ? `, part of speech: ${type.trim()}` : '';
+
+// Part of speech for a word, pinned to the meaning in `description` when present
+// (many SAT words are e.g. both noun and verb; the taught sense decides).
+export const POS_VALUES = ['noun', 'verb', 'adjective', 'adverb', 'preposition', 'conjunction', 'pronoun', 'interjection'] as const;
+export function posPrompt(word: string, description?: string | null): string {
+    return `What part of speech is the English word "${word}"${meaningClause(description)}? Answer with exactly one of: ${POS_VALUES.join(', ')}. Return only that single word, no punctuation or explanation.`;
+}
 
 // IPA phonetic transcription, used to drive text-to-speech.
 export function transcriptionPrompt(word: string): string {
@@ -27,7 +37,7 @@ export function imagePrompt(example: string): string {
 // Returns a JSON-only instruction; the caller parses {"passage": "...[BLANK]..."}.
 export function satQuizPrompt(target: WordLike, distractors: WordLike[]): string {
     const distractorList = distractors
-        .map(w => `"${w.word}" (${w.description ?? w.word})`)
+        .map(w => `"${w.word}" (${w.description ?? w.word}${posClause(w.type)})`)
         .join('; ');
 
     return `You are an experienced SAT Reading & Writing question writer.
@@ -36,7 +46,8 @@ Create an authentic SAT-style Reading & Writing passage (2–4 sentences, C1–C
 
 Target word:
 - word: "${target.word}"
-- description: "${target.description ?? ''}"
+- description: "${target.description ?? ''}"${target.type?.trim() ? `
+- part of speech: ${target.type.trim()}` : ''}
 
 Candidate distractors: ${distractorList}
 

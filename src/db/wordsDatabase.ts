@@ -40,6 +40,11 @@ export class WordsDatabase {
         return new Map(rows.map(w => [w.id, w]));
     }
 
+    // All words without the heavy binary columns — candidate pool for quiz distractors.
+    public async getAllLight(): Promise<Word[]> {
+        return this.prisma.word.findMany({omit: {voice: true, image: true}}) as Promise<Word[]>;
+    }
+
     public async setVoice(id: string, voice: Buffer): Promise<void> {
         await this.prisma.word.update({where: {id}, data: {voice}});
     }
