@@ -23,7 +23,14 @@ function getInflectedForms(word: string): RegExp {
     return new RegExp(`\\b(${pattern})\\b`, 'i')
 }
 
-export async function seedData() {
+// Single-flight: the boot-time fire-and-forget call and the admin /api/seed
+// endpoint must not run the chain concurrently (it doubles peak memory).
+let running: Promise<void> | null = null;
+export function seedData(): Promise<void> {
+    return running ??= runSeedData().finally(() => { running = null; });
+}
+
+async function runSeedData() {
     await dedupeWords();
     await seedQuiz();
     await seedSatFrequency();
@@ -96,7 +103,8 @@ export async function seedEmbeddings() {
 // meaning via its description. Only rows still null are processed, so it is a no-op
 // once filled and picks up any words added later without a type.
 export async function seedPos() {
-    const words = await prisma.word.findMany({ where: { type: null } });
+    // select omits the Bytes columns (voice/image) — see seedSatFrequency.
+    const words = await prisma.word.findMany({ where: { type: null }, select: { id: true, word: true, description: true } });
     if (words.length === 0) return;
 
     const ai = new AiModel();
@@ -130,8 +138,10 @@ export async function seedSatFrequency() {
     const computed = await prisma.word.count({ where: { satFrequency: null } });
     if (computed == 0) return;
 
-    const words = await prisma.word.findMany({ where: { satFrequency: null } });
-    const quizzes = await prisma.quiz.findMany();
+    // Never fetch full rows here: Word.voice/image and Quiz.attachment are large
+    // Bytes columns, and loading all of them at once OOMs the 1GiB instance.
+    const words = await prisma.word.findMany({ where: { satFrequency: null }, select: { id: true, word: true } });
+    const quizzes = await prisma.quiz.findMany({ select: { question: true, answers: true } });
 
     await Promise.all(words.map(async (w) => {
         const re = getInflectedForms(w.word);
