@@ -49,25 +49,17 @@ Target word:
 - description: "${target.description ?? ''}"${target.type?.trim() ? `
 - part of speech: ${target.type.trim()}` : ''}
 
-Candidate distractors: ${distractorList}
+The student will choose between the target word and exactly these distractors: ${distractorList}
 
 Rules:
 - Use exactly one [BLANK] where the target word belongs.
 - The passage must sound authentic to the SAT (literary analysis, history, science, or social science).
-- Determine the part of speech of the target word first.
-- Select exactly 3 distractors from the candidate list. If fewer than 3 match the required part of speech, generate only the remaining ones.
-- All four answer options MUST have the same part of speech as the target word.
-- Never mix nouns, verbs, adjectives, or adverbs.
-- Distractors must not be direct synonyms of the target word and should require understanding the passage to eliminate.
+- The context must make the target word clearly correct while none of the given distractors fits the blank naturally — eliminating them should require understanding the passage.
 
 Before returning the answer, verify:
-✓ all four options have the same part of speech;
-✓ exactly one option fits the passage naturally.
+✓ the passage contains exactly one [BLANK];
+✓ only the target word completes it naturally.
 
 Return only JSON:
-{
-  "passage": "...the [BLANK]...",
-  "options": ["...", "...", "...", "..."],
-  "answer": "${target.word}"
-}`;
+{"passage": "...the [BLANK]..."}`;
 }
