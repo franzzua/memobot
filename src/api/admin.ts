@@ -7,6 +7,7 @@ import {AiModel} from "../services/ai-model";
 import {Imagen} from "../services/imagen";
 import {generateSatQuiz} from "../services/sat-quiz-generator";
 import {transcriptionPrompt, examplePrompt, imagePrompt} from "../services/prompts";
+import {seedData} from "../../prisma/seed";
 import type {ServerResponse} from "node:http";
 
 export const ADMIN_PATH = '/very-strong-and-secure-html-page-bh-90210';
@@ -29,6 +30,15 @@ export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
 
         const apiPrefix = ADMIN_PATH + '/api';
         const apiPath = path.slice(apiPrefix.length);
+
+        // POST /api/seed — run the startup seed chain (dedupe, POS, embeddings, …)
+        // inside a request. The fire-and-forget call at boot gets no CPU once the
+        // instance goes idle (gen2 throttles background work), so long backfills
+        // only ever finish here, where the 1800s request timeout applies.
+        if (method === 'POST' && apiPath === '/seed') {
+            await seedData();
+            return sendJson(res, {ok: true});
+        }
 
         // GET /api/words
         if (method === 'GET' && apiPath === '/words') {
