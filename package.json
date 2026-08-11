@@ -9,6 +9,7 @@
     "test": "DOTENV_CONFIG_PATH=./configs/.env node -r dotenv/config --test dist/esm/**/*.spec.js",
     "ngrok": "ngrok http 5800 --domain rabbit-becoming-currently.ngrok-free.app",
     "import": "node --env-file=scripts/.env scripts/import-texts.js",
+    "embeddings": "tsx --env-file=configs/.env scripts/compute-embeddings.ts",
     "gcp-build": "prisma generate"
   },
   "type": "module",

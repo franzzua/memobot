@@ -81,22 +81,26 @@ export async function dedupeWords() {
     await prisma.word.deleteMany({where: {id: {in: [...remove]}}});
 }
 
-// One-time local-model backfill of Word.embedding: a MiniLM sentence vector of
-// "word: description" (the description pins the taught meaning). Only rows still
-// null are processed, so once filled the model is never even loaded — the dynamic
-// import keeps ~50MB of onnxruntime out of ordinary startups.
+// Backfill of Word.embedding: a MiniLM sentence vector of "word: description" (the
+// description pins the taught meaning). Vectors are precomputed offline by
+// `yarn embeddings` (scripts/compute-embeddings.ts) into word-embeddings.json —
+// running the @xenova/transformers ONNX model live in this Cloud Function OOMs the
+// 1GiB instance, so this only ever applies already-computed vectors. Words missing
+// from the fixture are left null; rerun `yarn embeddings` to pick them up.
 export async function seedEmbeddings() {
     const rows = await prisma.word.findMany({select: {id: true, word: true, description: true, embedding: true}});
     const missing = rows.filter(w => !w.embedding);
     if (missing.length === 0) return;
 
-    const {pipeline} = await import('@xenova/transformers');
-    const embed = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    const fixture = (await import('./word-embeddings.json', {with: {type: 'json'}})).default as Record<string, number[]>;
+    let unmatched = 0;
     for (const w of missing) {
-        const text = w.description?.trim() ? `${w.word}: ${w.description.trim()}` : w.word;
-        const out = await embed(text, {pooling: 'mean', normalize: true});
-        await prisma.word.update({where: {id: w.id}, data: {embedding: Array.from(out.data as Float32Array)}});
+        const key = w.description?.trim() ? `${w.word}: ${w.description.trim()}` : w.word;
+        const embedding = fixture[key];
+        if (!embedding) { unmatched++; continue; }
+        await prisma.word.update({where: {id: w.id}, data: {embedding}});
     }
+    if (unmatched > 0) console.warn(`seedEmbeddings: ${unmatched} word(s) missing from word-embeddings.json — run 'yarn embeddings'`);
 }
 
 // One-time AI backfill of Word.type (part of speech), pinned to each word's taught
