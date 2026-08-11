@@ -9,6 +9,7 @@ import {generateSatQuiz} from "../services/sat-quiz-generator";
 import {transcriptionPrompt, examplePrompt, imagePrompt} from "../services/prompts";
 import {seedData} from "../../prisma/seed";
 import {pickSimilarDistractors} from "../services/distractor-picker";
+import {SrsPlanner} from "../services/srs-planner";
 import type {ServerResponse} from "node:http";
 
 export const ADMIN_PATH = '/very-strong-and-secure-html-page-bh-90210';
@@ -94,6 +95,20 @@ export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
         const regenSatQuizMatch = apiPath.match(/^\/words\/([^/]+)\/regenerate\/satquiz$/);
         if (method === 'POST' && regenSatQuizMatch) {
             return sendJson(res, await regenerateSatQuiz(regenSatQuizMatch[1]));
+        }
+
+        // GET /api/chats
+        if (method === 'GET' && apiPath === '/chats') {
+            const query = typeof req.query === 'string'
+                ? Object.fromEntries(new URLSearchParams(req.query).entries())
+                : (req.query ?? {});
+            return sendJson(res, await getChats(query));
+        }
+
+        // GET /api/chats/:chatId/timetable
+        const timetableMatch = apiPath.match(/^\/chats\/([^/]+)\/timetable$/);
+        if (method === 'GET' && timetableMatch) {
+            return sendJson(res, await getChatTimetable(decodeURIComponent(timetableMatch[1])));
         }
 
         res.writeHead(404, {'Content-Type': 'application/json'});
@@ -280,6 +295,109 @@ async function regenerateSatQuiz(id: string) {
     return {ok: true, satQuiz: quiz};
 }
 
+// Steps within a scheduled word: index 0 is the intro, 1..n mirror WordSendHandlers
+// (see word-send-handlers.ts) — quiz, voice, image, flashcard, example.
+const WORD_STEP_LABELS = ['Intro', 'Word Quiz', 'Voice', 'Image', 'Flashcard', 'Example'];
+
+async function getChats(query: Record<string, string>) {
+    const prisma = resolve(PrismaClient);
+    const take = 50;
+    const skip = ((+(query.page ?? 1)) - 1) * take;
+    const search = query.search?.trim();
+    const where = search ? {
+        OR: [
+            {id: {contains: search, mode: 'insensitive' as const}},
+            {username: {contains: search, mode: 'insensitive' as const}},
+            {userId: {contains: search, mode: 'insensitive' as const}},
+        ],
+    } : {};
+    const [chats, total] = await Promise.all([
+        prisma.chat.findMany({
+            where, orderBy: {createdAt: 'desc'}, take, skip,
+            select: {
+                id: true, username: true, userId: true, isPaused: true, englishLevel: true,
+                planStart: true, planDurationDays: true, wordOrder: true, createdAt: true,
+            },
+        }),
+        prisma.chat.count({where}),
+    ]);
+    const introduced = await prisma.message.groupBy({
+        by: ['chatId'],
+        where: {chatId: {in: chats.map(c => c.id)}, kind: 'word'},
+        _count: {_all: true},
+    });
+    const introducedMap = new Map(introduced.map(r => [r.chatId, r._count._all]));
+    return {
+        chats: chats.map(c => ({
+            id: c.id,
+            username: c.username,
+            userId: c.userId,
+            isPaused: c.isPaused,
+            level: c.englishLevel,
+            planStart: c.planStart,
+            planDurationDays: c.planDurationDays,
+            wordCount: c.wordOrder.length,
+            introducedCount: introducedMap.get(c.id) ?? 0,
+            createdAt: c.createdAt,
+        })),
+        total,
+        pages: Math.ceil(total / take),
+    };
+}
+
+async function getChatTimetable(chatId: string) {
+    const prisma = resolve(PrismaClient);
+    const chat = await prisma.chat.findUnique({
+        where: {id: chatId},
+        select: {
+            id: true, username: true, userId: true, isPaused: true, englishLevel: true,
+            planStart: true, planDurationDays: true, wordOrder: true,
+        },
+    });
+    if (!chat) return {error: 'not found'};
+
+    const {words, quizzes} = await resolve(SrsPlanner).projectPlan(chatId);
+    const items: {kind: string; step: string; label: string; description: string; date: string; projected: boolean}[] = [];
+    for (const w of words) {
+        w.dates.forEach((d, i) => {
+            items.push({
+                kind: 'word',
+                step: WORD_STEP_LABELS[i] ?? `Step ${i + 1}`,
+                label: w.word,
+                description: w.description,
+                date: d.toISOString(),
+                projected: !w.scheduled,
+            });
+        });
+    }
+    quizzes.forEach((q, i) => {
+        items.push({
+            kind: 'quiz',
+            step: 'SAT Quiz',
+            label: `Quiz #${i + 1}`,
+            description: '',
+            date: q.date.toISOString(),
+            projected: !q.scheduled,
+        });
+    });
+    items.sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+        chat: {
+            id: chat.id,
+            username: chat.username,
+            userId: chat.userId,
+            isPaused: chat.isPaused,
+            level: chat.englishLevel,
+            planStart: chat.planStart,
+            planDurationDays: chat.planDurationDays,
+            wordCount: chat.wordOrder.length,
+        },
+        now: new Date().toISOString(),
+        items,
+    };
+}
+
 // ---- Fastify adapter (for start.ts / local dev) ----
 
 export function registerAdminRoutes(app: any) {
@@ -425,19 +543,87 @@ const adminHTML = `<!DOCTYPE html>
     max-width: min(75vw, 75vh); max-height: min(75vw, 75vh);
     object-fit: contain; border-radius: 8px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
   }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tabs button {
+    background: #1a1a1a; color: #999; border: 1px solid #333; padding: 8px 18px;
+    border-radius: 8px; cursor: pointer; font-size: 0.9em;
+  }
+  .tabs button:hover { color: #ccc; }
+  .tabs button.active { background: #2a2a2a; color: #fff; border-color: #555; }
+
+  .chat-list { display: flex; flex-direction: column; gap: 8px; }
+  .chat-row {
+    background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer;
+  }
+  .chat-row:hover { border-color: #444; }
+  .chat-row .chat-name { font-weight: 700; color: #ddd; min-width: 160px; }
+  .chat-row .chat-meta { color: #888; font-size: 0.85em; flex: 1; }
+  .badge-paused { background: #3a1a1a; color: #a55; }
+
+  .timetable-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .timetable-header button { background: #1a1a1a; color: #ccc; border: 1px solid #333; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
+  .timetable-header button:hover { background: #333; }
+  .timetable-list { display: flex; flex-direction: column; gap: 6px; }
+  .tt-row {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+    background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; font-size: 0.9em;
+  }
+  .tt-row.past { opacity: 0.55; }
+  .tt-row.projected { border-style: dashed; }
+  .tt-date { color: #888; min-width: 150px; font-variant-numeric: tabular-nums; }
+  .tt-kind { padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: 600; min-width: 76px; text-align: center; }
+  .tt-kind.word { background: #2a2a3a; color: #88a; }
+  .tt-kind.quiz { background: #3a2a1a; color: #a85; }
+  .tt-step { color: #666; font-size: 0.8em; min-width: 80px; }
+  .tt-label { color: #ddd; font-weight: 600; }
+  .tt-desc { color: #777; font-size: 0.85em; }
+  .tt-now-divider { display: flex; align-items: center; gap: 10px; color: #6c6; font-size: 0.8em; margin: 4px 0; }
+  .tt-now-divider::before, .tt-now-divider::after { content: ''; flex: 1; height: 1px; background: #2a5a2a; }
+  .load-more { text-align: center; margin: 10px 0; }
+  .load-more button { background: #1a1a1a; color: #ccc; border: 1px solid #333; padding: 6px 16px; border-radius: 6px; cursor: pointer; }
+  .load-more button:hover { background: #333; }
 </style>
 </head>
 <body>
 <h1>MemoBot Cache Admin</h1>
 
-<div class="search-bar">
-  <input type="text" id="search" placeholder="Search words..." />
-  <button onclick="doSearch()">Search</button>
+<div class="tabs">
+  <button id="tab-words" class="active" onclick="showTab('words')">Words</button>
+  <button id="tab-chats" onclick="showTab('chats')">Chats</button>
 </div>
 
-<div id="stats" class="stats"></div>
-<div id="content"></div>
-<div id="pager" class="pagination"></div>
+<div id="wordsPage">
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search words..." />
+    <button onclick="doSearch()">Search</button>
+  </div>
+
+  <div id="stats" class="stats"></div>
+  <div id="content"></div>
+  <div id="pager" class="pagination"></div>
+</div>
+
+<div id="chatsPage" style="display:none">
+  <div id="chatsList">
+    <div class="search-bar">
+      <input type="text" id="chatSearch" placeholder="Search chats by id, username or userId..." />
+      <button onclick="doChatSearch()">Search</button>
+    </div>
+    <div id="chatStats" class="stats"></div>
+    <div id="chatContent"></div>
+    <div id="chatPager" class="pagination"></div>
+  </div>
+
+  <div id="timetableView" style="display:none">
+    <div class="timetable-header">
+      <button onclick="closeTimetable()">&laquo; Back to chats</button>
+      <div id="timetableTitle"></div>
+    </div>
+    <div id="timetableContent"></div>
+  </div>
+</div>
 
 <div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
   <img id="lightboxImg" src="" alt="expanded image" />
@@ -709,6 +895,162 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// ---- tabs ----
+
+function showTab(tab) {
+  document.getElementById('tab-words').classList.toggle('active', tab === 'words');
+  document.getElementById('tab-chats').classList.toggle('active', tab === 'chats');
+  document.getElementById('wordsPage').style.display = tab === 'words' ? '' : 'none';
+  document.getElementById('chatsPage').style.display = tab === 'chats' ? '' : 'none';
+  if (tab === 'chats' && !chatsLoaded) {
+    chatsLoaded = true;
+    loadChats();
+  }
+}
+
+// ---- chats ----
+
+let chatsLoaded = false;
+let currentChatPage = 1;
+let currentChatSearch = '';
+
+const chatSearchInput = document.getElementById('chatSearch');
+chatSearchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doChatSearch(); });
+
+function doChatSearch() {
+  currentChatSearch = chatSearchInput.value.trim();
+  currentChatPage = 1;
+  loadChats();
+}
+
+async function loadChats() {
+  const content = document.getElementById('chatContent');
+  const pager = document.getElementById('chatPager');
+  const stats = document.getElementById('chatStats');
+  content.innerHTML = '<div class="loading-text">Loading...</div>';
+  pager.innerHTML = '';
+  try {
+    const params = new URLSearchParams({page: currentChatPage});
+    if (currentChatSearch) params.set('search', currentChatSearch);
+    const data = await api('/chats?' + params);
+    stats.textContent = data.total + ' chats total' + (currentChatSearch ? ' matching "' + currentChatSearch + '"' : '');
+    if (!data.chats.length) {
+      content.innerHTML = '<div class="empty">No chats found.</div>';
+      return;
+    }
+    content.innerHTML = '<div class="chat-list" id="chatList"></div>';
+    const list = document.getElementById('chatList');
+    data.chats.forEach(c => list.appendChild(createChatRow(c)));
+    renderChatPager(data.pages);
+  } catch (e) {
+    content.innerHTML = '<div class="error">Failed to load: ' + esc(e.message) + '</div>';
+  }
+}
+
+function renderChatPager(pages) {
+  const pager = document.getElementById('chatPager');
+  if (pages <= 1) { pager.innerHTML = ''; return; }
+  let html = '<button onclick="goChatPage(' + Math.max(1, currentChatPage - 1) + ')"' + (currentChatPage <= 1 ? ' disabled' : '') + '>&laquo;</button>';
+  const start = Math.max(1, currentChatPage - 3);
+  const end = Math.min(pages, currentChatPage + 3);
+  for (let i = start; i <= end; i++) {
+    html += '<button onclick="goChatPage(' + i + ')"' + (i === currentChatPage ? ' class="active"' : '') + '>' + i + '</button>';
+  }
+  html += '<button onclick="goChatPage(' + Math.min(pages, currentChatPage + 1) + ')"' + (currentChatPage >= pages ? ' disabled' : '') + '>&raquo;</button>';
+  pager.innerHTML = html;
+}
+
+function goChatPage(p) { currentChatPage = p; loadChats(); }
+
+function createChatRow(c) {
+  const row = document.createElement('div');
+  row.className = 'chat-row';
+  row.onclick = () => openTimetable(c.id, c.username || c.id);
+  const planInfo = c.planDurationDays
+    ? c.introducedCount + '/' + c.wordCount + ' words introduced &middot; ' + c.planDurationDays + 'd plan'
+    : 'no plan yet';
+  row.innerHTML =
+    '<span class="chat-name">' + esc(c.username || c.id) + '</span>' +
+    '<span class="chat-meta">' + esc(c.userId || '') + ' &middot; ' + planInfo + '</span>' +
+    (c.isPaused ? '<span class="badge badge-cache badge-paused">paused</span>' : '') +
+    (c.level ? '<span class="badge badge-level">' + esc(c.level) + '</span>' : '');
+  return row;
+}
+
+// ---- timetable ----
+
+async function openTimetable(chatId, title) {
+  document.getElementById('chatsList').style.display = 'none';
+  const view = document.getElementById('timetableView');
+  view.style.display = '';
+  document.getElementById('timetableTitle').textContent = title;
+  const content = document.getElementById('timetableContent');
+  content.innerHTML = '<div class="loading-text">Loading...</div>';
+  try {
+    const data = await api('/chats/' + encodeURIComponent(chatId) + '/timetable');
+    if (data.error) {
+      content.innerHTML = '<div class="error">' + esc(data.error) + '</div>';
+      return;
+    }
+    renderTimetable(data);
+  } catch (e) {
+    content.innerHTML = '<div class="error">Failed to load: ' + esc(e.message) + '</div>';
+  }
+}
+
+function closeTimetable() {
+  document.getElementById('timetableView').style.display = 'none';
+  document.getElementById('chatsList').style.display = '';
+}
+
+const TT_WINDOW = 25;
+
+function renderTimetable(data) {
+  const content = document.getElementById('timetableContent');
+  const now = data.now;
+  const items = data.items;
+  const splitIdx = items.findIndex(it => it.date > now);
+  const nowIdx = splitIdx === -1 ? items.length : splitIdx;
+
+  let pastShown = Math.min(TT_WINDOW, nowIdx);
+  let nextShown = Math.min(TT_WINDOW, items.length - nowIdx);
+
+  function draw() {
+    const pastStart = nowIdx - pastShown;
+    const pastItems = items.slice(pastStart, nowIdx);
+    const nextItems = items.slice(nowIdx, nowIdx + nextShown);
+    let html = '';
+    if (pastStart > 0) {
+      html += '<div class="load-more"><button onclick="ttShowMorePast()">Show ' + Math.min(TT_WINDOW, pastStart) + ' earlier (' + pastStart + ' more)</button></div>';
+    }
+    html += '<div class="timetable-list">' + pastItems.map(it => renderTtRow(it, true)).join('') + '</div>';
+    html += '<div class="tt-now-divider">NOW &middot; ' + new Date(now).toLocaleString() + '</div>';
+    html += '<div class="timetable-list">' + nextItems.map(it => renderTtRow(it, false)).join('') + '</div>';
+    const remaining = items.length - nowIdx - nextShown;
+    if (remaining > 0) {
+      html += '<div class="load-more"><button onclick="ttShowMoreNext()">Show ' + Math.min(TT_WINDOW, remaining) + ' more (' + remaining + ' left)</button></div>';
+    }
+    content.innerHTML = html;
+  }
+
+  window.ttShowMorePast = () => { pastShown = Math.min(nowIdx, pastShown + TT_WINDOW); draw(); };
+  window.ttShowMoreNext = () => { nextShown = Math.min(items.length - nowIdx, nextShown + TT_WINDOW); draw(); };
+
+  draw();
+}
+
+function renderTtRow(it, isPast) {
+  return '<div class="tt-row' + (isPast ? ' past' : '') + (it.projected ? ' projected' : '') + '">' +
+    '<span class="tt-date">' + new Date(it.date).toLocaleString() + '</span>' +
+    '<span class="tt-kind ' + it.kind + '">' + it.kind + '</span>' +
+    '<span class="tt-step">' + esc(it.step) + '</span>' +
+    '<span class="tt-label">' + esc(it.label) + '</span>' +
+    '<span class="tt-desc">' + esc(it.description || '') + '</span>' +
+    (it.projected ? '<span class="tt-desc" style="color:#666">(projected)</span>' : '') +
+    '</div>';
+}
+
+showTab('words');
 loadWords();
 </script>
 </body>
