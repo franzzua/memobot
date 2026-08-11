@@ -8,6 +8,7 @@ import {Imagen} from "../services/imagen";
 import {generateSatQuiz} from "../services/sat-quiz-generator";
 import {transcriptionPrompt, examplePrompt, imagePrompt} from "../services/prompts";
 import {seedData} from "../../prisma/seed";
+import {pickSimilarDistractors} from "../services/distractor-picker";
 import type {ServerResponse} from "node:http";
 
 export const ADMIN_PATH = '/very-strong-and-secure-html-page-bh-90210';
@@ -38,6 +39,11 @@ export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
         if (method === 'POST' && apiPath === '/seed') {
             await seedData();
             return sendJson(res, {ok: true});
+        }
+
+        // GET /api/stats — coverage counts for backfilled columns (POS, embedding).
+        if (method === 'GET' && apiPath === '/stats') {
+            return sendJson(res, await getStats());
         }
 
         // GET /api/words
@@ -120,6 +126,21 @@ function sendBuffer(res: Res, buf: Buffer, contentType: string) {
 }
 
 // ---- handlers ----
+
+async function getStats() {
+    const prisma = resolve(PrismaClient);
+    const [row] = await prisma.$queryRaw<{total: bigint; with_pos: bigint; with_embedding: bigint}[]>`
+        SELECT count(*) AS total,
+               count(*) FILTER (WHERE type IS NOT NULL) AS with_pos,
+               count(*) FILTER (WHERE embedding IS NOT NULL) AS with_embedding
+        FROM "Word"
+    `;
+    return {
+        total: Number(row.total),
+        withPos: Number(row.with_pos),
+        withEmbedding: Number(row.with_embedding),
+    };
+}
 
 async function getWords(query: Record<string, string>) {
     const prisma = resolve(PrismaClient);
@@ -237,14 +258,21 @@ async function regenerateImage(id: string) {
 
 async function regenerateSatQuiz(id: string) {
     const prisma = resolve(PrismaClient);
-    const target = await prisma.word.findUnique({where: {id}, select: {id: true, word: true, description: true}});
+    const target = await prisma.word.findUnique({where: {id}, select: {id: true, word: true, description: true, type: true, embedding: true}});
     if (!target) return {error: 'not found'};
-    // No chat context here, so pick distractors at random from the word cache.
-    const distractors = await prisma.$queryRaw<Word[]>`
-        SELECT id, word, description FROM "Word"
-        WHERE id != ${id} AND description IS NOT NULL
-        ORDER BY RANDOM() LIMIT 3
-    `;
+
+    // No chat context here, so use the same POS/embedding-similarity strategy as
+    // pickDistractorWords directly; falls back to a random same-POS pick when
+    // embeddings aren't available.
+    let distractors: Word[] = pickSimilarDistractors(target as Word, await resolve(WordsDatabase).getAllLight(), 3);
+    if (distractors.length < 3) {
+        distractors = await prisma.$queryRaw<Word[]>`
+            SELECT id, word, description FROM "Word"
+            WHERE id != ${id} AND description IS NOT NULL
+              AND (${target.type}::text IS NULL OR type = ${target.type})
+            ORDER BY RANDOM() LIMIT 3
+        `;
+    }
     if (distractors.length < 3) return {error: 'not enough words to build a quiz'};
     const quiz = await generateSatQuiz(target as Word, distractors);
     if (!quiz) return {error: 'quiz generation failed'};

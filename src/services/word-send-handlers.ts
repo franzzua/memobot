@@ -156,11 +156,14 @@ export async function pickDistractorWords(chatId: string, currentWordId: string,
     const wordsDb = resolve(WordsDatabase);
 
     // Preferred strategy: same POS, sorted by embedding similarity, synonyms dropped,
-    // n at random from the closest SIMILAR_POOL_SIZE. Falls through to the old
-    // random plan-based pick while POS/embeddings are not yet backfilled.
+    // n at random from the closest SIMILAR_POOL_SIZE. Falls through to a random
+    // plan-based pick while POS/embeddings are not yet backfilled — that fallback
+    // still restricts to the target's POS (a mismatched-POS option is eliminated by
+    // grammar alone, defeating the quiz), just without the similarity ranking.
     const target = await wordsDb.getById(currentWordId);
-    if (target) {
-        const picked = pickSimilarDistractors(target, await wordsDb.getAllLight(), n);
+    const allWords = target ? await wordsDb.getAllLight() : null;
+    if (target && allWords) {
+        const picked = pickSimilarDistractors(target, allWords, n);
         if (picked.length === n) return picked;
     }
 
@@ -170,14 +173,18 @@ export async function pickDistractorWords(chatId: string, currentWordId: string,
     const introducedCount = await db.countMessagesByKind(chatId, 'word');
     const introducedIds = plan.wordOrder.slice(0, introducedCount).filter(id => id !== currentWordId);
     const upcomingIds = plan.wordOrder.slice(introducedCount).filter(id => id !== currentWordId);
+    const sameType = target?.type
+        ? new Set((allWords ?? []).filter(w => w.type === target.type).map(w => w.id))
+        : null;
+    const filterByType = (ids: string[]) => sameType ? ids.filter(id => sameType.has(id)) : ids;
     const pickFrom = (ids: string[], take: number) => {
         const copy = [...ids];
         shuffleInPlace(copy);
         return copy.slice(0, take);
     };
-    const pickedIds = pickFrom(introducedIds, n);
+    const pickedIds = pickFrom(filterByType(introducedIds), n);
     if (pickedIds.length < n) {
-        pickedIds.push(...pickFrom(upcomingIds, n - pickedIds.length));
+        pickedIds.push(...pickFrom(filterByType(upcomingIds), n - pickedIds.length));
     }
     const map = await wordsDb.getByIds(pickedIds);
     return pickedIds.map(id => map.get(id)).filter((w): w is Word => !!w);
