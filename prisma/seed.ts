@@ -116,26 +116,15 @@ export async function seedPos() {
     const chunkSize = 4;
     for (let i = 0; i < words.length; i += chunkSize) {
         await Promise.all(words.slice(i, i + chunkSize).map(async (w) => {
-            const raw = await promptWithRetry(ai, posPrompt(w.word, w.description));
+            // AiModel.prompt already retries 429s; a word that still fails (or hits a
+            // non-quota error) stays null and is picked up again on the next seed run.
+            const raw = await ai.prompt(posPrompt(w.word, w.description)).catch(() => null);
             const pos = raw?.trim().toLowerCase().replace(/[^a-z]/g, '');
             if (pos && valid.has(pos)) {
                 await prisma.word.update({ where: { id: w.id }, data: { type: pos } });
             }
         }));
     }
-}
-
-// Vertex throttles bursts with 429 RESOURCE_EXHAUSTED; back off and retry before
-// giving up on a word (a skipped word stays null and is retried on the next start).
-async function promptWithRetry(ai: AiModel, prompt: string, attempts = 4): Promise<string | null> {
-    for (let i = 0; i < attempts; i++) {
-        try {
-            return await ai.prompt(prompt) ?? null;
-        } catch {
-            if (i < attempts - 1) await new Promise(r => setTimeout(r, 5000 * 2 ** i));
-        }
-    }
-    return null;
 }
 
 export async function seedSatFrequency() {
