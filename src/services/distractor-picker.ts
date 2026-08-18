@@ -3,7 +3,13 @@
 // near-synonyms are dropped — a synonym would also fit the blank and make the
 // question unanswerable.
 
-type Candidate = { id: string; type?: string | null; embedding?: unknown };
+type Candidate = { id: string; word?: string | null; type?: string | null; embedding?: unknown };
+
+// The word list holds the same spelling more than once (e.g. VALIDATE with two
+// descriptions), so uniqueness by id is not enough — options are compared by text.
+export function normalizeWordText(word?: string | null): string {
+    return (word ?? '').trim().toLowerCase();
+}
 
 // Above this cosine similarity two words are treated as synonyms and skipped.
 // Calibrated on the current word set: interchangeable pairs (VACILLATE/WAVER 0.98,
@@ -32,9 +38,10 @@ function asVector(value: unknown): number[] | null {
 }
 
 /**
- * Returns exactly `n` distractors, or [] when the data cannot support the strategy
- * (target lacks POS/embedding, or fewer than `n` valid candidates remain) so the
- * caller can fall back to random selection.
+ * Returns exactly `n` distractors, all spelled differently from each other and from
+ * the target, or [] when the data cannot support the strategy (target lacks
+ * POS/embedding, or fewer than `n` valid candidates remain) so the caller can fall
+ * back to random selection.
  */
 export function pickSimilarDistractors<T extends Candidate>(
     target: T,
@@ -45,13 +52,25 @@ export function pickSimilarDistractors<T extends Candidate>(
     const targetVec = asVector(target.embedding);
     if (!targetVec || !target.type) return [];
 
+    const targetText = normalizeWordText(target.word);
+    const seenText = new Set<string>();
     const pool = candidates
         .filter(w => w.id !== target.id && w.type === target.type)
+        .filter(w => normalizeWordText(w.word) !== targetText)
         .map(w => ({w, vec: asVector(w.embedding)}))
         .filter((x): x is { w: T; vec: number[] } => !!x.vec)
         .map(x => ({w: x.w, sim: cosineSimilarity(targetVec, x.vec)}))
         .filter(x => x.sim < SYNONYM_SIMILARITY)
         .sort((a, b) => b.sim - a.sim)
+        // Keep the closest row of each spelling: duplicate entries would otherwise
+        // show up as two identical options.
+        .filter(x => {
+            const text = normalizeWordText(x.w.word);
+            if (!text) return true;
+            if (seenText.has(text)) return false;
+            seenText.add(text);
+            return true;
+        })
         .slice(0, SIMILAR_POOL_SIZE);
     if (pool.length < n) return [];
 

@@ -7,8 +7,8 @@ function vec(angleRad: number): number[] {
     return [Math.cos(angleRad), Math.sin(angleRad)];
 }
 
-function word(id: string, type: string | null, embedding: unknown) {
-    return {id, type, embedding};
+function word(id: string, type: string | null, embedding: unknown, text?: string) {
+    return {id, type, embedding, word: text ?? id};
 }
 
 const target = word('t', 'noun', vec(0));
@@ -59,6 +59,25 @@ describe("distractor-picker", () => {
                 expect(Number(w.id.slice(1))).toBeLessThan(SIMILAR_POOL_SIZE);
             }
         }
+    });
+
+    test("keeps only the closest row of a repeated spelling", () => {
+        // Same word imported twice with different descriptions -> two rows, one option.
+        const candidates = [
+            word('dup-far', 'noun', vec(1.2), 'VALIDATE'),
+            word('dup-near', 'noun', vec(1), 'VALIDATE'),
+            word('other', 'noun', vec(1.1), 'ASSERT'),
+        ];
+        const picked = pickSimilarDistractors(target, candidates, 2, () => 0);
+        expect(picked.map(w => w.word).sort()).toEqual(['ASSERT', 'VALIDATE']);
+        expect(picked.map(w => w.id)).toContain('dup-near');
+    });
+
+    test("never offers a word spelled like the target", () => {
+        const twin = word('twin', 'noun', vec(1), 'TARGET');
+        const candidates = [twin, word('a1', 'noun', vec(1.1), 'ALPHA'), word('b1', 'noun', vec(1.2), 'BETA')];
+        const picked = pickSimilarDistractors(word('t', 'noun', vec(0), 'target'), candidates, 2, () => 0);
+        expect(picked.map(w => w.word).sort()).toEqual(['ALPHA', 'BETA']);
     });
 
     test("returns [] when fewer than n valid candidates exist", () => {

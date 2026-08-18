@@ -281,10 +281,17 @@ async function regenerateSatQuiz(id: string) {
     // embeddings aren't available.
     let distractors: Word[] = pickSimilarDistractors(target as Word, await resolve(WordsDatabase).getAllLight(), 3);
     if (distractors.length < 3) {
+        // DISTINCT ON keeps one row per spelling — the list repeats some words under
+        // different descriptions, which would surface as two identical options.
         distractors = await prisma.$queryRaw<Word[]>`
-            SELECT id, word, description FROM "Word"
-            WHERE id != ${id} AND description IS NOT NULL
-              AND (${target.type}::text IS NULL OR type = ${target.type})
+            SELECT id, word, description FROM (
+                SELECT DISTINCT ON (lower(word)) id, word, description
+                FROM "Word"
+                WHERE id != ${id} AND description IS NOT NULL
+                  AND lower(word) != lower(${target.word})
+                  AND (${target.type}::text IS NULL OR type = ${target.type})
+                ORDER BY lower(word), id
+            ) candidates
             ORDER BY RANDOM() LIMIT 3
         `;
     }

@@ -10,6 +10,15 @@ function shuffleInPlace<T>(arr: T[]): void {
     }
 }
 
+// "a [BLANK]" / "an [BLANK]" leaks the answer: the article only agrees with some of
+// the options. SAT questions print "a/an" instead, so the article carries no hint.
+// Matches the raw [BLANK] marker and the rendered blank alike, so quizzes cached
+// before this rule are fixed on their way out of the cache too.
+export function collapseArticleBeforeBlank(passage: string): string {
+    return passage.replace(/\b(a|an)(\s+)(?=\[BLANK\]|<b>_+<\/b>)/gi, (_m, article: string, space: string) =>
+        `${article[0] === article[0].toUpperCase() ? 'A/an' : 'a/an'}${space}`);
+}
+
 export async function generateSatQuiz(target: Word, distractors: Word[]): Promise<{
     question: string;
     answers: string[];
@@ -41,7 +50,7 @@ export async function generateSatQuiz(target: Word, distractors: Word[]): Promis
 
     if (!passage) return null;
 
-    const formattedPassage = passage.replace('[BLANK]', '<b>_____</b>');
+    const formattedPassage = collapseArticleBeforeBlank(passage).replace('[BLANK]', '<b>_____</b>');
     const question = `${formattedPassage}\n\nWhich choice completes the text with the most logical and precise word or phrase?`;
 
     return {

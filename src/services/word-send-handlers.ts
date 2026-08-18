@@ -8,9 +8,9 @@ import {AiModel} from "./ai-model";
 import {TextToSpeech} from "./text-to-speech";
 import {ImageRender} from "./image-render";
 import {Imagen} from "./imagen";
-import {generateSatQuiz} from "./sat-quiz-generator";
+import {collapseArticleBeforeBlank, generateSatQuiz} from "./sat-quiz-generator";
 import {transcriptionPrompt, examplePrompt, imagePrompt} from "./prompts";
-import {pickSimilarDistractors} from "./distractor-picker";
+import {normalizeWordText, pickSimilarDistractors} from "./distractor-picker";
 
 export type CachedQuiz = {question: string; answers: string[]; correct: number};
 
@@ -57,7 +57,7 @@ async function ensureWordQuiz(chatId: string, word: Word): Promise<CachedQuiz | 
 // Returns the word's cached SAT quiz (fill-in-the-blank passage), generating and caching one if absent.
 export async function ensureSatQuiz(chatId: string, word: Word): Promise<CachedQuiz | null> {
     const cached = word.satQuiz as CachedQuiz | null;
-    if (isCachedQuiz(cached)) return cached;
+    if (isCachedQuiz(cached)) return {...cached, question: collapseArticleBeforeBlank(cached.question)};
     const distractors = await pickDistractorWords(chatId, word.id, 3);
     if (distractors.length < 3) return null;
     const quiz = await generateSatQuiz(word, distractors);
@@ -68,8 +68,12 @@ export async function ensureSatQuiz(chatId: string, word: Word): Promise<CachedQ
     return quiz;
 }
 
+// A cache built before options were deduplicated can hold the same word twice;
+// treat it as missing so the quiz is rebuilt with distinct options.
 function isCachedQuiz(q: CachedQuiz | null): q is CachedQuiz {
-    return !!q && Array.isArray(q.answers) && q.answers.length > 0;
+    if (!q || !Array.isArray(q.answers) || q.answers.length === 0) return false;
+    const texts = q.answers.map(a => normalizeWordText(a));
+    return new Set(texts).size === texts.length;
 }
 
 const voiceTransHandler: WordSendHandler = async function voiceTransHandler({word}) {
@@ -177,15 +181,48 @@ export async function pickDistractorWords(chatId: string, currentWordId: string,
         ? new Set((allWords ?? []).filter(w => w.type === target.type).map(w => w.id))
         : null;
     const filterByType = (ids: string[]) => sameType ? ids.filter(id => sameType.has(id)) : ids;
+    // The word list repeats some spellings under different descriptions, so options
+    // are kept unique by text (and never equal to the target) rather than by id.
+    const textById = new Map((allWords ?? []).map(w => [w.id, normalizeWordText(w.word)]));
+    const usedText = new Set<string>();
+    if (target) usedText.add(normalizeWordText(target.word));
     const pickFrom = (ids: string[], take: number) => {
         const copy = [...ids];
         shuffleInPlace(copy);
-        return copy.slice(0, take);
+        const picked: string[] = [];
+        for (const id of copy) {
+            if (picked.length >= take) break;
+            const text = textById.get(id);
+            if (text) {
+                if (usedText.has(text)) continue;
+                usedText.add(text);
+            }
+            picked.push(id);
+        }
+        return picked;
     };
     const pickedIds = pickFrom(filterByType(introducedIds), n);
     if (pickedIds.length < n) {
         pickedIds.push(...pickFrom(filterByType(upcomingIds), n - pickedIds.length));
     }
     const map = await wordsDb.getByIds(pickedIds);
-    return pickedIds.map(id => map.get(id)).filter((w): w is Word => !!w);
+    const picked = pickedIds.map(id => map.get(id)).filter((w): w is Word => !!w);
+    return dedupeByWordText(picked, target?.word);
+}
+
+// Last line of defence for callers that reach here without a word list to filter on:
+// drop options that repeat a spelling (or repeat the target). Returning fewer than
+// `n` is fine — callers already degrade gracefully when the pool is too small.
+function dedupeByWordText(words: Word[], targetWord?: string | null): Word[] {
+    const seen = new Set<string>();
+    const targetText = normalizeWordText(targetWord);
+    if (targetText) seen.add(targetText);
+    return words.filter(w => {
+        const text = normalizeWordText(w.word);
+        if (!text || !seen.has(text)) {
+            if (text) seen.add(text);
+            return true;
+        }
+        return false;
+    });
 }
