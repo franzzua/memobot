@@ -6,10 +6,11 @@ import {TextToSpeech} from "../services/text-to-speech";
 import {AiModel} from "../services/ai-model";
 import {Imagen} from "../services/imagen";
 import {generateSatQuiz} from "../services/sat-quiz-generator";
-import {transcriptionPrompt, examplePrompt, imagePrompt} from "../services/prompts";
+import {transcriptionPrompt, examplePrompt, imagePrompt, posPrompt, POS_VALUES} from "../services/prompts";
 import {seedData} from "../../prisma/seed";
 import {pickSimilarDistractors} from "../services/distractor-picker";
 import {SrsPlanner} from "../services/srs-planner";
+import {TaskScheduler} from "../db/task.scheduler";
 import type {ServerResponse} from "node:http";
 
 export const ADMIN_PATH = '/very-strong-and-secure-html-page-bh-90210';
@@ -53,6 +54,17 @@ export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
                 ? Object.fromEntries(new URLSearchParams(req.query).entries())
                 : (req.query ?? {});
             return sendJson(res, await getWords(query));
+        }
+
+        // POST /api/words — add a word by hand
+        if (method === 'POST' && apiPath === '/words') {
+            return sendJson(res, await createWord(parseBody(req.body)));
+        }
+
+        // DELETE /api/words/:id
+        const deleteMatch = apiPath.match(/^\/words\/([^/]+)$/);
+        if (method === 'DELETE' && deleteMatch) {
+            return sendJson(res, await deleteWord(deleteMatch[1]));
         }
 
         // GET /api/words/:id/image
@@ -124,6 +136,17 @@ export async function handleAdminRequest(req: Req, res: Res): Promise<void> {
     }
 }
 
+// Fastify hands over a parsed object; the Cloud Function entrypoint can pass the
+// raw string when no content-type steered its body parser.
+function parseBody(body: any): any {
+    if (typeof body !== 'string') return body ?? {};
+    try {
+        return JSON.parse(body);
+    } catch {
+        return {};
+    }
+}
+
 function sendJson(res: Res, data: any) {
     const body = JSON.stringify(data);
     res.writeHead(200, {'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body)});
@@ -179,6 +202,80 @@ async function getWords(query: Record<string, string>) {
         total,
         pages: Math.ceil(total / take)
     };
+}
+
+// Part of speech is what keeps quiz distractors grammatically comparable, and the
+// seed only backfills it on its next run — so ask for it up front and a hand-added
+// word is usable in quizzes immediately. A failed lookup just leaves it null.
+async function detectPos(word: string, description: string): Promise<string | null> {
+    const raw = await resolve(AiModel).prompt(posPrompt(word, description || null)).catch(() => null);
+    const pos = raw?.trim().toLowerCase().replace(/[^a-z]/g, '');
+    return pos && (POS_VALUES as readonly string[]).includes(pos) ? pos : null;
+}
+
+async function createWord(body: any) {
+    const word = String(body?.word ?? '').trim();
+    const description = String(body?.description ?? '').trim();
+    const level = String(body?.level ?? '').trim();
+    if (!word) return {error: 'word is required'};
+
+    const prisma = resolve(PrismaClient);
+    // Two rows sharing a spelling would surface as duplicate quiz options (and the
+    // seed's dedupe would drop one anyway), so reject the collision here.
+    const existing = await prisma.word.findFirst({
+        where: {word: {equals: word, mode: 'insensitive'}},
+        select: {id: true},
+    });
+    if (existing) return {error: `"${word}" already exists`};
+
+    const created = await prisma.word.create({
+        data: {
+            word,
+            description: description || null,
+            level: level || null,
+            type: await detectPos(word, description),
+        },
+        select: {id: true, word: true, description: true, type: true, level: true, frequency: true, transcription: true, example: true, satQuiz: true},
+    });
+    // No embedding: those are precomputed offline into word-embeddings.json, so the
+    // new word uses the random same-POS distractor fallback until `yarn embeddings`
+    // and the next seed run pick it up.
+    return {ok: true, word: {...created, hasVoice: false, hasImage: false}};
+}
+
+async function deleteWord(id: string) {
+    const prisma = resolve(PrismaClient);
+    const word = await prisma.word.findUnique({where: {id}, select: {word: true}});
+    if (!word) return {error: 'not found'};
+
+    // A word id outlives its row in two places: the per-chat plan (Chat.wordOrder)
+    // and the scheduled message that introduces it. Both are dropped together so the
+    // plan cursor stays aligned — introducedCount counts word messages and indexes
+    // into wordOrder, so removing one of each keeps the remaining words in place.
+    const chats = await prisma.chat.findMany({
+        where: {wordOrder: {has: id}},
+        select: {id: true, wordOrder: true},
+    });
+    for (const c of chats) {
+        await prisma.chat.update({
+            where: {id: c.id},
+            data: {wordOrder: c.wordOrder.filter(x => x !== id)},
+        });
+    }
+    const {count: removedMessages} = await prisma.message.deleteMany({where: {refId: id, kind: 'word'}});
+    await prisma.word.delete({where: {id}});
+
+    // Timetables were deleted out of band, so each affected chat's queued task has to
+    // be recomputed. A queue hiccup must not read as a failed delete — the row is gone.
+    const scheduler = resolve(TaskScheduler);
+    let warning: string | undefined;
+    for (const c of chats) {
+        await scheduler.recomputeTask(c.id).catch((err: any) => {
+            console.error('deleteWord: recomputeTask failed for', c.id, err);
+            warning = 'word deleted, but rescheduling failed for at least one chat';
+        });
+    }
+    return {ok: true, word: word.word, chatsUpdated: chats.length, removedMessages, warning};
 }
 
 async function getWordImage(res: Res, id: string) {
@@ -409,7 +506,7 @@ async function getChatTimetable(chatId: string) {
 
 export function registerAdminRoutes(app: any) {
     app.route({
-        method: ['GET', 'POST'],
+        method: ['GET', 'POST', 'DELETE'],
         url: ADMIN_PATH,
         handler: async (req: any, res: any) => {
             await handleAdminRequest(
@@ -419,7 +516,7 @@ export function registerAdminRoutes(app: any) {
         }
     });
     app.route({
-        method: ['GET', 'POST'],
+        method: ['GET', 'POST', 'DELETE'],
         url: ADMIN_PATH + '/*',
         handler: async (req: any, res: any) => {
             await handleAdminRequest(
@@ -525,7 +622,24 @@ const adminHTML = `<!DOCTYPE html>
   .btn.loading .spinner { display: inline-block; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn-danger { border-color: #5a2a2a; color: #c77; }
+  .btn-danger:hover { background: #3a1a1a; color: #e88; border-color: #7a3a3a; }
+
+  .actions { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .confirm-text { color: #c77; font-size: 0.8em; }
+
+  .add-form {
+    display: none; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
+    padding: 16px; margin-bottom: 20px; gap: 10px; flex-direction: column;
+  }
+  .add-form.open { display: flex; }
+  .add-form input, .add-form select {
+    background: #111; color: #e0e0e0; border: 1px solid #333;
+    padding: 9px 12px; border-radius: 8px; font-size: 14px; outline: none; width: 100%;
+  }
+  .add-form input:focus, .add-form select:focus { border-color: #555; }
+  .add-form .add-row { display: flex; gap: 10px; }
+  .add-form .add-row select { width: 130px; flex: none; }
   .error { color: #e55; font-size: 0.85em; margin-top: 4px; }
   .success { color: #5a5; font-size: 0.85em; margin-top: 4px; }
   .loading-text { color: #888; padding: 40px; text-align: center; }
@@ -605,6 +719,24 @@ const adminHTML = `<!DOCTYPE html>
   <div class="search-bar">
     <input type="text" id="search" placeholder="Search words..." />
     <button onclick="doSearch()">Search</button>
+    <button onclick="toggleAddForm()">+ Add word</button>
+  </div>
+
+  <div class="add-form" id="addForm">
+    <div class="add-row">
+      <input type="text" id="addWord" placeholder="Word" />
+      <select id="addLevel">
+        <option value="">Level…</option>
+        <option>A1</option><option>A2</option><option>B1</option>
+        <option>B2</option><option>C1</option><option>C2</option>
+      </select>
+    </div>
+    <input type="text" id="addDescription" placeholder="Description — the meaning this word is taught in" />
+    <div class="actions">
+      <button class="btn" id="addSubmit" onclick="submitAddWord()"><span class="spinner"></span>Add word</button>
+      <button class="btn" onclick="toggleAddForm(false)">Cancel</button>
+      <span id="addStatus"></span>
+    </div>
   </div>
 
   <div id="stats" class="stats"></div>
@@ -644,6 +776,10 @@ let currentSearch = '';
 
 const searchInput = document.getElementById('search');
 searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+['addWord', 'addDescription'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') submitAddWord(); });
+});
 
 function doSearch() {
   currentSearch = searchInput.value.trim();
@@ -763,6 +899,13 @@ function createCard(w) {
           '</div>' +
           '<div id="imagen-status-' + w.id + '"></div>' +
         '</div>' +
+        '<div class="asset-section">' +
+          '<h3>Remove</h3>' +
+          '<div class="actions" id="remove-' + w.id + '">' +
+            '<button class="btn btn-danger" data-id="' + w.id + '" onclick="askRemoveWord(event)">Remove word</button>' +
+          '</div>' +
+          '<div id="remove-status-' + w.id + '"></div>' +
+        '</div>' +
       '</div>' +
     '</div>';
   return card;
@@ -866,6 +1009,98 @@ async function regenSatQuiz(e) {
     el.innerHTML += '<div class="error">Failed: ' + esc(err.message) + '</div>';
   }
   setLoading(btn, false);
+}
+
+// ---- add / remove ----
+
+function toggleAddForm(force) {
+  const form = document.getElementById('addForm');
+  const open = force === undefined ? !form.classList.contains('open') : force;
+  form.classList.toggle('open', open);
+  document.getElementById('addStatus').innerHTML = '';
+  if (open) document.getElementById('addWord').focus();
+}
+
+async function submitAddWord() {
+  const btn = document.getElementById('addSubmit');
+  const status = document.getElementById('addStatus');
+  const wordEl = document.getElementById('addWord');
+  const descEl = document.getElementById('addDescription');
+  const levelEl = document.getElementById('addLevel');
+  const word = wordEl.value.trim();
+  if (!word) {
+    status.innerHTML = '<span class="error">Word is required</span>';
+    return;
+  }
+  setLoading(btn, true);
+  status.innerHTML = '';
+  try {
+    const data = await api('/words', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({word: word, description: descEl.value.trim(), level: levelEl.value}),
+    });
+    if (data.error) {
+      status.innerHTML = '<span class="error">' + esc(data.error) + '</span>';
+    } else {
+      wordEl.value = '';
+      descEl.value = '';
+      levelEl.value = '';
+      status.innerHTML = '<span class="success">Added ' + esc(data.word.word) + '</span>';
+      // Reload rather than prepend: the list is paged and sorted by word.
+      loadWords();
+    }
+  } catch (err) {
+    status.innerHTML = '<span class="error">Failed: ' + esc(err.message) + '</span>';
+  }
+  setLoading(btn, false);
+}
+
+// Two-step instead of confirm(): a blocking dialog is easy to mis-click past, and
+// deleting a word also rewrites the plans of every chat that had it queued.
+function askRemoveWord(e) {
+  e.stopPropagation();
+  const id = e.currentTarget.dataset.id;
+  const actions = document.getElementById('remove-' + id);
+  actions.innerHTML =
+    '<span class="confirm-text">Removes the word and drops it from every chat plan.</span>' +
+    '<button class="btn btn-danger" data-id="' + id + '" onclick="removeWord(event)"><span class="spinner"></span>Confirm remove</button>' +
+    '<button class="btn" data-id="' + id + '" onclick="cancelRemoveWord(event)">Cancel</button>';
+}
+
+function cancelRemoveWord(e) {
+  e.stopPropagation();
+  const id = e.currentTarget.dataset.id;
+  document.getElementById('remove-' + id).innerHTML =
+    '<button class="btn btn-danger" data-id="' + id + '" onclick="askRemoveWord(event)">Remove word</button>';
+}
+
+async function removeWord(e) {
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const id = btn.dataset.id;
+  const status = document.getElementById('remove-status-' + id);
+  setLoading(btn, true);
+  status.innerHTML = '';
+  try {
+    const data = await api('/words/' + id, {method: 'DELETE'});
+    if (data.error) {
+      status.innerHTML = '<div class="error">' + esc(data.error) + '</div>';
+      setLoading(btn, false);
+      return;
+    }
+    const card = document.getElementById('card-' + id);
+    if (card) card.remove();
+    const note = data.chatsUpdated
+      ? ' (removed from ' + data.chatsUpdated + ' chat plan' + (data.chatsUpdated === 1 ? '' : 's') + ')'
+      : '';
+    const stats = document.getElementById('stats');
+    stats.innerHTML = '<span class="success">Removed ' + esc(data.word) + note + '</span>' +
+      (data.warning ? ' <span class="error">' + esc(data.warning) + '</span>' : '');
+  } catch (err) {
+    status.innerHTML = '<div class="error">Failed: ' + esc(err.message) + '</div>';
+    setLoading(btn, false);
+  }
 }
 
 function updateBadge(id, type, hasIt) {
