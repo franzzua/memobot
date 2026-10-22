@@ -7,7 +7,7 @@ import {SrsPlanner, buildQuizDates, introOffsetMs} from "./srs-planner";
 import {Message} from "../types";
 import {TimetablePolicyType} from "../scheduler/types";
 import type {TimetableEntity} from "../scheduler/storage/schedulerStorage";
-import type {MessageTimetable} from "../db/messagesDatabase";
+import type {MessageTimetable} from "../types";
 import type {Word} from "../../prisma/client";
 
 const day = 86400 * 1000;

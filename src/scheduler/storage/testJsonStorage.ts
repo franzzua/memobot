@@ -1,6 +1,6 @@
 import {Task, TimetableEntity} from "./schedulerStorage";
 import {DataStore} from "./dataStore";
-import type {MessageTimetable} from "../../db/messagesDatabase";
+import type {MessageTimetable} from "../../types";
 import type {Word} from "../../../prisma/client";
 
 export type TestChatRow = {

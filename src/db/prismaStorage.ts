@@ -2,7 +2,7 @@ import type { Prisma, Message as PrismaMessage, Word } from "../../prisma/client
 import { PrismaClient } from "../../prisma/client";
 import type { Task, TimetableEntity } from "../scheduler/storage/schedulerStorage";
 import { DataStore } from "../scheduler/storage/dataStore";
-import type { MessageTimetable } from "./messagesDatabase";
+import type { MessageTimetable } from "../types";
 import { WordsDatabase } from "./wordsDatabase";
 import {resolve, singleton} from "@cmmn/core";
 import type { Chat } from "../types";

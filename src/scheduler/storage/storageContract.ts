@@ -2,7 +2,7 @@ import {describe, test, beforeEach, afterEach} from "node:test";
 import {expect} from "expect";
 import {DataStore} from "./dataStore";
 import {TimetableEntity} from "./schedulerStorage";
-import type {MessageTimetable} from "../../db/messagesDatabase";
+import type {MessageTimetable} from "../../types";
 import {TimetablePolicyType} from "../types";
 
 export type StorageContractHooks = {

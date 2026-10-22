@@ -1,5 +1,5 @@
 import {TimetableStore, TimetableEntity} from "./schedulerStorage";
-import type {MessageTimetable} from "../../db/messagesDatabase";
+import type {MessageTimetable} from "../../types";
 import type {Word} from "../../../prisma/client";
 
 /**

@@ -1,3 +1,4 @@
+import type {DateTimetable} from "./scheduler/types";
 export type Chat = {
     id: string
     username: string
@@ -36,3 +37,4 @@ export const enum ChatState {
     writeQuiz = 5,
 }
 export type TaskState = 'initial' | 'pending' | 'finished';
+export type MessageTimetable = Message & DateTimetable
