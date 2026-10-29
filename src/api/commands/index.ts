@@ -6,7 +6,7 @@ import {start} from "./start";
 import {onDelete, onDeleteLast, onDeleteNumber} from "./delete";
 import {list, onListComplete, onListCurrent} from "./list";
 import {practice} from "./practice";
-import {donate, paymentCallbacks} from "./donate";
+import {donate, paymentCallbacks, starsCallbacks} from "./donate";
 import {ai} from "./ai";
 import {onQuiz, onQuizDirect, onQuizReversed, onQuizWrite, onDbQuiz} from "./quiz";
 import {wipe} from "./wipe";
@@ -47,6 +47,7 @@ export const commands = {
 
 export const callbacks: Record<string, Callback> = {
     ...paymentCallbacks,
+    ...starsCallbacks,
     'init:level:A2': onInitLevel,
     'init:level:B1': onInitLevel,
     'init:level:B2': onInitLevel,

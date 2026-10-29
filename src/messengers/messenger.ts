@@ -90,7 +90,16 @@ export type DocumentMessage = {
 }
 
 
+export type InvoiceMessage = {
+    type: 'invoice';
+    title: string;
+    description: string;
+    payload: string;
+    stars: number;
+}
+
 export type Message =
+    | InvoiceMessage
     | QuizMessage
     | ImageMessage
     | AudioMessage

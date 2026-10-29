@@ -16,6 +16,8 @@ export async function donate(ctx: IncomingMessageEvent) {
                     {text: 'BTC', callback_data: 'BTC'},
                     {text: 'ETH', callback_data: 'ETH'},
                     {text: 'TON', callback_data: 'TON'},
+                ], [
+                    {text: '⭐ Telegram Stars', callback_data: 'Stars'},
                 ]
             ]
         }
@@ -42,6 +44,35 @@ function getCallback(text: string): Callback {
 export const paymentCallbacks = Object.fromEntries(
     Object.entries(payments).map(([key, text]) => [key, getCallback(text)])
 );
+
+const starAmounts = [50, 100, 250, 500];
+
+function chooseStars(ctx: ChatEvent) {
+    return ctx.reply(`⭐ Choose amount of Stars:`, {
+        reply_markup: {
+            inline_keyboard: [
+                starAmounts.map(stars => ({text: `${stars} ⭐`, callback_data: `stars:${stars}`})),
+            ]
+        }
+    });
+}
+
+function getStarsCallback(stars: number): Callback {
+    return function (ctx: ChatEvent) {
+        return ctx.reply({
+            type: 'invoice',
+            title: `Support Memobot`,
+            description: `Donate ${stars} ⭐ to support the bot development`,
+            payload: `donate:${stars}`,
+            stars,
+        });
+    };
+}
+
+export const starsCallbacks: Record<string, Callback> = {
+    Stars: chooseStars,
+    ...Object.fromEntries(starAmounts.map(stars => [`stars:${stars}`, getStarsCallback(stars)])),
+};
 
 export type PaymentType =
     "USD" | "EUR" | "PayPal" | "RUB" | "USDT" | "BTC" | "ETH" | "TON";

@@ -53,6 +53,8 @@ export class TelegramMessenger extends Messenger {
         //     // this.tg.command(command, commands[command].bind(this));
         // }
         this.tg.on('callback_query', this.onCallbackQuery);
+        this.tg.on('pre_checkout_query', this.onPreCheckoutQuery);
+        this.tg.on('successful_payment', this.onSuccessfulPayment);
         // this.tg.command('actions', ctx => {
         //
         // });
@@ -80,6 +82,17 @@ export class TelegramMessenger extends Messenger {
             }
         }
         switch (message.type) {
+            case "invoice":
+                // Telegram Stars: currency XTR, empty provider token, single price item.
+                await this.tg.telegram.sendInvoice(to, {
+                    title: message.title,
+                    description: message.description,
+                    payload: message.payload,
+                    provider_token: '',
+                    currency: 'XTR',
+                    prices: [{label: message.title, amount: message.stars}],
+                });
+                break;
             case "quiz":
                 await this.tg.telegram.sendQuiz(to, message.question, message.answers, message.options);
                 break;
@@ -159,6 +172,22 @@ export class TelegramMessenger extends Messenger {
         const event = new TelegramCallbackEvent(ctx.update.callback_query, this);
         const handlers = (this as any).listeners?.get('callback') ?? [];
         await Promise.all(handlers.map((h: any) => h.listener(event)));
+    }
+
+    // Must be answered within 10 seconds or Telegram cancels the payment.
+    private onPreCheckoutQuery = async (ctx: Context<Update.PreCheckoutQueryUpdate>) => {
+        const {invoice_payload} = ctx.update.pre_checkout_query;
+        if (invoice_payload.startsWith('donate:'))
+            await ctx.answerPreCheckoutQuery(true);
+        else
+            await ctx.answerPreCheckoutQuery(false, 'Unknown payment');
+    }
+
+    private onSuccessfulPayment = async (ctx: Context<Update.MessageUpdate<tg.Message.SuccessfulPaymentMessage>>) => {
+        const payment = ctx.update.message.successful_payment;
+        // charge id is needed for refundStarPayment, so keep it in the logs
+        this.logger.send(`Stars donation: ${payment.total_amount} ${payment.currency} from ${ctx.update.message.from?.id}, charge ${payment.telegram_payment_charge_id}`);
+        await this.send(ctx.update.message.chat.id, `⭐ Thank you for your support!`);
     }
 
 
