@@ -3,7 +3,8 @@ import {EventEmitter} from "@cmmn/core";
 export abstract class Messenger extends EventEmitter<MessengerEvents>{
     abstract name: string;
     abstract init(): Promise<void>;
-    abstract send(to: string | number, message: Message | string, options: MessageOptions): Promise<void>;
+    // Resolves to the sent message's id, when the messenger has one.
+    abstract send(to: string | number, message: Message | string, options: MessageOptions): Promise<number | undefined>;
     abstract handle(request: {
         body: any;
         query: any
@@ -39,7 +40,7 @@ export type ChatEvent = {
         id: string | number;
         name: string | undefined;
     }
-    reply(message: Message | string, options?: MessageOptions): Promise<void>;
+    reply(message: Message | string, options?: MessageOptions): Promise<number | undefined>;
 }
 export type CallbackEvent = ChatEvent & {
     data: unknown;
@@ -52,6 +53,8 @@ export type IncomingMessageEvent = ChatEvent & {
 }
 
 export type ReplyToInfo = {
+    id: number;
+    // Text or caption of the replied message; empty for e.g. a photo without caption.
     text: string;
     isBot: boolean;
 }

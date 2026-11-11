@@ -277,6 +277,22 @@ export class PrismaStorage extends DataStore {
     }
 
     @Logger.measure
+    async saveSentWordMessages(chatId: string, messageIds: number[], wordId: string): Promise<void> {
+        if (messageIds.length === 0) return;
+        await this.prisma.sentWordMessage.createMany({
+            data: messageIds.map(messageId => ({chatId, messageId, wordId})),
+            skipDuplicates: true,
+        });
+    }
+
+    async getSentWordId(chatId: string, messageId: number): Promise<string | null> {
+        const row = await this.prisma.sentWordMessage.findUnique({
+            where: {chatId_messageId: {chatId, messageId}},
+            select: {wordId: true},
+        });
+        return row?.wordId ?? null;
+    }
+
     async getLastSentWordRefId(chatId: string): Promise<string | null> {
         const msg = await this.prisma.message.findFirst({
             where: { chatId, kind: 'word', invokeCounter: { gt: 0 } },

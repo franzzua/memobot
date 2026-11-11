@@ -49,6 +49,18 @@ model Message {
   @@index([chatId, kind])
 }
 
+// Which word each scheduled word-step message was about, so a reply to it (e.g. a voice
+// message for pronunciation) resolves to that word even when the message itself doesn't
+// name it (a picture, a poll, the missing-word sentence).
+model SentWordMessage {
+  chatId    String
+  messageId Int
+  wordId    String
+  createdAt DateTime @default(now())
+
+  @@id([chatId, messageId])
+}
+
 model Word {
   id            String  @id @default(uuid(7))
   word          String

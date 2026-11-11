@@ -36,6 +36,12 @@ function extractWord(botText: string): string | undefined {
 
 export async function resolveWord(e: IncomingMessageEvent): Promise<Word | null> {
     const wordsDb = resolve(WordsDatabase);
+    if (e.replyTo?.isBot) {
+        const wordId = await resolve(PrismaStorage).getSentWordId(e.chat.toString(), e.replyTo.id);
+        const word = wordId ? await wordsDb.getById(wordId) : null;
+        if (word) return word;
+    }
+    // Messages sent before message ids were recorded: the word is on the first line.
     if (e.replyTo?.isBot && e.replyTo.text) {
         const candidate = extractWord(e.replyTo.text);
         if (candidate) {

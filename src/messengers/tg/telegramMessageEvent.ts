@@ -15,12 +15,11 @@ export class TelegramMessageEvent extends TelegramChatEvent implements IncomingM
         if (replyTo) {
             const text = (replyTo as tg.Message.TextMessage).text
                 ?? (replyTo as tg.Message.CaptionableMessage).caption;
-            if (text) {
-                this.replyTo = {
-                    text,
-                    isBot: replyTo.from?.is_bot === true,
-                };
-            }
+            this.replyTo = {
+                id: replyTo.message_id,
+                text: text ?? '',
+                isBot: replyTo.from?.is_bot === true,
+            };
         }
     }
 

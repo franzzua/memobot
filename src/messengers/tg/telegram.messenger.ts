@@ -74,7 +74,7 @@ export class TelegramMessenger extends Messenger {
     }
 
 
-    async send(to: string | number, message: Message | string, options: MessageOptions = {}): Promise<void> {
+    async send(to: string | number, message: Message | string, options: MessageOptions = {}): Promise<number | undefined> {
         if (typeof message === "string")
             message = {type: 'text', text: message};
         const tgOptions = {
@@ -86,59 +86,53 @@ export class TelegramMessenger extends Messenger {
         switch (message.type) {
             case "invoice":
                 // Telegram Stars: currency XTR, empty provider token, single price item.
-                await this.tg.telegram.sendInvoice(to, {
+                return (await this.tg.telegram.sendInvoice(to, {
                     title: message.title,
                     description: message.description,
                     payload: message.payload,
                     provider_token: '',
                     currency: 'XTR',
                     prices: [{label: message.title, amount: message.stars}],
-                });
-                break;
+                })).message_id;
             case "quiz":
-                await this.tg.telegram.sendQuiz(to, message.question, message.answers, message.options);
-                break;
+                return (await this.tg.telegram.sendQuiz(to, message.question, message.answers, message.options)).message_id;
             case "image":
-                await this.tg.telegram.sendPhoto(to, {
+                return (await this.tg.telegram.sendPhoto(to, {
                     source: message.image
                 }, {
                     ...tgOptions,
                     caption: message.caption,
                     parse_mode: message.caption ? 'HTML' : undefined,
                     reply_markup: options.reply_markup,
-                });
-                break;
+                })).message_id;
             case "text":
                 if (options.spoiler)
                     message.text += `\n<span class="tg-spoiler">${options.spoiler}</span>`;
-                await this.tg.telegram.sendMessage(to, message.text, {
+                return (await this.tg.telegram.sendMessage(to, message.text, {
                     ...tgOptions,
                     parse_mode: 'HTML',
                     reply_markup: options.reply_markup,
                     link_preview_options: {
                         is_disabled: !options.preview_url,
                     },
-                });
-                break;
+                })).message_id;
             case "audio":
-                await this.tg.telegram.sendVoice(to, {
+                return (await this.tg.telegram.sendVoice(to, {
                     source: message.audio,
                 }, {
                     ...tgOptions,
                     caption: message.caption,
                     parse_mode: message.caption ? 'HTML' : undefined,
                     reply_markup: options.reply_markup,
-                });
-                break;
+                })).message_id;
             case "document":
-                await this.tg.telegram.sendDocument(to, {
+                return (await this.tg.telegram.sendDocument(to, {
                     source: message.content,
                     filename: message.filename,
                 }, {
                     ...tgOptions,
                     caption: message.caption,
-                });
-                break;
+                })).message_id;
         }
     }
 

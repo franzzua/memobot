@@ -109,10 +109,11 @@ export class TelegrafApi {
                         const content = word
                             ? flashcard(word)
                             : `<b>${message.content}</b>\n${message.details}`;
-                        await this.messenger.send(chatId, content, {
+                        const sentId = await this.messenger.send(chatId, content, {
                             disable_notification: skipNotification,
                             reply_markup: WORD_REPLY_KEYBOARD,
                         });
+                        if (word) await this.rememberWordMessages(chatId, [sentId], word);
                     } else {
                         const handler = WordSendHandlers[dateIndex - 1];
                         if (!handler || !word) continue;
@@ -120,11 +121,12 @@ export class TelegrafApi {
                             () => handler({chatId, message, word}),
                             'WordHandler.' + handler.name
                         );
-                        if (Array.isArray(content)) {
-                            await this.sendPayloads(chatId, content, skipNotification);
-                        } else if (content) {
-                            await this.messenger.send(chatId, content, {disable_notification: skipNotification});
-                        }
+                        const sentIds = Array.isArray(content)
+                            ? await this.sendPayloads(chatId, content, skipNotification)
+                            : content
+                                ? [await this.messenger.send(chatId, content, {disable_notification: skipNotification})]
+                                : [];
+                        await this.rememberWordMessages(chatId, sentIds, word);
                     }
                 } else if (kind === 'quiz') {
                     await this.sendNextQuiz(chatId, skipNotification);
@@ -148,7 +150,8 @@ export class TelegrafApi {
                     id: '', index: 0, table_md: null, attachment: null,
                     question: sat.question, answers: sat.answers, correct: sat.correct,
                 } as any);
-                return this.sendPayloads(chatId, payloads, skipNotification);
+                const sentIds = await this.sendPayloads(chatId, payloads, skipNotification);
+                return this.rememberWordMessages(chatId, sentIds, word);
             }
         }
 
@@ -156,16 +159,26 @@ export class TelegrafApi {
             ?? await this.chatDatabase.getRandomQuiz();
         if (!quiz) return;
         await this.chatDatabase.appendSeenQuiz(chatId, quiz.id);
-        return this.sendPayloads(chatId, renderQuiz(quiz), skipNotification);
+        await this.sendPayloads(chatId, renderQuiz(quiz), skipNotification);
     }
 
-    private async sendPayloads(chatId: string, payloads: any[], skipNotification: boolean): Promise<void> {
+    private async sendPayloads(chatId: string, payloads: any[], skipNotification: boolean): Promise<Array<number | undefined>> {
+        const sentIds: Array<number | undefined> = [];
         for (let j = 0; j < payloads.length; j++) {
             const isLast = j === payloads.length - 1;
-            await this.messenger.send(chatId, payloads[j] as any, {
+            sentIds.push(await this.messenger.send(chatId, payloads[j] as any, {
                 disable_notification: skipNotification || !isLast,
-            });
+            }));
         }
+        return sentIds;
+    }
+
+    // Lets a reply to any of these messages (e.g. a voice message for pronunciation)
+    // resolve to the word, see resolveWord. Failing to record must not fail the send.
+    private async rememberWordMessages(chatId: string, sentIds: Array<number | undefined>, word: Word): Promise<void> {
+        const ids = sentIds.filter((id): id is number => typeof id === 'number');
+        await this.chatDatabase.saveSentWordMessages(chatId, ids, word.id)
+            .catch(e => console.error('[rememberWordMessages]', e));
     }
 
     // Picks a random word the user has already been introduced to, to quiz them on.
