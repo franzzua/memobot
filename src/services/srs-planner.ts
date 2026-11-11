@@ -1,5 +1,5 @@
 import {resolve, singleton} from "@cmmn/core";
-import {DataStore} from "../scheduler/storage/dataStore";
+import {DataStore, type PlanWord} from "../scheduler/storage/dataStore";
 import {Scheduler} from "../scheduler/scheduler";
 import {TimetablePolicyType} from "../scheduler/types";
 import {Message, MessageKind} from "../types";
@@ -215,7 +215,7 @@ export class SrsPlanner implements SchedulerStorage {
         await this.scheduler.recomputeTask(chatId);
     }
 
-    private async scheduleWord(chatId: string, word: Word, t_i: Date, T_ms: number, wordDelays: number[]): Promise<void> {
+    private async scheduleWord(chatId: string, word: PlanWord, t_i: Date, T_ms: number, wordDelays: number[]): Promise<void> {
         const dates = wordDelays.map(f => new Date(+t_i + f * T_ms));
         await this.scheduler.schedule(chatId, {
             id: `word.${word.id}`,

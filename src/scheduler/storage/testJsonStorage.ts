@@ -1,5 +1,5 @@
 import {Task, TimetableEntity} from "./schedulerStorage";
-import {DataStore} from "./dataStore";
+import {DataStore, type PlanWord} from "./dataStore";
 import type {MessageTimetable} from "../../types";
 import type {Word} from "../../../prisma/client";
 
@@ -135,7 +135,7 @@ export class TestJsonStorage extends DataStore {
         return this.msgs(chatId).filter(x => kinds.includes(x.kind as string));
     }
 
-    async pickTopForLevel(level: string, n: number): Promise<Word[]> {
+    async pickTopForLevel(level: string, n: number): Promise<PlanWord[]> {
         if (n <= 0) return [];
         const nulLast = (v: number | null | undefined) => (v == null ? -Infinity : v);
         return [...this.state.words]

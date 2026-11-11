@@ -1,7 +1,7 @@
 import type { Prisma, Message as PrismaMessage, Word } from "../../prisma/client";
 import { PrismaClient } from "../../prisma/client";
 import type { Task, TimetableEntity } from "../scheduler/storage/schedulerStorage";
-import { DataStore } from "../scheduler/storage/dataStore";
+import { DataStore, type PlanWord } from "../scheduler/storage/dataStore";
 import type { MessageTimetable } from "../types";
 import { WordsDatabase } from "./wordsDatabase";
 import {resolve, singleton} from "@cmmn/core";
@@ -331,7 +331,8 @@ export class PrismaStorage extends DataStore {
         });
     }
 
-    pickTopForLevel(level: string, n: number): Promise<Word[]> {
+    @Logger.measure
+    pickTopForLevel(level: string, n: number): Promise<PlanWord[]> {
         return this.words.pickTopForLevel(level, n);
     }
 

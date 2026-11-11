@@ -1,5 +1,6 @@
 import {resolve, singleton} from "@cmmn/core";
 import {PrismaClient, type Word} from "../../prisma/client";
+import type {PlanWord} from "../scheduler/storage/dataStore";
 
 @singleton()
 export class WordsDatabase {
@@ -17,10 +18,12 @@ export class WordsDatabase {
         return res;
     }
 
-    public async pickTopForLevel(level: string, n: number): Promise<Word[]> {
+    // Only the columns planning needs: SELECT * also pulled every word's voice and image
+    // blobs, which made /init take ~30s on the micro Cloud SQL instance.
+    public async pickTopForLevel(level: string, n: number): Promise<PlanWord[]> {
         if (n <= 0) return [];
-        return this.prisma.$queryRaw<Word[]>`
-            SELECT *
+        return this.prisma.$queryRaw<PlanWord[]>`
+            SELECT "id", "word", "description"
             FROM "Word"
             ORDER BY
                 "satFrequency" DESC NULLS LAST,

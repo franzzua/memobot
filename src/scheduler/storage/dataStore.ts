@@ -2,6 +2,10 @@ import {TimetableStore, TimetableEntity} from "./schedulerStorage";
 import type {MessageTimetable} from "../../types";
 import type {Word} from "../../../prisma/client";
 
+// What planning needs of a word. Kept narrow so the plan query never pulls the stored
+// voice/image blobs or the embedding.
+export type PlanWord = Pick<Word, 'id' | 'word' | 'description'>;
+
 /**
  * Raw persistence port for the SRS scheduler. Extends the generic {@link TimetableStore}
  * (task + timetable rows the generic `Scheduler` needs) with the plan/message/word reads
@@ -25,6 +29,6 @@ export abstract class DataStore extends TimetableStore<MessageTimetable> {
     abstract getMessagesByKind(chatId: string, kinds: string[]): Promise<TimetableEntity<MessageTimetable>[]>;
 
     // word reads used by planning
-    abstract pickTopForLevel(level: string, n: number): Promise<Word[]>;
+    abstract pickTopForLevel(level: string, n: number): Promise<PlanWord[]>;
     abstract getByIds(ids: string[]): Promise<Map<string, Word>>;
 }
