@@ -5,6 +5,7 @@ import { renderQuiz } from "../../services/quiz-render";
 import { generateSatQuiz } from "../../services/sat-quiz-generator";
 import { resolveWord } from "./wordReply";
 import { pickDistractorWords } from "../../services/word-send-handlers";
+import { normalizeWordText } from "../../services/distractor-picker";
 
 
 export async function onQuiz(this: TelegrafApi, ctx: IncomingMessageEvent){
@@ -46,13 +47,17 @@ export async function onQuizWrite(this: TelegrafApi, ctx: IncomingMessageEvent){
         `Write item for provided definition: '${message.details}'`
     );
 }
+// `accepted` lists every spelling that counts (the writing step of a word accepts both the
+// inflected form in the sentence and the dictionary form); /writeQuiz only sets `answer`.
 export async function onQuizWriteAnswer(this: TelegrafApi, ctx: IncomingMessageEvent, data: {
     answer: string;
+    accepted?: string[];
 }){
     const message = await ctx.text();
     if (!message) return;
     await this.chatDatabase.updateChatState(ctx.chat.toString(), ChatState.initial);
-    const isRight = message.text == data.answer;
+    const accepted = (data.accepted ?? [data.answer]).map(normalizeWordText);
+    const isRight = accepted.includes(normalizeWordText(message.text));
     if (isRight){
         return ctx.reply('Excellent!');
     } else {

@@ -25,7 +25,8 @@ export class TelegramMessageEvent extends TelegramChatEvent implements IncomingM
     }
 
     async audio(): Promise<AudioMessage | undefined> {
-        const {audio} = this.message as tg.Message.AudioMessage;
+        const audio = (this.message as tg.Message.VoiceMessage).voice
+            ?? (this.message as tg.Message.AudioMessage).audio;
         if (!audio) return undefined;
         const fileUrl = await this.messenger.tg.telegram.getFileLink(audio.file_id);
         const arrayBuffer = await fetch(fileUrl).then(x => x.arrayBuffer());

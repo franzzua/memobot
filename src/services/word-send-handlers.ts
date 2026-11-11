@@ -4,11 +4,14 @@ import type {AudioMessage, ImageMessage, Message as MessageData, QuizMessage} fr
 import type {Message} from "../types";
 import {WordsDatabase} from "../db/wordsDatabase";
 import {PrismaStorage} from "../db/prismaStorage";
+import {ChatState} from "../types";
 import {AiModel} from "./ai-model";
 import {TextToSpeech} from "./text-to-speech";
 import {ImageRender} from "./image-render";
 import {Imagen} from "./imagen";
 import {collapseArticleBeforeBlank, generateSatQuiz} from "./sat-quiz-generator";
+import {renderQuiz} from "./quiz-render";
+import {Pronunciation} from "./pronunciation";
 import {transcriptionPrompt, examplePrompt, imagePrompt} from "./prompts";
 import {normalizeWordText, pickSimilarDistractors} from "./distractor-picker";
 
@@ -18,11 +21,11 @@ export type WordSendHandler = (ctx: {
     chatId: string;
     message: Message;
     word: Word;
-}) => Promise<MessageData | string | undefined>;
+}) => Promise<MessageData | MessageData[] | string | undefined>;
 
 const wordHeader = (word: Word) => `<b>${word.word}</b>`;
 
-// Step 1 of the per-word flow: a simple definition→word poll, cached per word.
+// A simple definition→word poll, cached per word.
 const quizHandler: WordSendHandler = async function quizHandler({chatId, word}) {
     const wq = await ensureWordQuiz(chatId, word);
     if (!wq) {
@@ -76,6 +79,9 @@ function isCachedQuiz(q: CachedQuiz | null): q is CachedQuiz {
     return new Set(texts).size === texts.length;
 }
 
+// Audio with the pronunciation; the learner replies with a voice message of their own,
+// which onVoiceMessage scores. The word goes on the first caption line so resolveWord
+// can find it from the reply.
 const voiceTransHandler: WordSendHandler = async function voiceTransHandler({word}) {
     const wordsDb = resolve(WordsDatabase);
     let transcription = word.transcription?.trim();
@@ -90,12 +96,12 @@ const voiceTransHandler: WordSendHandler = async function voiceTransHandler({wor
         audio = await resolve(TextToSpeech).getStream(word.word, 'ogg_opus', transcription || undefined, example || undefined);
         await wordsDb.setVoice(word.id, audio);
     }
-    return {type: 'audio', audio, audioType: 'ogg', caption: transcription || undefined} as AudioMessage;
-};
-
-const exampleHandler: WordSendHandler = async function exampleHandler({word}) {
-    const example = await ensureExample(word);
-    return `${wordHeader(word)}\n<i>${boldWord(example, word.word)}</i>`;
+    const caption = [
+        wordHeader(word),
+        transcription,
+        resolve(Pronunciation).isConfigured && '🎙 <i>Reply with a voice message saying the word</i>',
+    ].filter(Boolean).join('\n');
+    return {type: 'audio', audio, audioType: 'ogg', caption} as AudioMessage;
 };
 
 const imagenHandler: WordSendHandler = async function imagenHandler({word}) {
@@ -115,21 +121,52 @@ const imagenHandler: WordSendHandler = async function imagenHandler({word}) {
     } as ImageMessage;
 };
 
-const flashcardHandler: WordSendHandler = async function flashcardHandler({word}) {
-    const render = new ImageRender(word.word, word.description ?? '');
-    return {type: 'image', image: render.render()} as ImageMessage;
+// The example sentence under its picture with the word blanked out; the learner types
+// the missing word and onQuizWriteAnswer checks it.
+const writingHandler: WordSendHandler = async function writingHandler(ctx) {
+    const {chatId, word} = ctx;
+    const example = await ensureExample(word);
+    const blank = blankOutWord(example, word.word);
+    if (!blank) {
+        return imagenHandler(ctx);
+    }
+    let image: Buffer | undefined = word.image ? Buffer.from(word.image) : undefined;
+    if (!image) {
+        image = await resolve(Imagen).generate(imagePrompt(example));
+        if (image) await resolve(WordsDatabase).setImage(word.id, image);
+    }
+    await resolve(PrismaStorage).updateChatState(chatId, ChatState.writeQuiz, {
+        answer: blank.answer,
+        accepted: [blank.answer, word.word],
+    });
+    const caption = `✍️ Write the missing word\n<i>${blank.text}</i>`;
+    if (!image) return caption;
+    return {type: 'image', image, caption} as ImageMessage;
 };
 
-// Order matters: SrsPlanner takes a prefix of this list sized to the plan's duration
-// (3 reps for short plans, 4 adds the card, 5 adds the example), so shorter reps must
-// come first.
+// SAT-style fill-in-the-blank passage, cached per word.
+const satHandler: WordSendHandler = async function satHandler({chatId, word}) {
+    const sat = await ensureSatQuiz(chatId, word);
+    if (!sat) return `${wordHeader(word)}\n${word.description ?? ''}`;
+    return renderQuiz({
+        id: '', index: 0, table_md: null, attachment: null,
+        question: sat.question, answers: sat.answers, correct: sat.correct,
+    } as any) as MessageData[];
+};
+
+// The intro flashcard (sent by TelegrafApi with the reply keyboard) is followed by these,
+// in order; SrsPlanner schedules one date per step.
 export const WordSendHandlers: WordSendHandler[] = [
-    quizHandler,
     voiceTransHandler,
-    imagenHandler,
-    flashcardHandler,
-    exampleHandler,
+    writingHandler,
+    quizHandler,
+    satHandler,
 ];
+
+export function flashcard(word: Word): ImageMessage {
+    const render = new ImageRender(word.word, word.description ?? '');
+    return {type: 'image', image: render.render(), caption: wordHeader(word)};
+}
 
 async function ensureExample(word: Word): Promise<string> {
     if (word.example?.trim()) return word.example.trim();
@@ -143,6 +180,21 @@ async function ensureExample(word: Word): Promise<string> {
 function boldWord(sentence: string, word: string): string {
     if (!sentence) return sentence;
     return sentence.replace(new RegExp(`\\b${escapeRegex(word)}\\b`, 'gi'), m => `<b>${m}</b>`);
+}
+
+// Replaces the word in the sentence with a blank. Example sentences often inflect the
+// word ("hesitated" for "hesitate"), so a token sharing the word's stem counts too, and
+// that token is what the learner has to type.
+export function blankOutWord(sentence: string, word: string): {text: string; answer: string} | null {
+    if (!sentence || !word) return null;
+    const exact = new RegExp(`\\b${escapeRegex(word)}\\b`, 'i');
+    const stem = word.length > 4 ? word.replace(/(e|y)$/i, '') : word;
+    const inflected = new RegExp(`\\b${escapeRegex(stem)}[a-z]{0,4}\\b`, 'i');
+    const match = sentence.match(exact) ?? sentence.match(inflected);
+    if (!match || match.index === undefined) return null;
+    const answer = match[0];
+    const text = sentence.slice(0, match.index) + '_____' + sentence.slice(match.index + answer.length);
+    return {text, answer};
 }
 
 function escapeRegex(s: string): string {

@@ -58,7 +58,7 @@ export class TelegramMessenger extends Messenger {
         // this.tg.command('actions', ctx => {
         //
         // });
-        this.tg.hears(/.*/, (async (ctx: Context) => {
+        const onMessage = (async (ctx: Context) => {
             switch (ctx.updateType) {
                 case "message": {
                     const update = ctx.update as tg.Update.MessageUpdate;
@@ -67,7 +67,9 @@ export class TelegramMessenger extends Messenger {
                     await Promise.all(handlers.map((h: any) => h.listener(msg)));
                 }
             }
-        }) as any);
+        }) as any;
+        this.tg.hears(/.*/, onMessage);
+        this.tg.on('voice', onMessage);
         // await this.launch();
     }
 
@@ -103,6 +105,7 @@ export class TelegramMessenger extends Messenger {
                     ...tgOptions,
                     caption: message.caption,
                     parse_mode: message.caption ? 'HTML' : undefined,
+                    reply_markup: options.reply_markup,
                 });
                 break;
             case "text":
@@ -124,6 +127,7 @@ export class TelegramMessenger extends Messenger {
                     ...tgOptions,
                     caption: message.caption,
                     parse_mode: message.caption ? 'HTML' : undefined,
+                    reply_markup: options.reply_markup,
                 });
                 break;
             case "document":

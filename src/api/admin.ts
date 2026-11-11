@@ -401,7 +401,7 @@ async function regenerateSatQuiz(id: string) {
 
 // Steps within a scheduled word: index 0 is the intro, 1..n mirror WordSendHandlers
 // (see word-send-handlers.ts) — quiz, voice, image, flashcard, example.
-const WORD_STEP_LABELS = ['Intro', 'Word Quiz', 'Voice', 'Image', 'Flashcard', 'Example'];
+const WORD_STEP_LABELS = ['Flashcard', 'Voice', 'Writing', 'Word Quiz', 'SAT'];
 
 async function getChats(query: Record<string, string>) {
     const prisma = resolve(PrismaClient);

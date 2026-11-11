@@ -2,22 +2,21 @@ import {Canvas, createCanvas, CanvasRenderingContext2D} from "canvas";
 
 // Word repetition steps in send order (mirrors WordSendHandlers in word-send-handlers.ts):
 // index 0 of a word's `dates` is always the intro (newWords); indices 1..N map here.
-export const REPETITION_TYPES = ['wordQuiz', 'voice', 'image', 'card', 'example'] as const;
+export const REPETITION_TYPES = ['voice', 'writing', 'wordQuiz', 'sat'] as const;
 export type RepetitionType = typeof REPETITION_TYPES[number];
 
 export type HistogramBucket = {
     day: Date;
     newWords: number;
-    wordQuiz: number;
     voice: number;
-    image: number;
-    card: number;
-    example: number;
+    writing: number;
+    wordQuiz: number;
+    sat: number;
     quizzes: number;
 };
 
 function emptyBucket(day: Date): HistogramBucket {
-    return {day, newWords: 0, wordQuiz: 0, voice: 0, image: 0, card: 0, example: 0, quizzes: 0};
+    return {day, newWords: 0, voice: 0, writing: 0, wordQuiz: 0, sat: 0, quizzes: 0};
 }
 
 const dayMs = 86400 * 1000;
@@ -79,9 +78,8 @@ export function renderPlanHistogram(
 const COLOR_NEW = '#DE3C4C';
 const COLOR_WORD_QUIZ = '#FFB703';
 const COLOR_VOICE = '#8CC9E3';
-const COLOR_IMAGE = '#209DBA';
-const COLOR_CARD = '#6DA34E';
-const COLOR_EXAMPLE = '#BD408A';
+const COLOR_WRITING = '#209DBA';
+const COLOR_SAT = '#BD408A';
 const COLOR_QUIZ = '#F68201';
 const COLOR_AXIS = '#023046';
 const COLOR_GRID = '#B2C0C7';
@@ -90,11 +88,10 @@ const COLOR_BG = '#FFF';
 // Stacking order (bottom to top) and color for each layer of the plan histogram.
 const STACK: Array<{key: keyof Omit<HistogramBucket, 'day'>; label: string; color: string}> = [
     {key: 'newWords', label: 'new', color: COLOR_NEW},
-    {key: 'wordQuiz', label: 'wordQuiz', color: COLOR_WORD_QUIZ},
     {key: 'voice', label: 'voice', color: COLOR_VOICE},
-    {key: 'image', label: 'image', color: COLOR_IMAGE},
-    {key: 'card', label: 'card', color: COLOR_CARD},
-    {key: 'example', label: 'example', color: COLOR_EXAMPLE},
+    {key: 'writing', label: 'writing', color: COLOR_WRITING},
+    {key: 'wordQuiz', label: 'wordQuiz', color: COLOR_WORD_QUIZ},
+    {key: 'sat', label: 'sat', color: COLOR_SAT},
     {key: 'quizzes', label: 'quiz', color: COLOR_QUIZ},
 ];
 
@@ -229,14 +226,14 @@ function tracePath(ctx: CanvasRenderingContext2D, points: Array<{x: number; y: n
     ctx.lineTo(last.x, last.y);
 }
 
-const SUM_KEYS = ['newWords', 'wordQuiz', 'voice', 'image', 'card', 'example', 'quizzes'] as const;
+const SUM_KEYS = ['newWords', 'voice', 'writing', 'wordQuiz', 'sat', 'quizzes'] as const;
 
 function smoothBuckets(buckets: HistogramBucket[], window: number): HistogramBucket[] {
     if (buckets.length === 0) return buckets;
     const half = Math.floor(window / 2);
     return buckets.map((_, i) => {
         const sums: Record<typeof SUM_KEYS[number], number> = {
-            newWords: 0, wordQuiz: 0, voice: 0, image: 0, card: 0, example: 0, quizzes: 0,
+            newWords: 0, voice: 0, writing: 0, wordQuiz: 0, sat: 0, quizzes: 0,
         };
         let count = 0;
         for (let j = i - half; j <= i + half; j++) {
