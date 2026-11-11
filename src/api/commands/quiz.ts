@@ -52,17 +52,20 @@ export async function onQuizWrite(this: TelegrafApi, ctx: IncomingMessageEvent){
 export async function onQuizWriteAnswer(this: TelegrafApi, ctx: IncomingMessageEvent, data: {
     answer: string;
     accepted?: string[];
+    // The full sentence with the word in bold, shown with the verdict (writing step only).
+    sentence?: string;
 }){
     const message = await ctx.text();
     if (!message) return;
     await this.chatDatabase.updateChatState(ctx.chat.toString(), ChatState.initial);
     const accepted = (data.accepted ?? [data.answer]).map(normalizeWordText);
     const isRight = accepted.includes(normalizeWordText(message.text));
-    if (isRight){
-        return ctx.reply('Excellent!');
-    } else {
-        return ctx.reply(`You are wrong, right answer is \`${data.answer}\``);
-    }
+    const verdict = isRight
+        ? '🟢 Excellent!'
+        // /writeQuiz answers are user-entered memo text, so escape them for HTML.
+        : `🟠 May be better: it's <b>${data.answer.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</b>`;
+    const reply = data.sentence ? `${verdict}\n<i>${data.sentence}</i>` : verdict;
+    return ctx.reply(reply, {replyTo: ctx.id});
 }
 
 export async function onDbQuiz(this: TelegrafApi, ctx: IncomingMessageEvent) {

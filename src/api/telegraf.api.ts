@@ -101,32 +101,17 @@ export class TelegrafApi {
                         : null;
                     await this.messenger.send(chatId, content ?? `Failed generate content`, {disable_notification: skipNotification});
                 } else if (kind === 'word') {
-                    const dateIndex = message.invokeCounter + i;
+                    const step = message.invokeCounter + i;
                     const word = message.refId
                         ? (await resolve(WordsDatabase).getByIds([message.refId])).get(message.refId)
                         : undefined;
-                    if (dateIndex === 0 || !message.refId) {
-                        const content = word
-                            ? flashcard(word)
-                            : `<b>${message.content}</b>\n${message.details}`;
-                        const sentId = await this.messenger.send(chatId, content, {
+                    if (word) {
+                        await this.sendWordStep(chatId, word, step, message, skipNotification);
+                    } else if (step === 0) {
+                        await this.messenger.send(chatId, `<b>${message.content}</b>\n${message.details}`, {
                             disable_notification: skipNotification,
                             reply_markup: WORD_REPLY_KEYBOARD,
                         });
-                        if (word) await this.rememberWordMessages(chatId, [sentId], word);
-                    } else {
-                        const handler = WordSendHandlers[dateIndex - 1];
-                        if (!handler || !word) continue;
-                        const content = await this.logger.measure(
-                            () => handler({chatId, message, word}),
-                            'WordHandler.' + handler.name
-                        );
-                        const sentIds = Array.isArray(content)
-                            ? await this.sendPayloads(chatId, content, skipNotification)
-                            : content
-                                ? [await this.messenger.send(chatId, content, {disable_notification: skipNotification})]
-                                : [];
-                        await this.rememberWordMessages(chatId, sentIds, word);
                     }
                 } else if (kind === 'quiz') {
                     await this.sendNextQuiz(chatId, skipNotification);
@@ -136,6 +121,30 @@ export class TelegrafApi {
         if (tickFired) {
             await resolve(SrsPlanner).advance(chatId);
         }
+    }
+
+    // Step 0 is the flashcard intro (with the word reply keyboard), 1..n are WordSendHandlers.
+    async sendWordStep(chatId: string, word: Word, step: number, message: Message, skipNotification = false): Promise<void> {
+        let sentIds: Array<number | undefined>;
+        if (step === 0) {
+            sentIds = [await this.messenger.send(chatId, flashcard(word), {
+                disable_notification: skipNotification,
+                reply_markup: WORD_REPLY_KEYBOARD,
+            })];
+        } else {
+            const handler = WordSendHandlers[step - 1];
+            if (!handler) return;
+            const content = await this.logger.measure(
+                () => handler({chatId, message, word}),
+                'WordHandler.' + handler.name
+            );
+            sentIds = Array.isArray(content)
+                ? await this.sendPayloads(chatId, content, skipNotification)
+                : content
+                    ? [await this.messenger.send(chatId, content, {disable_notification: skipNotification})]
+                    : [];
+        }
+        await this.rememberWordMessages(chatId, sentIds, word);
     }
 
     // Part 2 of the SRS plan (post-peak): quiz the user on a word they've already learned

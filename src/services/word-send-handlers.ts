@@ -138,6 +138,7 @@ const writingHandler: WordSendHandler = async function writingHandler(ctx) {
     await resolve(PrismaStorage).updateChatState(chatId, ChatState.writeQuiz, {
         answer: blank.answer,
         accepted: [blank.answer, word.word],
+        sentence: boldWord(example, blank.answer),
     });
     const caption = `✍️ Write the missing word\n<i>${blank.text}</i>`;
     if (!image) return caption;
