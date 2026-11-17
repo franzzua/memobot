@@ -10,6 +10,9 @@ import {DataStore} from "../scheduler/storage/dataStore";
 import {PrismaStorage} from "../db/prismaStorage";
 import {Scheduler} from "../scheduler/scheduler";
 import {TaskScheduler} from "../db/task.scheduler";
+import {DuelDeps, handleDuelRequest, isDuelRequest, Notifier} from "../duel/api";
+import {duelDeps, openGameButton} from "../duel/wiring";
+import {TelegramMessenger} from "../messengers/tg/telegram.messenger";
 
 let tgLoad: Promise<TelegrafApi>;
 di.factory(PrismaClient, prismaFactory)
@@ -30,9 +33,28 @@ export function init(){
     tgLoad = initTelegram();
 }
 
+// "Your move" messages for Word Duel go through the bot's Telegraf client.
+const duelNotifier: Notifier = {
+    async send(userId, html, duelId, replaces) {
+        const bot = ((await (tgLoad ??= initTelegram())).messenger as TelegramMessenger).tg.telegram;
+        if (replaces) await bot.deleteMessage(userId, replaces).catch(() => undefined);
+        const msg = await bot.sendMessage(userId, html, {parse_mode: 'HTML', reply_markup: openGameButton(duelId)});
+        return msg.message_id;
+    },
+    async botUsername() {
+        const tg = ((await (tgLoad ??= initTelegram())).messenger as TelegramMessenger).tg;
+        return tg.botInfo?.username ?? (tg.botInfo = await tg.telegram.getMe()).username;
+    },
+};
+let duel: DuelDeps | undefined;
+export const getDuelDeps = () => duel ??= duelDeps(duelNotifier);
+
 export const telegram = baseFunction('telegram', async (req, res) => {
     if (req && res && isAdminRequest(req.path)) {
         return handleAdminRequest(req, res);
+    }
+    if (req && res && isDuelRequest(req.path)) {
+        return handleDuelRequest(req, res, getDuelDeps());
     }
     const tg = await (tgLoad ??= initTelegram());
     if (req && res) {

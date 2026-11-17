@@ -1,5 +1,6 @@
 import { TelegrafApi } from "../telegraf.api";
 import {IncomingMessageEvent} from "../../messengers/messenger";
+import {duelInvite} from "./duel";
 
 
 const startText = `
@@ -29,6 +30,9 @@ Easy memorisation is just a click away.
 
 export async function start(this: TelegrafApi, ctx: IncomingMessageEvent) {
     await setChatFromContext.call(this, ctx);
+    const payload = (await ctx.text())?.text.split(/\s+/)[1] ?? '';
+    if (payload.startsWith('duel_'))
+        return duelInvite.call(this, ctx, payload.slice('duel_'.length));
     return ctx.reply(startText)
 }
 
