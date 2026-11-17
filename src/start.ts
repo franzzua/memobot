@@ -3,7 +3,8 @@ import {di} from "@cmmn/core";
 import {Logger} from "./logger/logger";
 import {ConsoleLogger} from "./logger/console.logger";
 import process from "node:process";
-import {init, telegram} from "./functions/telegram";
+import {getDuelDeps, init, telegram} from "./functions/telegram";
+import {DUEL_PATH, handleDuelRequest} from "./duel/api";
 import {seedData} from "../prisma/seed";
 import {registerAdminRoutes} from "./api/admin";
 
@@ -13,6 +14,20 @@ init();
 async function initApp() {
     const app = fastify({});
     registerAdminRoutes(app);
+    // Word Duel mini app: same raw-response handoff as the admin routes.
+    for (const url of [DUEL_PATH, DUEL_PATH + '/*']) {
+        app.route({
+            method: ['GET', 'POST'],
+            url,
+            handler: async (req: any, res: any) => {
+                await handleDuelRequest(
+                    {path: req.url.split('?')[0], method: req.method, body: req.body},
+                    res.raw,
+                    getDuelDeps(),
+                );
+            },
+        });
+    }
     app.all('/*', (req, res) => {
         return telegram({
             body: req.body,

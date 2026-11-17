@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word Duel</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Word Duel mini app. Layout: one phone column — scores, status, 8×12 board, study words, banked words. */
+:root {
+  --bg: #eceff5; --surface: #ffffff; --ink: #1a2132; --muted: #687186; --line: #d5dae5;
+  --tile: #f8f9fc; --tile-ink: #222a3c;
+  --p1: #2f5bd3; --p1-soft: #dce5fb; --p2: #d9581c; --p2-soft: #fbe2d4; --on-player: #ffffff;
+  --good: #188a56;
+  --font-display: "Lexend", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0e1220; --surface: #171c2c; --ink: #e8ecf4; --muted: #929bb0; --line: #2a3248;
+  --tile: #1f2639; --tile-ink: #e8ecf4;
+  --p1: #6f92f2; --p1-soft: #1f2b52; --p2: #f08a55; --p2-soft: #47291b; --on-player: #0e1220;
+  --good: #3fcf8b; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg); color: var(--ink); font: 15px/1.4 var(--font-body);
+  padding: max(12px, env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) max(28px, env(safe-area-inset-bottom, 0px)) max(14px, env(safe-area-inset-left, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; }
+button:focus-visible, summary:focus-visible { outline: 2px solid var(--p1); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.app { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.logo { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 34px; height: 34px; flex: none; }
+.logo span { border-radius: 4px; font: 700 11px/1 var(--font-display); display: grid; place-items: center; color: var(--on-player); }
+.logo span:nth-child(1), .logo span:nth-child(4) { background: var(--p1); }
+.logo span:nth-child(2), .logo span:nth-child(3) { background: var(--p2); }
+h1 { font: 700 21px/1.1 var(--font-display); margin: 0; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.card { background: var(--surface); border-radius: 12px; padding: 12px; }
+h2 { font: 700 12px/1 var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 10px; }
+
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 12px; padding: 13px 14px; font-weight: 800; cursor: pointer; text-align: center; }
+.btn.primary { background: var(--p1); border-color: var(--p1); color: var(--on-player); font: 700 16px/1 var(--font-display); }
+.btn.go { background: var(--good); border-color: var(--good); color: var(--surface); font: 700 16px/1 var(--font-display); }
+.btn:disabled { opacity: .5; cursor: default; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.games { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.games button { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--bg); }
+.games button:focus-visible { outline: 2px solid var(--p1); }
+.games .who { font-weight: 800; }
+.games .meta { color: var(--muted); font-size: 13px; }
+.games .score { font: 700 16px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.pill { font: 800 11px/1 var(--font-body); padding: 4px 7px; border-radius: 999px; background: var(--good); color: var(--surface); margin-left: 6px; vertical-align: 1px; }
+.empty { color: var(--muted); font-size: 14px; }
+
+.score { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pl { background: var(--surface); border-radius: 12px; padding: 9px 12px; border: 2px solid transparent; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pl.active.p1 { border-color: var(--p1); } .pl.active.p2 { border-color: var(--p2); }
+.pl-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.pl-name { font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-name i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.p1 .pl-name i { background: var(--p1); } .p2 .pl-name i { background: var(--p2); }
+.pl-score { font: 700 26px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.pl-meta { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.status { background: var(--surface); border-radius: 12px; padding: 10px 12px; color: var(--muted); font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+.status b { color: var(--ink); }
+.toast:not(:empty) { background: var(--ink); color: var(--bg); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
+.toast b { font-family: var(--font-display); letter-spacing: .04em; }
+
+.boardwrap { position: relative; width: 100%; aspect-ratio: 8 / 12; background: var(--surface); border-radius: 14px; padding: 4px; }
+.board { position: relative; width: 100%; height: 100%; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(12, 1fr); }
+.cell { position: relative; border: 0; background: transparent; padding: 0; cursor: pointer; touch-action: manipulation; }
+.cell:disabled { cursor: default; }
+.tile { position: absolute; inset: 2px; border-radius: 7px; background: var(--tile); border: 1px solid var(--line); display: grid; place-items: center;
+  font: 600 clamp(15px, 5vw, 23px)/1 var(--font-display); color: var(--tile-ink); transition: transform .15s; }
+.tile .n { position: absolute; top: 2px; left: 4px; font: 700 9px/1 var(--font-body); opacity: .75; }
+.cell.claim0 .tile { background: var(--p1-soft); border: 2px solid var(--p1); }
+.cell.claim1 .tile { background: var(--p2-soft); border: 2px solid var(--p2); }
+.cell.own0 .tile { background: var(--p1); border-color: var(--p1); color: var(--on-player); }
+.cell.own1 .tile { background: var(--p2); border-color: var(--p2); color: var(--on-player); }
+.cell.pending .tile { opacity: .55; }
+.cell.recent .tile::after { content: ""; position: absolute; right: 3px; top: 3px; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .6; }
+.cell.flash .tile { outline: 3px solid var(--good); outline-offset: -1px; animation: flash 1.2s ease-out 2; }
+.cell.reveal .tile { outline: 3px solid var(--good); outline-offset: -1px; }
+.cell.shake .tile { animation: shake .25s; }
+@keyframes flash { 0% { transform: scale(1); } 20% { transform: scale(1.14); } 45% { transform: scale(1); } }
+@keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.lines { position: absolute; inset: 4px; width: calc(100% - 8px); height: calc(100% - 8px); pointer-events: none; overflow: visible; }
+
+.banked { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.wlist li { display: flex; justify-content: space-between; gap: 6px; font: 600 14px/1.2 var(--font-display); letter-spacing: .04em; }
+.wlist li span:last-child { font-variant-numeric: tabular-nums; color: var(--muted); }
+.x2 { font: 800 10px/1 var(--font-body); background: var(--good); color: var(--surface); padding: 2px 5px; border-radius: 4px; margin-left: 4px; letter-spacing: 0; vertical-align: 2px; }
+
+.study ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.study li, .study li button { display: flex; flex-direction: column; gap: 1px; }
+.study li button { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 1px; }
+.study .w { font: 700 15px/1.2 var(--font-display); letter-spacing: .06em; }
+.study .lock { color: var(--muted); font: 600 15px/1.2 var(--font-display); letter-spacing: .2em; }
+.study .d { color: var(--muted); font-size: 13px; }
+.study .by { font-size: 12px; font-weight: 800; }
+.study .by.p1 { color: var(--p1); } .study .by.p2 { color: var(--p2); } .study .by.none { color: var(--muted); }
+
+.result { background: var(--ink); color: var(--bg); border-radius: 14px; padding: 14px 16px; }
+.result h2 { font: 700 22px/1.15 var(--font-display); color: inherit; text-transform: none; letter-spacing: 0; margin: 0 0 4px; }
+.result p { margin: 0; font-size: 14px; opacity: .8; }
+
+.rules summary { cursor: pointer; font-weight: 800; }
+.rules ul { margin: 8px 0 2px; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.notice { text-align: center; padding: 40px 12px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .tile { transition: none; } .cell.flash .tile, .cell.shake .tile { animation: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="brand">
+    <div class="logo" aria-hidden="true"><span>W</span><span>O</span><span>R</span><span>D</span></div>
+    <div><h1>Word Duel</h1><p class="sub">Memobot</p></div>
+  </header>
+
+  <div class="notice" id="notice" hidden></div>
+
+  <!-- Game list -->
+  <section id="lobby" hidden>
+    <div class="app">
+      <div class="row2">
+        <button class="btn primary" id="newBot">Play the bot</button>
+        <button class="btn" id="newFriend">Challenge a friend</button>
+      </div>
+      <div class="card">
+        <h2>Your games</h2>
+        <ul class="games" id="games"></ul>
+      </div>
+      <details class="card rules">
+        <summary>How to play</summary>
+        <ul id="rulesList"></ul>
+      </details>
+    </div>
+  </section>
+
+  <!-- One game -->
+  <section id="game" hidden>
+    <div class="app">
+      <div class="score"><div class="pl p1" id="pl0"></div><div class="pl p2" id="pl1"></div></div>
+      <div class="result" id="result" hidden></div>
+      <div class="status" id="status"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="boardwrap">
+        <div class="board" id="board"></div>
+        <svg class="lines" id="lines" viewBox="0 0 8 12" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+      <section class="card study" id="study"></section>
+      <section class="banked">
+        <div class="card"><h2 id="bh0"></h2><ul class="wlist" id="bw0"></ul></div>
+        <div class="card"><h2 id="bh1"></h2><ul class="wlist" id="bw1"></ul></div>
+      </section>
+      <details class="card rules">
+        <summary>How to play</summary>
+        <ul id="rulesList2"></ul>
+      </details>
+    </div>
+  </section>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+const initData = tg?.initData || "";
+const BASE = location.pathname.replace(/\/$/, "");
+const COLS = 8, ROWS = 12;
+const RULES = [
+  "On your turn, tap <b>one free tile</b> anywhere on the board. That ends your turn.",
+  "A word is a chain of <b>5+ tiles</b> touching up, down, left or right. No diagonals. It reads in either direction.",
+  "You can take a word's tiles in any order. When you take its last tile, the word is <b>banked automatically</b>.",
+  "Both players' tiles are visible. To block, take a tile your opponent needs.",
+  "1 point per letter. <b>Study words</b> hidden on the board score double. Words of 9+ letters get +5.",
+  "24 turns each. Tiles that aren't part of a banked word score nothing.",
+];
+document.getElementById("rulesList").innerHTML = document.getElementById("rulesList2").innerHTML = RULES.map(r => `<li>${r}</li>`).join("");
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+function applyTheme() {
+  const dark = tg?.colorScheme ? tg.colorScheme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+  tg?.setHeaderColor?.(dark ? "#0e1220" : "#eceff5");
+  tg?.setBackgroundColor?.(dark ? "#0e1220" : "#eceff5");
+}
+applyTheme();
+tg?.onEvent?.("themeChanged", applyTheme);
+tg?.ready();
+tg?.expand();
+
+async function api(action, body = {}) {
+  const r = await fetch(`${BASE}/api/${action}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({...body, initData}),
+  });
+  const data = await r.json().catch(() => ({error: "Something went wrong. Try again."}));
+  if (!r.ok) throw Object.assign(new Error(data.error), {status: r.status});
+  return data;
+}
+
+function show(view) {
+  for (const id of ["lobby", "game", "notice"]) $(id).hidden = id !== view;
+  if (view === "game") { tg?.BackButton?.show(); } else { tg?.BackButton?.hide(); }
+}
+function notice(text) { $("notice").textContent = text; show("notice"); }
+
+// ---------- lobby ----------
+async function openLobby() {
+  stopPolling();
+  game = null;
+  history.replaceState(null, "", BASE);
+  show("lobby");
+  $("games").innerHTML = `<li class="empty">Loading…</li>`;
+  try {
+    const {games} = await api("games");
+    $("games").innerHTML = games.length ? games.map(g => {
+      const who = g.opponent ? `vs ${esc(g.opponent)}` : "Waiting for a friend";
+      const state = g.status === "over" ? (g.you > g.them ? "You won" : g.you < g.them ? "You lost" : "Draw")
+        : g.status === "waiting" ? "Invite sent" : g.yourTurn ? "" : "Their move";
+      return `<li><button data-game="${esc(g.id)}"><span><span class="who">${who}</span>${g.yourTurn ? '<span class="pill">Your move</span>' : ""}<br><span class="meta">${state}</span></span><span class="score">${g.you}–${g.them}</span></button></li>`;
+    }).join("") : `<li class="empty">No games yet. Play the bot to learn the rules, then challenge a friend.</li>`;
+  } catch (e) { $("games").innerHTML = `<li class="empty">${esc(e.message)}</li>`; }
+}
+$("games").addEventListener("click", e => { const b = e.target.closest("[data-game]"); if (b) openGame(b.dataset.game); });
+$("newBot").onclick = () => createGame(true);
+$("newFriend").onclick = () => createGame(false);
+async function createGame(vsBot) {
+  $("newBot").disabled = $("newFriend").disabled = true;
+  try { const v = await api("new", {vsBot}); enterGame(v); if (!vsBot) shareInvite(); }
+  catch (e) { tg?.showAlert ? tg.showAlert(e.message) : alert(e.message); }
+  finally { $("newBot").disabled = $("newFriend").disabled = false; }
+}
+
+// ---------- game ----------
+let game = null, seenMoves = 0, flash = [], reveal = -1, pending = -1, pollTimer = null, toastTimer = null;
+
+function buildBoard() {
+  const board = $("board");
+  board.innerHTML = "";
+  for (let i = 0; i < COLS * ROWS; i++) {
+    const b = document.createElement("button");
+    b.className = "cell"; b.type = "button";
+    b.appendChild(document.createElement("span")).className = "tile";
+    b.addEventListener("click", () => onCell(i));
+    board.appendChild(b);
+  }
+}
+buildBoard();
+
+async function openGame(id) {
+  show("game");
+  try { enterGame(await api("game", {id})); }
+  catch (e) { notice(e.message); }
+}
+function enterGame(v) {
+  game = null; seenMoves = Math.max(0, v.state.moves.length - 1); reveal = -1; pending = -1;
+  history.replaceState(null, "", `${BASE}?game=${encodeURIComponent(v.id)}`);
+  show("game");
+  update(v);
+}
+
+const name = (v, k) => v.you === k ? "You" : v.players[k].name;
+
+// New moves since the last render: highlight words banked in them and say what happened.
+function update(v) {
+  const moves = v.state.moves.slice(seenMoves);
+  seenMoves = v.state.moves.length;
+  if (moves.length) {
+    flash = moves.flatMap(m => m.banked);
+    const said = flash.map(b => {
+      const who = name(v, b.player);
+      const meaning = b.study ? ` Study word: ${esc(v.state.hidden.find(h => h.word === b.word)?.desc ?? "")}.` : "";
+      return `${esc(who)} banked <b>${esc(b.word)}</b> (+${b.pts}).${meaning}`;
+    });
+    if (said.length) {
+      say(said.join("<br>"));
+      if (flash.some(b => b.player === v.you)) tg?.HapticFeedback?.notificationOccurred("success");
+    }
+  }
+  game = v;
+  render();
+  schedulePoll();
+}
+
+function say(html) {
+  $("toast").innerHTML = html;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $("toast").innerHTML = ""; }, 6000);
+}
+
+const myTurn = () => game && game.status === "active" && game.you !== null && game.state.turn === game.you && pending < 0;
+
+async function onCell(i) {
+  if (!game) return;
+  const g = game.state.grid[i];
+  if (!myTurn() || g.owner >= 0) { shake(i); return; }
+  pending = i;
+  tg?.HapticFeedback?.impactOccurred("light");
+  render();
+  try { const v = await api("take", {id: game.id, cell: i, version: game.version}); pending = -1; update(v); }
+  catch (e) {
+    pending = -1;
+    say(esc(e.message));
+    if (e.status === 409) { try { update(await api("game", {id: game.id})); } catch {} } else render();
+  }
+}
+function shake(i) { const el = $("board").children[i]; el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); }
+
+async function joinGame() {
+  try { const v = await api("join", {id: game.id}); seenMoves = v.state.moves.length; update(v); }
+  catch (e) { say(esc(e.message)); }
+}
+function shareInvite() {
+  if (!game?.invite) return;
+  const url = `https://t.me/share/url?url=${encodeURIComponent(game.invite)}&text=${encodeURIComponent("Play Word Duel with me! Build words, block mine.")}`;
+  if (tg?.openTelegramLink) tg.openTelegramLink(url); else window.open(url, "_blank");
+}
+
+function render() {
+  const v = game; if (!v) return;
+  const s = v.state;
+  const lastMove = s.moves[s.moves.length - 1];
+  const flashCells = new Map();
+  flash.forEach(b => b.cells.forEach((c, k) => flashCells.set(c, k)));
+  const revealCells = reveal >= 0 && s.hidden[reveal].cells ? s.hidden[reveal].cells : [];
+  const canTake = myTurn();
+  const board = $("board");
+  s.grid.forEach((g, i) => {
+    const el = board.children[i];
+    el.className = "cell " + [
+      i === pending ? `claim${v.you} pending` : g.owner < 0 ? "free" : (g.banked ? "own" : "claim") + g.owner,
+      flashCells.has(i) ? "flash" : "",
+      lastMove && lastMove.cell === i && !v.state.over ? "recent" : "",
+      revealCells.includes(i) ? "reveal" : "",
+    ].join(" ");
+    el.disabled = !canTake && !flashCells.has(i);
+    el.firstChild.innerHTML = esc(g.ch) + (flashCells.has(i) ? `<span class="n">${flashCells.get(i) + 1}</span>` : "");
+    el.setAttribute("aria-label", `${g.ch}, row ${Math.floor(i / COLS) + 1}, column ${i % COLS + 1}${g.owner >= 0 ? `, taken by ${name(v, g.owner)}` : ""}`);
+  });
+  let svg = "";
+  for (const b of flash) for (let j = 1; j < b.cells.length; j++) {
+    const a = b.cells[j - 1], c = b.cells[j];
+    const ax = a % COLS + .5, ay = Math.floor(a / COLS) + .5, cx = c % COLS + .5, cy = Math.floor(c / COLS) + .5;
+    const dx = cx - ax, dy = cy - ay, t = .36;
+    svg += `<line x1="${ax + dx * t}" y1="${ay + dy * t}" x2="${cx - dx * t}" y2="${cy - dy * t}" stroke="var(--good)" stroke-width=".12" stroke-linecap="round"/>`;
+  }
+  $("lines").innerHTML = svg;
+
+  [0, 1].forEach(k => {
+    const el = $("pl" + k);
+    el.classList.toggle("active", v.status === "active" && s.turn === k);
+    el.innerHTML = `<div class="pl-head"><span class="pl-name"><i></i>${esc(name(v, k))}</span><span class="pl-score">${s.scores[k]}</span></div>
+      <div class="pl-meta">${s.turnsLeft[k]} turns left</div>`;
+    const words = s.words.filter(w => w.player === k);
+    $("bh" + k).textContent = `${name(v, k)}'s words`;
+    $("bw" + k).innerHTML = words.length
+      ? words.map(w => `<li><span>${esc(w.word)}${w.study ? '<span class="x2">×2</span>' : ""}</span><span>+${w.pts}</span></li>`).join("")
+      : `<li class="empty">None yet</li>`;
+  });
+
+  const other = v.you === null ? null : name(v, v.you ^ 1);
+  let status;
+  if (v.canJoin) status = `<span><b>${esc(v.players[0].name)}</b> challenged you to Word Duel.</span><button class="btn go" id="joinBtn">Join the game</button>`;
+  else if (v.status === "waiting") status = `<span>Waiting for your friend to join. Send them the invite link; you move first once they're in.</span><button class="btn primary" id="inviteBtn">Send invite</button>`;
+  else if (v.status === "over") status = "Game over. Tap a study word below to see where it was hidden.";
+  else if (v.you === null) status = "You're watching this game.";
+  else if (pending >= 0) status = "Taking the tile…";
+  else if (s.turn === v.you) status = `<span><b>Your move:</b> tap any free tile.</span>`;
+  else status = `Waiting for ${esc(other)}…`;
+  $("status").innerHTML = status;
+  $("joinBtn")?.addEventListener("click", joinGame);
+  $("inviteBtn")?.addEventListener("click", shareInvite);
+
+  const found = s.hidden.filter(h => h.by >= 0).length;
+  $("study").innerHTML = `<h2>Study words on the board · ${found}/${s.hidden.length} banked</h2><ul>` + s.hidden.map((h, k) => {
+    if (!h.word) return `<li><span class="lock">${"•".repeat(h.length)}</span><span class="d">${h.length} letters · ${esc(h.desc)}</span></li>`;
+    const by = h.by >= 0 ? `<span class="by p${h.by + 1}">Banked by ${esc(name(v, h.by))}</span>` : `<span class="by none">Nobody banked it</span>`;
+    return `<li><button data-reveal="${k}"><span class="w">${esc(h.word)}</span><span class="d">${esc(h.desc)}</span>${by}</button></li>`;
+  }).join("") + "</ul>";
+
+  const res = $("result");
+  res.hidden = v.status !== "over";
+  if (v.status === "over") {
+    const [a, b] = s.scores;
+    const me = v.you ?? 0, mine = s.scores[me], theirs = s.scores[me ^ 1];
+    const head = mine === theirs ? `Draw, ${a}–${b}` : v.you === null ? `${esc(name(v, a > b ? 0 : 1))} won, ${Math.max(a, b)}–${Math.min(a, b)}`
+      : mine > theirs ? `You won, ${mine}–${theirs}` : `${esc(other)} won, ${theirs}–${mine}`;
+    res.innerHTML = `<h2>${head}</h2><p>${found} of ${s.hidden.length} study words banked. Their meanings are below.</p>`;
+  }
+}
+$("study").addEventListener("click", e => {
+  const b = e.target.closest("[data-reveal]");
+  if (!b) return;
+  const k = +b.dataset.reveal;
+  reveal = reveal === k ? -1 : k;
+  render();
+});
+
+// While it's the other player's move (or we wait for them to join), check for news.
+function schedulePoll() {
+  stopPolling();
+  if (!game || game.vsBot || game.status === "over") return;
+  if (game.status === "active" && game.state.turn === game.you) return;
+  pollTimer = setTimeout(async () => {
+    if (document.visibilityState === "visible" && game) {
+      try {
+        const v = await api("game", {id: game.id});
+        if (v.version !== game.version) { if (v.status === "active" && game.status === "waiting") seenMoves = v.state.moves.length; update(v); return; }
+      } catch {}
+    }
+    schedulePoll();
+  }, 3000);
+}
+function stopPolling() { clearTimeout(pollTimer); pollTimer = null; }
+
+tg?.BackButton?.onClick(openLobby);
+
+// ---------- start ----------
+if (!initData) {
+  notice("Open Word Duel from the Memobot bot in Telegram: send /duel.");
+} else {
+  const id = new URLSearchParams(location.search).get("game") || (tg.initDataUnsafe?.start_param || "").replace(/^duel_/, "");
+  if (id) openGame(id); else openLobby();
+}
+</script>
+</body>
+</html>

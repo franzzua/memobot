@@ -87,3 +87,23 @@ model Quiz {
   correct    Int
   index      Int
 }
+
+// A Word Duel game (Telegram mini app). The board and moves live in `state` (see
+// src/duel/engine.ts); `version` guards against two players or instances saving at once.
+model Duel {
+  id            String   @id @default(uuid(7))
+  player0       String
+  name0         String
+  player1       String?
+  name1         String?
+  vsBot         Boolean  @default(false)
+  status        String
+  state         Json
+  notifications Json?
+  version       Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([player0, updatedAt])
+  @@index([player1, updatedAt])
+}

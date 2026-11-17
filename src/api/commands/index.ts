@@ -21,6 +21,7 @@ import {plan} from "./plan";
 import {forceNext} from "./forceNext";
 import {histo} from "./histo";
 import {steps} from "./steps";
+import {duel} from "./duel";
 
 export const commands = {
     new: onNewCommand,
@@ -43,7 +44,7 @@ export const commands = {
     satQuiz: onDbQuiz,
     wipe: wipe,
     image, voice, next,
-    spoiler, actions, word, init, plan, forceNext, histo, steps
+    spoiler, actions, word, init, plan, forceNext, histo, steps, duel
 } as Record<string, Command>;
 
 export const callbacks: Record<string, Callback> = {
